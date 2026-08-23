@@ -16,11 +16,11 @@ Future<void> main() async {
     publishableKey: Env.supabaseAnonKey,
   );
 
-  runApp(BlocProvider(create: (_) => ThemeCubit(), child: const MyApp()));
+  runApp(BlocProvider(create: (_) => ThemeCubit(), child: const La2eeha()));
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class La2eeha extends StatelessWidget {
+  const La2eeha({super.key});
 
   @override
   Widget build(BuildContext context) {

@@ -8,15 +8,17 @@ import '../../domain/entities/category.dart';
 class CategoryModel extends Category {
   const CategoryModel({
     required super.id,
-    required super.name,
+    required super.nameAr,
+    required super.nameEn,
     required super.icon,
   });
 
   // بيحول الـ JSON اللي راجع من Supabase لكائن CategoryModel
   factory CategoryModel.fromJson(Map<String, dynamic> json) {
     return CategoryModel(
-      id: json['id'] as String,
-      name: json['name'] as String,
+      id: json['id'] as int,
+      nameAr: json['name_ar'] as String,
+      nameEn: json['name_en'] as String,
       icon: json['icon'] as String,
     );
   }
@@ -26,8 +28,9 @@ class CategoryModel extends Category {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'name': name,
+      'name_ar': nameAr,
+      'name_en': nameEn,
       'icon': icon,
     };
   }
-}
+}
