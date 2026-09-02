@@ -163,6 +163,22 @@ extension ResponsiveContext on BuildContext {
     return 1.0;
   }
 
+  /// عدد أعمدة شبكة الكاتيجوري (HomeView)
+  int get categoryGridColumns {
+    if (isSmallPhone) return 3;
+    if (isMobile) return 4;
+    if (isLargeMobile) return 5;
+    return 6; // tablet, largeTablet, desktop
+  }
+
+  /// نسبة العرض للارتفاع لبلاط الكاتيجوري (أيقونة + تسمية)
+  double get categoryGridAspectRatio {
+    if (isSmallPhone) return 0.80;
+    if (isMobile) return 0.85;
+    if (isLargeMobile) return 0.90;
+    return 0.95; // tablet+
+  }
+
   // ════════════════════════════════════════════════════════════
   // FONT SCALE (للنصوص)
   // ════════════════════════════════════════════════════════════
@@ -251,4 +267,103 @@ extension ResponsiveContext on BuildContext {
 
   /// ارتفاع الكيبورد
   double get keyboardHeight => MediaQuery.of(this).viewInsets.bottom;
+
+  // ════════════════════════════════════════════════════════════
+  // COMPONENT-SPECIFIC SIZES
+  // ════════════════════════════════════════════════════════════
+
+  /// حجم الـ Icon الصغير جداً (13–14px range)
+  double get tinyIconSize => (14.r * uiScale).clamp(12, 18);
+
+  /// حجم بادج الترتيب (MostVisitedCard)
+  double get rankBadgeSize {
+    if (isSmallPhone) return 18.r;
+    if (isMobile) return 20.r;
+    return 24.r;
+  }
+
+  /// حجم حاوية الأيقونة في الكروت (BusinessOwnerCard)
+  double get cardIconContainerSize {
+    if (isSmallPhone) return 36.r;
+    if (isMobile) return 40.r;
+    return 48.r;
+  }
+
+  /// حجم الأيقونة داخل حاوية الكروت
+  double get cardIconSize {
+    if (isSmallPhone) return 18.r;
+    if (isMobile) return 20.r;
+    return 24.r;
+  }
+
+  /// عرض كارت الأكثر زيارة (horizontal list)
+  double get mostVisitedCardWidth {
+    if (isSmallPhone) return 120.w;
+    if (isMobile) return 140.w;
+    if (isLargeMobile) return 160.w;
+    return 180.w; // tablet+
+  }
+
+  /// ارتفاع كاروسيل الأكثر زيارة (عشان الـ horizontal ListView يحتاج ارتفاع صريح)
+  double get mostVisitedCarouselHeight {
+    if (isSmallPhone) return 190.h;
+    if (isMobile) return 180.h;
+    if (isLargeMobile) return 230.h;
+    return 250.h; // tablet+
+  }
+
+  /// ارتفاع هيدر كارت الأكثر زيارة
+  double get mostVisitedHeaderHeight => (screenHeight * 0.085).clamp(60, 90);
+
+  /// ارتفاع ثابت لعنوان كارت الأكثر زيارة (يحجز مساحة سطرين دايمًا)
+  double get mostVisitedTitleHeight {
+    final fontSize = (14.sp * fontScale).clamp(12.sp, 16.sp);
+    return fontSize * 1.3 * 2; // line-height factor × 2 lines
+  }
+
+  // ════════════════════════════════════════════════════════════
+  // BOTTOM SHEET
+  // ════════════════════════════════════════════════════════════
+
+  /// عرض مقبض السحب في Bottom Sheet
+  double get bottomSheetDragHandleWidth {
+    if (isSmallPhone) return 32.w;
+    if (isMobile) return 36.w;
+    return 44.w;
+  }
+
+  /// ارتفاع مقبض السحب في Bottom Sheet
+  double get bottomSheetDragHandleHeight => 4.h;
+
+  // ════════════════════════════════════════════════════════════
+  // SKELETON PLACEHOLDER SIZES
+  // ════════════════════════════════════════════════════════════
+
+  /// عرض عظمة عنوان السكيليتون
+  double get skeletonTitleWidth {
+    if (isSmallPhone) return 90.w;
+    if (isMobile) return 110.w;
+    return 130.w;
+  }
+
+  /// عرض عظمة عنوان السكيليتون القصير
+  double get skeletonTitleWidthShort {
+    if (isSmallPhone) return 70.w;
+    if (isMobile) return 90.w;
+    return 110.w;
+  }
+
+  /// ارتفاع عظمة النص في السكيليتون
+  double get skeletonTextHeight {
+    if (isSmallPhone) return 8.r;
+    if (isMobile) return 10.r;
+    return 14.r;
+  }
+
+  /// ارتفاع عظمة كارت المكان في السكيليتون
+  double get skeletonPlaceCardHeight {
+    if (isSmallPhone) return 80.r;
+    if (isMobile) return 90.r;
+    return 110.r;
+  }
 }

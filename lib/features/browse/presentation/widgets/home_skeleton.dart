@@ -8,7 +8,6 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/extensions/extensions.dart';
-import '../../../../core/extensions/theme_extension.dart';
 
 class HomeSkeleton extends StatelessWidget {
   const HomeSkeleton({super.key});
@@ -29,7 +28,7 @@ class HomeSkeleton extends StatelessWidget {
             physics: const NeverScrollableScrollPhysics(),
             mainAxisSpacing: context.smallSpacing,
             crossAxisSpacing: context.smallSpacing,
-            childAspectRatio: 0.85,
+            childAspectRatio: context.categoryGridAspectRatio,
             children: List.generate(
               8,
               (_) => Column(
@@ -41,7 +40,7 @@ class HomeSkeleton extends StatelessWidget {
                     radius: context.largeRadius,
                   ),
                   6.vSpace,
-                  _Bone(width: 40, height: 10),
+                  _Bone(width: context.smallAvatarSize, height: context.skeletonTextHeight),
                 ],
               ),
             ),
@@ -49,24 +48,29 @@ class HomeSkeleton extends StatelessWidget {
           context.largeSpacing.vSpace,
           Align(
             alignment: AlignmentDirectional.centerStart,
-            child: _Bone(width: 110, height: 18),
+            child: _Bone(width: context.skeletonTitleWidth, height: context.mediumSpacing),
           ),
           context.smallSpacing.vSpace,
-          SizedBox(
-            height: 168,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: 3,
-              separatorBuilder: (_, __) => 10.hSpace,
-              itemBuilder: (_, __) =>
-                  _Bone(width: 132, height: 168, radius: context.mediumRadius),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            physics: const NeverScrollableScrollPhysics(),
+            child: Row(
+              children: [
+                for (int i = 0; i < 3; i++) ...[
+                  if (i > 0) context.smallSpacing.hSpace,
+                  _Bone(
+                    width: context.mostVisitedCardWidth,
+                    height: context.mostVisitedHeaderHeight + context.cardPadding.vertical + context.mediumSpacing * 3,
+                    radius: context.mediumRadius,
+                  ),
+                ],
+              ],
             ),
           ),
           context.largeSpacing.vSpace,
           Align(
             alignment: AlignmentDirectional.centerStart,
-            child: _Bone(width: 90, height: 18),
+            child: _Bone(width: context.skeletonTitleWidthShort, height: context.mediumSpacing),
           ),
           context.smallSpacing.vSpace,
           ...List.generate(
@@ -75,7 +79,7 @@ class HomeSkeleton extends StatelessWidget {
               padding: EdgeInsets.only(bottom: context.smallSpacing),
               child: _Bone(
                 width: double.infinity,
-                height: 96,
+                height: context.skeletonPlaceCardHeight,
                 radius: context.mediumRadius,
               ),
             ),
@@ -91,7 +95,7 @@ class _Bone extends StatelessWidget {
   final double height;
   final double radius;
 
-  const _Bone({required this.width, required this.height, this.radius = 8});
+  const _Bone({required this.width, required this.height, this.radius = 8}); // radius default is overridden at call sites
 
   @override
   Widget build(BuildContext context) {

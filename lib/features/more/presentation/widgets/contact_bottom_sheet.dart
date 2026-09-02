@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:la2eeha/core/constants/app_icons.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -96,9 +95,9 @@ class _BigActionButton extends StatelessWidget {
                 colorFilter: tintIcon
                     ? ColorFilter.mode(foreground, BlendMode.srcIn)
                     : null,
-                height: context.mediumIconSize,
+                height: context.mediumSpacing,
               ),
-              context.hSpacing.hSpace,
+              SizedBox(width: context.mediumSpacing),
               Expanded(
                 child: label.toBody(
                   context,
@@ -106,7 +105,7 @@ class _BigActionButton extends StatelessWidget {
                   fontWeight: FontWeight.w700,
                 ),
               ),
-              Icon(Icons.arrow_forward_ios, size: 14.r, color: foreground),
+              Icon(Icons.arrow_forward_ios, size: context.tinyIconSize, color: foreground),
             ],
           ),
         ),
@@ -138,8 +137,8 @@ class _SheetShell extends StatelessWidget {
           children: [
             Center(
               child: Container(
-                width: 40.w,
-                height: 4.h,
+                width: context.bottomSheetDragHandleWidth,
+                height: context.bottomSheetDragHandleHeight,
                 margin: EdgeInsets.only(bottom: context.largeSpacing),
                 decoration: BoxDecoration(
                   color: context.borderColor,
@@ -179,7 +178,7 @@ class _FollowButton extends StatelessWidget {
           onTap: onTap,
           borderRadius: context.roundRadius.circularRadius,
           child: Container(
-            constraints: BoxConstraints(minHeight: 44.h),
+            constraints: BoxConstraints(minHeight: context.buttonHeight),
             padding: EdgeInsets.symmetric(
               horizontal: context.mediumSpacing,
               vertical: context.smallSpacing,
@@ -197,7 +196,11 @@ class _FollowButton extends StatelessWidget {
                   height: context.smallIconSize,
                 ),
                 context.smallSpacing.hSpace,
-                label.toCaption(context, color: color, fontWeight: FontWeight.w700),
+                label.toCaption(
+                  context,
+                  color: color,
+                  fontWeight: FontWeight.w700,
+                ),
               ],
             ),
           ),

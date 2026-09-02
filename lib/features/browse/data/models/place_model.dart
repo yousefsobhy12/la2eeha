@@ -16,6 +16,9 @@ class PlaceModel extends Place {
     required super.isFeatured,
     super.imageUrl,
     super.description,
+    super.openTime,
+    super.closeTime,
+    super.closedDays,
   });
 
   factory PlaceModel.fromJson(Map<String, dynamic> json) {
@@ -34,6 +37,12 @@ class PlaceModel extends Place {
       isFeatured: json['is_featured'] as bool,
       imageUrl: json['image_url'] as String?,
       description: json['description'] as String?,
+      openTime: json['open_time'] as String?,
+      closeTime: json['close_time'] as String?,
+      closedDays: (json['closed_days'] as List?)
+              ?.map((e) => (e as num).toInt())
+              .toList() ??
+          const [],
     );
   }
 
@@ -53,6 +62,9 @@ class PlaceModel extends Place {
       'is_featured': isFeatured,
       'image_url': imageUrl,
       'description': description,
+      'open_time': openTime,
+      'close_time': closeTime,
+      'closed_days': closedDays,
     };
   }
 }

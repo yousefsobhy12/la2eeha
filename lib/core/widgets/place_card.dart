@@ -14,8 +14,9 @@ import 'package:url_launcher/url_launcher.dart';
 import '../constants/category_visuals.dart';
 import '../constants/sub_category_visuals.dart';
 import '../extensions/extensions.dart';
-import '../extensions/theme_extension.dart';
 import '../../features/browse/domain/entities/place.dart';
+import '../../features/browse/domain/entities/place_open_status.dart';
+import '../../features/browse/presentation/widgets/place_open_status_pill.dart';
 
 class PlaceCard extends StatelessWidget {
   final Place place;
@@ -46,7 +47,6 @@ class PlaceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint('🔴🔴🔴 PLACE_CARD_CANARY_TEST_12345 🔴🔴🔴');
     final visual = CategoryVisuals.of(categoryIcon);
     final subLabel = SubCategoryVisuals.labelOf(
       place.subCategory,
@@ -57,8 +57,7 @@ class PlaceCard extends StatelessWidget {
         : subLabel;
 
     return Material(
-      // color: context.cardColor,
-      color: Colors.pink,
+      color: context.cardColor,
       borderRadius: context.mediumRadius.circularRadius,
       child: InkWell(
         onTap: onTap,
@@ -160,6 +159,9 @@ class PlaceCard extends StatelessWidget {
                                     child: place.name.toTitle(
                                       context,
                                       maxLines: 1,
+                                      textAlign: place.name.isMostlyArabic
+                                          ? TextAlign.right
+                                          : TextAlign.left,
                                     ),
                                   ),
                                   _FavoriteButton(
@@ -169,9 +171,22 @@ class PlaceCard extends StatelessWidget {
                                 ],
                               ),
                               4.vSpace,
-                              subtitle.toCaption(
-                                context,
-                                color: context.textSecondary,
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: subtitle.toCaption(
+                                      context,
+                                      color: context.textSecondary,
+                                      maxLines: 1,
+                                    ),
+                                  ),
+                                  if (place.openStatus != null) ...[
+                                    6.hSpace,
+                                    PlaceOpenStatusPill(
+                                      status: place.openStatus,
+                                    ),
+                                  ],
+                                ],
                               ),
                               if (place.workingHours != null &&
                                   place.workingHours!.isNotEmpty) ...[

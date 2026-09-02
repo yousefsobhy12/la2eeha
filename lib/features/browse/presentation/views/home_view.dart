@@ -4,12 +4,17 @@
 // ثابت برّه الـ BlocBuilder — يعني بيبان فورًا حتى وقت التحميل، ومش بيتغطى
 // بالـ skeleton. الـ SafeArea(top: false) لأن الهيدر نفسه هو اللي بيدّي
 // المساحة اللي فوق الـ status bar (زي More View بالظبط).
+//
+// 🔧 البادي بقى CustomScrollView + Slivers بدل SingleChildScrollView > Column —
+// أحسن في الأداء (lazy building) ومفيش nested scrollables (shrinkWrap).
+// الأقسام بتتبني كـ slivers: HomeSearchBar (SliverToBoxAdapter)،
+// CategoryGrid (SliverGrid)، MostVisitedSection (SliverToBoxAdapter)،
+// AllPlacesSection (SliverList + SliverToBoxAdapters).
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/extensions/extensions.dart';
-import '../../../../core/extensions/theme_extension.dart';
 import '../../../../core/widgets/colored_section_header.dart';
 import '../../data/datasource/places_remote_datasource.dart';
 import '../../data/repositories/places_repository_impl.dart';
@@ -84,52 +89,85 @@ class _HomeViewBody extends StatelessWidget {
 
                   return RefreshIndicator(
                     onRefresh: () => context.read<HomeCubit>().refresh(),
-                    child: SingleChildScrollView(
-                      physics: const BouncingScrollPhysics(),
-                      padding: context.pagePadding.copyWith(
-                        top: context.vSpacing,
-                        bottom:
-                            context.extraLargeSpacing *
-                            2, // مساحة فوق الـ floating nav bar
+                    child: CustomScrollView(
+                      physics: const BouncingScrollPhysics(
+                        parent: AlwaysScrollableScrollPhysics(),
                       ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const HomeSearchBar().fadeSlideIn(),
-                          // context.largeSpacing.vSpace,
-                          CategoryGrid(
-                            categories: loaded.categories,
-                          ).fadeSlideIn(
-                            delay: const Duration(milliseconds: 60),
-                          ),
-                          context.largeSpacing.vSpace,
-                          MostVisitedSection(
-                            places: loaded.mostVisited,
-                            categoryNameOf: loaded.categoryNameOf,
-                            categoryIconOf: loaded.categoryIconOf,
-                          ).fadeSlideIn(
-                            delay: const Duration(milliseconds: 120),
-                          ),
-                          context.largeSpacing.vSpace,
-                          AllPlacesSection(
-                            places: loaded.allPlacesPreview,
-                            categoryNameOf: loaded.categoryNameOf,
-                            categoryIconOf: loaded.categoryIconOf,
-                            areaNameOf: loaded.areaNameOf,
-                          ).fadeSlideIn(
-                            delay: const Duration(milliseconds: 180),
-                          ),
-                          context.largeSpacing.vSpace,
-                          Center(
-                            child:
-                                'كل البيانات من أصحاب الأماكن — لو لقيت خطأ بلّغنا'
-                                    .toCaption(
-                                      context,
-                                      color: context.textSecondary,
+                      slivers: [
+                        SliverPadding(
+                          padding: context.pagePadding,
+                          sliver: SliverMainAxisGroup(
+                            slivers: [
+                              // ─── Search bar ───
+                              SliverPadding(
+                                padding: EdgeInsets.only(top: context.vSpacing),
+                                sliver: SliverToBoxAdapter(
+                                  child: const HomeSearchBar().fadeSlideIn(),
+                                ),
+                              ),
+
+                              // ─── Categories grid ───
+                              SliverPadding(
+                                padding: EdgeInsets.only(
+                                  top: context.largeSpacing,
+                                ),
+                                sliver: CategoryGrid(
+                                  categories: loaded.categories,
+                                ),
+                              ),
+
+                              // ─── Most visited carousel ───
+                              SliverPadding(
+                                padding: EdgeInsets.only(
+                                  top: context.largeSpacing,
+                                ),
+                                sliver: SliverToBoxAdapter(
+                                  child:
+                                      MostVisitedSection(
+                                        places: loaded.mostVisited,
+                                        categoryNameOf: loaded.categoryNameOf,
+                                        categoryIconOf: loaded.categoryIconOf,
+                                      ).fadeSlideIn(
+                                        delay: const Duration(
+                                          milliseconds: 120,
+                                        ),
+                                      ),
+                                ),
+                              ),
+
+                              // ─── All places section (spread slivers) ───
+                              ...() {
+                                final allPlacesSlivers = AllPlacesSection(
+                                  places: loaded.allPlacesPreview,
+                                  categoryNameOf: loaded.categoryNameOf,
+                                  categoryIconOf: loaded.categoryIconOf,
+                                  areaNameOf: loaded.areaNameOf,
+                                ).buildSlivers(context);
+                                if (allPlacesSlivers.isEmpty) {
+                                  return <Widget>[];
+                                }
+                                return <Widget>[
+                                  SliverPadding(
+                                    padding: EdgeInsets.only(
+                                      top: context.largeSpacing,
                                     ),
+                                    sliver: SliverMainAxisGroup(
+                                      slivers: allPlacesSlivers,
+                                    ),
+                                  ),
+                                ];
+                              }(),
+
+                              // ─── Bottom padding (floating nav bar) ───
+                              SliverToBoxAdapter(
+                                child: SizedBox(
+                                  height: context.extraLargeSpacing * 2,
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   );
                 },

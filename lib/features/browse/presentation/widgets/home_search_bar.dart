@@ -20,7 +20,7 @@ class HomeSearchBar extends StatelessWidget {
       borderRadius: context.roundRadius.circularRadius,
       child: Container(
         height: context.textFieldHeight,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+        padding: EdgeInsets.symmetric(horizontal: context.hSpacing),
         decoration: BoxDecoration(
           color: context.surfaceColor,
           borderRadius: context.roundRadius.circularRadius,
@@ -29,7 +29,7 @@ class HomeSearchBar extends StatelessWidget {
         child: Row(
           children: [
             Icon(Icons.search_rounded, color: context.textSecondary),
-            10.hSpace,
+            context.smallSpacing.hSpace,
             Expanded(
               child: 'ابحث عن مطعم، صيدلية، دكتور...'.toBody(
                 context,

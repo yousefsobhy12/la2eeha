@@ -29,6 +29,9 @@ class ResponsiveValues {
   static double titleMedium(BuildContext context) =>
       (16.sp * context.fontScale).clamp(14.sp, 18.sp);
 
+  static double titleSmall(BuildContext context) =>
+      (14.sp * context.fontScale).clamp(10.sp, 12.sp);
+
   static double bodyLarge(BuildContext context) =>
       (14.sp * context.fontScale).clamp(12.sp, 16.sp);
 

@@ -1,7 +1,6 @@
 // lib/features/browse/presentation/widgets/most_visited_card.dart
 
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../../core/constants/category_visuals.dart';
 import '../../../../core/constants/sub_category_visuals.dart';
@@ -48,14 +47,14 @@ class MostVisitedCard extends StatelessWidget {
 
     return Material(
       color: context.cardColor,
-      borderRadius: context.mediumRadius.circularRadius,
+      borderRadius: context.largeRadius.circularRadius,
       child: InkWell(
         onTap: onTap,
-        borderRadius: context.mediumRadius.circularRadius,
+        borderRadius: context.largeRadius.circularRadius,
         child: Container(
-          width: 132.w,
+          width: context.mostVisitedCardWidth,
           decoration: BoxDecoration(
-            borderRadius: context.mediumRadius.circularRadius,
+            borderRadius: context.largeRadius.circularRadius,
             border: Border.all(color: context.borderColor),
             boxShadow: [
               BoxShadow(
@@ -69,12 +68,13 @@ class MostVisitedCard extends StatelessWidget {
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
               // هيدر ملون فيه أيقونة الكاتيجوري + رقم الترتيب
               Stack(
                 children: [
                   Container(
-                    height: 72,
+                    height: context.mostVisitedHeaderHeight,
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: [
@@ -90,35 +90,50 @@ class MostVisitedCard extends StatelessWidget {
                       ),
                     ),
                     child: Center(
-                      child: Icon(visual.icon,
-                          color: visual.color, size: context.largeIconSize),
+                      child: Icon(
+                        visual.icon,
+                        color: visual.color,
+                        size: context.largeIconSize,
+                      ),
                     ),
                   ),
                   PositionedDirectional(
-                    top: 6,
-                    start: 6,
-                    child: _buildRankBadge(visual),
+                    top: ResponsiveValues.spacing4,
+                    start: ResponsiveValues.spacing4,
+                    child: _buildRankBadge(context, visual),
                   ),
                 ],
               ),
               Padding(
-                padding: const EdgeInsets.all(8),
+                padding: context.cardPadding,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    place.name.toBody(context,
-                        fontWeight: FontWeight.w600, maxLines: 1),
+                    place.name.toBody(
+                      context,
+                      fontWeight: FontWeight.w600,
+                      overflow: TextOverflow.ellipsis,
+                      // maxLines: 2,
+                    ),
                     2.vSpace,
-                    subLabel
-                        .toCaption(context, color: context.textSecondary, maxLines: 1),
+                    subLabel.toCaption(
+                      context,
+                      color: context.textSecondary,
+                      maxLines: 1,
+                    ),
                     6.vSpace,
                     Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(Icons.remove_red_eye_outlined,
-                            size: 13, color: context.textSecondary),
+                        Icon(
+                          Icons.remove_red_eye_outlined,
+                          size: context.tinyIconSize,
+                          color: context.textSecondary,
+                        ),
                         4.hSpace,
-                        _formatCount(place.viewCount)
-                            .toCaption(context, color: context.textSecondary),
+                        _formatCount(
+                          place.viewCount,
+                        ).toCaption(context, color: context.textSecondary),
                       ],
                     ),
                   ],
@@ -132,7 +147,7 @@ class MostVisitedCard extends StatelessWidget {
   }
 
   /// بادج الترتيب — ميدالية ذهب/فضة/برونز للتلاتة الأوائل، أو الدايرة العادية لباقي الترتيب.
-  Widget _buildRankBadge(CategoryVisual visual) {
+  Widget _buildRankBadge(BuildContext context, CategoryVisual visual) {
     // ألوان الميداليات للتلاتة الأوائل
     const medalColors = {
       1: Color(0xFFFFD700), // ذهب
@@ -143,24 +158,24 @@ class MostVisitedCard extends StatelessWidget {
     final medalColor = medalColors[rank];
 
     return Container(
-      width: 22,
-      height: 22,
+      width: context.rankBadgeSize,
+      height: context.rankBadgeSize,
       alignment: Alignment.center,
       decoration: BoxDecoration(
         color: medalColor ?? visual.color,
         shape: BoxShape.circle,
       ),
       child: medalColor != null
-          ? const Icon(
+          ? Icon(
               Icons.workspace_premium,
               color: Colors.white,
-              size: 14,
+              size: context.tinyIconSize,
             )
           : Text(
               '$rank',
-              style: const TextStyle(
+              style: TextStyle(
                 color: Colors.white,
-                fontSize: 11,
+                fontSize: ResponsiveValues.labelLarge(context),
                 fontWeight: FontWeight.bold,
               ),
             ),

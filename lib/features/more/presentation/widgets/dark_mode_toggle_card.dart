@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../core/extensions/extensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/theme/cubit/theme_cubit.dart';
@@ -28,7 +27,7 @@ class DarkModeToggleCard extends StatelessWidget {
               Icon(
                 isDark ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
                 color: context.textSecondary,
-                size: 20.r,
+                size: context.mediumIconSize,
               ),
               SizedBox(width: context.smallSpacing),
               Expanded(

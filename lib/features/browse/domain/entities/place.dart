@@ -13,6 +13,9 @@ class Place {
   final bool isFeatured;
   final String? imageUrl;
   final String? description;
+  final String? openTime;
+  final String? closeTime;
+  final List<int> closedDays;
 
   const Place({
     required this.id,
@@ -29,5 +32,8 @@ class Place {
     required this.isFeatured,
     this.imageUrl,
     this.description,
+    this.openTime,
+    this.closeTime,
+    this.closedDays = const [],
   });
 }

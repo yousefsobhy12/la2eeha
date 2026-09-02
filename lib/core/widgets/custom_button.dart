@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import '../extensions/extensions.dart';
+
 class CustomElevatedButton extends StatelessWidget {
   final String text;
   final VoidCallback onPressed;
@@ -54,21 +56,21 @@ class CustomElevatedButton extends StatelessWidget {
 
     return Container(
       width: width ?? double.infinity,
-      height: height,
+      constraints: BoxConstraints(minHeight: height ?? 56),
       decoration: BoxDecoration(
         gradient: gradient,
         borderRadius: BorderRadius.circular(borderRadius),
         boxShadow:
-        boxShadow ??
+            boxShadow ??
             (isOutlined
                 ? null
                 : [
-              BoxShadow(
-                color: defaultBackgroundColor.withValues(alpha: 0.3),
-                blurRadius: 8,
-                offset: const Offset(0, 4),
-              ),
-            ]),
+                    BoxShadow(
+                      color: defaultBackgroundColor.withValues(alpha: 0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ]),
       ),
       child: ElevatedButton(
         onPressed: isLoading ? null : onPressed,
@@ -76,13 +78,13 @@ class CustomElevatedButton extends StatelessWidget {
           backgroundColor: isOutlined
               ? Colors.transparent
               : (gradient != null
-              ? Colors.transparent
-              : defaultBackgroundColor),
+                    ? Colors.transparent
+                    : defaultBackgroundColor),
           foregroundColor: defaultTextColor,
           elevation: 0,
           padding:
-          padding ??
-              const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              padding ??
+              const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(borderRadius),
             side: isOutlined
@@ -93,28 +95,36 @@ class CustomElevatedButton extends StatelessWidget {
         ),
         child: isLoading
             ? SizedBox(
-          height: 20,
-          width: 20,
-          child: CircularProgressIndicator(
-            strokeWidth: 2.5,
-            valueColor: AlwaysStoppedAnimation<Color>(defaultTextColor),
-          ),
-        )
+                height: 20,
+                width: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2.5,
+                  valueColor: AlwaysStoppedAnimation<Color>(defaultTextColor),
+                ),
+              )
             : Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              text,
-              style: TextStyle(
-                fontSize: fontSize,
-                fontWeight: fontWeight,
-                color: isOutlined ? defaultBorderColor : defaultTextColor,
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Text(
+                  //   text,
+                  //   style: TextStyle(
+                  //     fontSize: fontSize,
+                  //     fontWeight: fontWeight,
+                  //     color: isOutlined ? defaultBorderColor : defaultTextColor,
+                  //   ),
+                  // ),
+                  text.toResponsiveText(
+                    context,
+                    style: TextStyle(
+                      fontSize: fontSize,
+                      fontWeight: fontWeight,
+                      color: isOutlined ? defaultBorderColor : defaultTextColor,
+                    ),
+                  ),
+                  if (icon != null) ...[SizedBox(width: 10.w), icon!],
+                ],
               ),
-            ),
-            if (icon != null) ...[SizedBox(width: 10.w), icon!],
-          ],
-        ),
       ),
     );
   }

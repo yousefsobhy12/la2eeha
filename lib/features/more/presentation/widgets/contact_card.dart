@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:la2eeha/core/theme/app_text_styles.dart';
 
 import '../../../../core/extensions/extensions.dart';
@@ -26,7 +25,7 @@ class ContactCard extends StatelessWidget {
               Icon(
                 Icons.share_rounded,
                 color: context.textSecondary,
-                size: 21.r,
+                size: context.mediumIconSize,
               ),
               SizedBox(width: context.smallSpacing),
               Expanded(
@@ -50,7 +49,7 @@ class ContactCard extends StatelessWidget {
               Icon(
                 Icons.chat_bubble_outline_rounded,
                 color: context.textSecondary,
-                size: 16.r,
+                size: context.smallIconSize,
               ),
             ],
           ),

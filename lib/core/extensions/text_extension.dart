@@ -35,6 +35,7 @@ extension ResponsiveText on String {
     Color? color,
     FontWeight? fontWeight,
     int? maxLines,
+    TextAlign? textAlign,
   }) {
     return toResponsiveText(
       context,
@@ -45,6 +46,7 @@ extension ResponsiveText on String {
       ),
       maxLines: maxLines ?? 2,
       minFontSize: 18.sp,
+      textAlign: textAlign,
     );
   }
 
@@ -54,6 +56,8 @@ extension ResponsiveText on String {
     Color? color,
     FontWeight? fontWeight,
     int? maxLines,
+    String? fontFamily,
+    TextAlign? textAlign,
   }) {
     return toResponsiveText(
       context,
@@ -61,9 +65,11 @@ extension ResponsiveText on String {
         fontSize: (18.sp * context.fontScale).clamp(16.sp, 20.sp),
         fontWeight: fontWeight ?? FontWeight.w600,
         color: color,
+        fontFamily: fontFamily,
       ),
       maxLines: maxLines ?? 2,
       minFontSize: 14.sp,
+      textAlign: textAlign,
     );
   }
 
@@ -74,6 +80,7 @@ extension ResponsiveText on String {
     FontWeight? fontWeight,
     int? maxLines,
     TextAlign? textAlign,
+    TextOverflow? overflow,
   }) {
     return toResponsiveText(
       context,
@@ -85,6 +92,7 @@ extension ResponsiveText on String {
       textAlign: textAlign,
       maxLines: maxLines,
       minFontSize: 11.sp,
+      overflow: overflow,
     );
   }
 
@@ -94,7 +102,9 @@ extension ResponsiveText on String {
     Color? color,
     FontWeight? fontWeight,
     int? maxLines,
-    double? letterSpacing,String? fontFamily
+    double? letterSpacing,
+    String? fontFamily,
+    TextAlign? textAlign,
   }) {
     return toResponsiveText(
       context,
@@ -102,10 +112,12 @@ extension ResponsiveText on String {
         fontSize: (12.sp * context.fontScale).clamp(10.sp, 14.sp),
         fontWeight: fontWeight,
         color: color,
-        letterSpacing: letterSpacing,fontFamily: fontFamily
+        letterSpacing: letterSpacing,
+        fontFamily: fontFamily,
       ),
       maxLines: maxLines,
       minFontSize: 9.sp,
+      textAlign: textAlign,
     );
   }
 
