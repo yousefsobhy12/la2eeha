@@ -10,7 +10,9 @@
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:la2eeha/core/theme/app_fonts.dart';
+import 'package:la2eeha/features/favorites/presentation/cubit/favorites_cubit.dart';
 
 import '../../../../core/extensions/extensions.dart';
 import '../../../../core/widgets/place_card.dart';
@@ -58,9 +60,11 @@ class AllPlacesSection {
                   categoryName: categoryNameOf(place.categoryId),
                   categoryIcon: categoryIconOf(place.categoryId),
                   areaName: areaNameOf(place.areaId),
-                  // Favorites لسه مش متبنية — هتتوصل هنا لما الـ feature تتبني
-                  isFavorite: false,
-                  onFavoriteToggle: null,
+                  isFavorite: context.watch<FavoritesCubit>().state.contains(
+                    place.id,
+                  ),
+                  onFavoriteToggle: () =>
+                      context.read<FavoritesCubit>().toggleFavorite(place.id),
                   onTap: () => context.push('/place/${place.id}'),
                 ).fadeSlideIn(
                   delay: AppAnimations.stagger(

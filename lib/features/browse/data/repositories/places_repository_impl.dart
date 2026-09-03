@@ -128,4 +128,15 @@ class PlacesRepositoryImpl implements PlacesRepository {
       callName: 'getSimilarPlaces',
     );
   }
+
+  @override
+  Future<Either<Failure, List<Place>>> getPlacesByIds(List<int> ids) {
+    if (ids.isEmpty) {
+      return Future.value(const Right([]));
+    }
+    return safeSupabaseCall(
+      () => remoteDataSource.getPlacesByIds(ids),
+      callName: 'getPlacesByIds',
+    );
+  }
 }

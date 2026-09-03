@@ -9,6 +9,8 @@ import '../../../../core/constants/sub_category_visuals.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/extensions/extensions.dart';
 import '../../../../core/utils/coming_soon.dart';
+import '../../../../core/widgets/place_card.dart';
+import '../../../favorites/presentation/cubit/favorites_cubit.dart';
 import '../../data/datasource/places_remote_datasource.dart';
 import '../../data/repositories/places_repository_impl.dart';
 import '../../domain/entities/place.dart';
@@ -319,9 +321,28 @@ class _PlaceDetailBody extends StatelessWidget {
         PositionedDirectional(
           top: MediaQuery.of(context).padding.top + 8.h,
           end: context.hSpacing,
-          child: _HeaderCircleButton(
-            icon: Icons.flag_outlined,
-            onPressed: () => showComingSoon(context),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.35),
+                  shape: BoxShape.circle,
+                ),
+                child: FavoriteButton(
+                  isFavorite: context.watch<FavoritesCubit>().state.contains(
+                    place.id,
+                  ),
+                  onTap: () =>
+                      context.read<FavoritesCubit>().toggleFavorite(place.id),
+                ),
+              ),
+              context.smallSpacing.hSpace,
+              _HeaderCircleButton(
+                icon: Icons.flag_outlined,
+                onPressed: () => showComingSoon(context),
+              ),
+            ],
           ),
         ),
       ],

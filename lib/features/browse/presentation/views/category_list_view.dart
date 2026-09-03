@@ -18,6 +18,7 @@ import '../../data/datasource/places_remote_datasource.dart';
 import '../../data/repositories/places_repository_impl.dart';
 import '../cubit/category_list_cubit.dart';
 import '../cubit/category_list_state.dart';
+import '../../../favorites/presentation/cubit/favorites_cubit.dart';
 import '../widgets/sub_category_chips.dart';
 
 class CategoryListView extends StatelessWidget {
@@ -204,8 +205,13 @@ class _CategoryListBodyState extends State<_CategoryListBody> {
                           categoryName: state.categoryNameOf(place.categoryId),
                           categoryIcon: state.categoryIconOf(place.categoryId),
                           areaName: state.areaNameOf(place.areaId),
-                          isFavorite: false,
-                          onFavoriteToggle: null,
+                          isFavorite: context
+                              .watch<FavoritesCubit>()
+                              .state
+                              .contains(place.id),
+                          onFavoriteToggle: () => context
+                              .read<FavoritesCubit>()
+                              .toggleFavorite(place.id),
                           onTap: () => context.push('/place/${place.id}'),
                         ).fadeSlideIn(
                           delay: AppAnimations.stagger(

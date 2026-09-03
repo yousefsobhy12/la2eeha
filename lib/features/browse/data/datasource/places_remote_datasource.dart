@@ -109,14 +109,19 @@ class PlacesRemoteDataSource {
   }
 
   Future<PlaceModel> getPlaceDetails(int placeId) async {
-    final response =
-        await supabase.from('places').select().eq('id', placeId).single();
+    final response = await supabase
+        .from('places')
+        .select()
+        .eq('id', placeId)
+        .single();
     return PlaceModel.fromJson(response);
   }
 
   Future<List<MenuItemModel>> getMenuItems(int placeId) async {
-    final response =
-        await supabase.from('menu_items').select().eq('place_id', placeId);
+    final response = await supabase
+        .from('menu_items')
+        .select()
+        .eq('place_id', placeId);
     return (response as List)
         .map((json) => MenuItemModel.fromJson(json))
         .toList();
@@ -146,6 +151,14 @@ class PlacesRemoteDataSource {
         .eq('area_id', areaId)
         .neq('id', excludePlaceId)
         .limit(limit);
+    return (response as List).map((json) => PlaceModel.fromJson(json)).toList();
+  }
+
+  Future<List<PlaceModel>> getPlacesByIds(List<int> ids) async {
+    if (ids.isEmpty) return [];
+
+    final response = await supabase.from('places').select().inFilter('id', ids);
+
     return (response as List).map((json) => PlaceModel.fromJson(json)).toList();
   }
 }

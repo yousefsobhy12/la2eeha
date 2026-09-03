@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:flutter_bloc/flutter_bloc.dart';
+
 import '../../../../core/constants/category_visuals.dart';
 import '../../../../core/constants/sub_category_visuals.dart';
 import '../../../../core/extensions/extensions.dart';
 import '../../../../core/theme/app_fonts.dart';
+import '../../../../core/widgets/place_card.dart';
+import '../../../favorites/presentation/cubit/favorites_cubit.dart';
 import '../../domain/entities/place.dart';
 
 class SimilarPlacesSection extends StatelessWidget {
@@ -106,39 +110,64 @@ class _SimilarPlaceCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                height: context.mostVisitedHeaderHeight,
-                decoration: BoxDecoration(
-                  gradient: place.imageUrl != null && place.imageUrl!.isNotEmpty
-                      ? null
-                      : LinearGradient(
-                          colors: [
-                            visual.color.withValues(alpha: 0.22),
-                            visual.color.withValues(alpha: 0.10),
-                          ],
-                          begin: AlignmentDirectional.topStart,
-                          end: AlignmentDirectional.bottomEnd,
-                        ),
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(context.mediumRadius),
-                    topRight: Radius.circular(context.mediumRadius),
+              Stack(
+                children: [
+                  Container(
+                    height: context.mostVisitedHeaderHeight,
+                    decoration: BoxDecoration(
+                      gradient:
+                          place.imageUrl != null && place.imageUrl!.isNotEmpty
+                          ? null
+                          : LinearGradient(
+                              colors: [
+                                visual.color.withValues(alpha: 0.22),
+                                visual.color.withValues(alpha: 0.10),
+                              ],
+                              begin: AlignmentDirectional.topStart,
+                              end: AlignmentDirectional.bottomEnd,
+                            ),
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(context.mediumRadius),
+                        topRight: Radius.circular(context.mediumRadius),
+                      ),
+                      image:
+                          place.imageUrl != null && place.imageUrl!.isNotEmpty
+                          ? DecorationImage(
+                              image: NetworkImage(place.imageUrl!),
+                              fit: BoxFit.cover,
+                            )
+                          : null,
+                    ),
+                    child: place.imageUrl == null || place.imageUrl!.isEmpty
+                        ? Center(
+                            child: Icon(
+                              visual.icon,
+                              color: visual.color,
+                              size: context.largeIconSize,
+                            ),
+                          )
+                        : null,
                   ),
-                  image: place.imageUrl != null && place.imageUrl!.isNotEmpty
-                      ? DecorationImage(
-                          image: NetworkImage(place.imageUrl!),
-                          fit: BoxFit.cover,
-                        )
-                      : null,
-                ),
-                child: place.imageUrl == null || place.imageUrl!.isEmpty
-                    ? Center(
-                        child: Icon(
-                          visual.icon,
-                          color: visual.color,
-                          size: context.largeIconSize,
-                        ),
-                      )
-                    : null,
+                  PositionedDirectional(
+                    top: ResponsiveValues.spacing4,
+                    end: ResponsiveValues.spacing4,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.15),
+                        shape: BoxShape.circle,
+                      ),
+                      child: FavoriteButton(
+                        isFavorite: context
+                            .watch<FavoritesCubit>()
+                            .state
+                            .contains(place.id),
+                        onTap: () => context
+                            .read<FavoritesCubit>()
+                            .toggleFavorite(place.id),
+                      ),
+                    ),
+                  ),
+                ],
               ),
               Padding(
                 padding: context.cardPadding,

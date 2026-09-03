@@ -2,10 +2,14 @@
 
 import 'package:flutter/material.dart';
 
+import 'package:flutter_bloc/flutter_bloc.dart';
+
 import '../../../../core/constants/category_visuals.dart';
 import '../../../../core/constants/sub_category_visuals.dart';
 import '../../../../core/extensions/extensions.dart';
 import '../../../../core/extensions/theme_extension.dart';
+import '../../../../core/widgets/place_card.dart';
+import '../../../favorites/presentation/cubit/favorites_cubit.dart';
 import '../../domain/entities/place.dart';
 
 class MostVisitedCard extends StatelessWidget {
@@ -101,6 +105,25 @@ class MostVisitedCard extends StatelessWidget {
                     top: ResponsiveValues.spacing4,
                     start: ResponsiveValues.spacing4,
                     child: _buildRankBadge(context, visual),
+                  ),
+                  PositionedDirectional(
+                    top: ResponsiveValues.spacing4,
+                    end: ResponsiveValues.spacing4,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.15),
+                        shape: BoxShape.circle,
+                      ),
+                      child: FavoriteButton(
+                        isFavorite: context
+                            .watch<FavoritesCubit>()
+                            .state
+                            .contains(place.id),
+                        onTap: () => context
+                            .read<FavoritesCubit>()
+                            .toggleFavorite(place.id),
+                      ),
+                    ),
                   ),
                 ],
               ),

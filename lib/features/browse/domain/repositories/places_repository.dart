@@ -53,4 +53,7 @@ abstract class PlacesRepository {
     required int excludePlaceId,
     int limit = 6,
   });
+
+  // أماكن مخصصة بالـ IDs (للمفضلة)
+  Future<Either<Failure, List<Place>>> getPlacesByIds(List<int> ids);
 }

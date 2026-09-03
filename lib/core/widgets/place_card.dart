@@ -164,7 +164,7 @@ class PlaceCard extends StatelessWidget {
                                           : TextAlign.left,
                                     ),
                                   ),
-                                  _FavoriteButton(
+                                  FavoriteButton(
                                     isFavorite: isFavorite,
                                     onTap: onFavoriteToggle,
                                   ),
@@ -260,23 +260,69 @@ class PlaceCard extends StatelessWidget {
   }
 }
 
-class _FavoriteButton extends StatelessWidget {
+class FavoriteButton extends StatefulWidget {
   final bool isFavorite;
   final VoidCallback? onTap;
+  const FavoriteButton({
+    super.key,
+    required this.isFavorite,
+    required this.onTap,
+  });
 
-  const _FavoriteButton({required this.isFavorite, required this.onTap});
+  @override
+  State<FavoriteButton> createState() => _FavoriteButtonState();
+}
+
+class _FavoriteButtonState extends State<FavoriteButton>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _scale;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: AppAnimations.fast,
+    );
+    _scale = TweenSequence<double>([
+      TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.3), weight: 50),
+      TweenSequenceItem(tween: Tween(begin: 1.3, end: 1.0), weight: 50),
+    ]).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
+  }
+
+  @override
+  void didUpdateWidget(covariant FavoriteButton oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.isFavorite != widget.isFavorite) {
+      _controller.forward(from: 0);
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: onTap,
+      onTap: widget.onTap,
       customBorder: const CircleBorder(),
       child: Padding(
         padding: const EdgeInsets.all(4),
-        child: Icon(
-          isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-          size: context.mediumIconSize,
-          color: isFavorite ? Colors.redAccent : context.textSecondary,
+        child: ScaleTransition(
+          scale: _scale,
+          child: Icon(
+            widget.isFavorite
+                ? Icons.favorite_rounded
+                : Icons.favorite_border_rounded,
+            size: context.mediumIconSize,
+            color: widget.isFavorite
+                ? Colors.redAccent
+                : context.textSecondary,
+          ),
         ),
       ),
     );

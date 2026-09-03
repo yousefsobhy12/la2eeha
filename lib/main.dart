@@ -9,6 +9,9 @@ import 'core/config/env.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
 
+import 'package:la2eeha/core/storage/local_storage_service.dart';
+import 'package:la2eeha/features/favorites/presentation/cubit/favorites_cubit.dart';
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -22,7 +25,15 @@ Future<void> main() async {
     publishableKey: Env.supabaseAnonKey,
   );
 
-  runApp(BlocProvider(create: (_) => ThemeCubit(), child: const La2eeha()));
+  runApp(
+    MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (_) => ThemeCubit()),
+        BlocProvider(create: (_) => FavoritesCubit(LocalStorageService())),
+      ],
+      child: const La2eeha(),
+    ),
+  );
 }
 
 class La2eeha extends StatelessWidget {
