@@ -139,4 +139,36 @@ class PlacesRepositoryImpl implements PlacesRepository {
       callName: 'getPlacesByIds',
     );
   }
+
+  @override
+  Future<Either<Failure, List<Place>>> searchPlaces({
+    required String query,
+    List<int> areaIds = const [],
+    required int limit,
+    required int offset,
+  }) {
+    return safeSupabaseCall(
+      () => remoteDataSource.searchPlaces(
+        query: query,
+        areaIds: areaIds,
+        limit: limit,
+        offset: offset,
+      ),
+      callName: 'searchPlaces',
+    );
+  }
+
+  @override
+  Future<Either<Failure, int>> getSearchResultsCount({
+    required String query,
+    List<int> areaIds = const [],
+  }) {
+    return safeSupabaseCall(
+      () => remoteDataSource.getSearchResultsCount(
+        query: query,
+        areaIds: areaIds,
+      ),
+      callName: 'getSearchResultsCount',
+    );
+  }
 }

@@ -3,6 +3,7 @@ import '../nav/app_shell.dart';
 import '../../features/browse/presentation/views/category_list_view.dart';
 import '../../features/browse/presentation/views/home_view.dart';
 import '../../features/browse/presentation/views/place_detail_view.dart';
+import '../../features/browse/presentation/views/search_results_view.dart';
 import '../../features/favorites/presentation/views/favorites_view.dart';
 import '../../features/more/presentation/views/more_view.dart';
 
@@ -36,6 +37,10 @@ final GoRouter appRouter = GoRouter(
           ],
         ),
       ],
+    ),
+    GoRoute(
+      path: '/search',
+      builder: (context, state) => const SearchResultsView(),
     ),
     GoRoute(
       path: '/places',

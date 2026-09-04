@@ -3,7 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:la2eeha/core/extensions/theme_extension.dart';
+
 import '../extensions/extensions.dart'; // بارل الـ extensions بتاعتك
 
 class AppShell extends StatelessWidget {

@@ -1,14 +1,10 @@
 // lib/features/browse/presentation/widgets/home_search_bar.dart
-//
-// ✅ راوت '/search' لسه مش موجود في app_router.dart (شفت الملف الحقيقي) —
-// بتعرض "قريبًا" لحد ما SearchResultsView تتبني. لما تتبني، بدّل السطر اللي
-// فيه showComingSoon بـ context.push('/search') أو الراوت الفعلي.
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/extensions/extensions.dart';
-import '../../../../core/extensions/theme_extension.dart';
-import '../../../../core/utils/coming_soon.dart';
+
 
 class HomeSearchBar extends StatelessWidget {
   const HomeSearchBar({super.key});
@@ -16,7 +12,7 @@ class HomeSearchBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: () => showComingSoon(context),
+      onTap: () => context.push('/search'),
       borderRadius: context.roundRadius.circularRadius,
       child: Container(
         height: context.textFieldHeight,

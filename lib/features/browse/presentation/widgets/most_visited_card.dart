@@ -7,7 +7,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/constants/category_visuals.dart';
 import '../../../../core/constants/sub_category_visuals.dart';
 import '../../../../core/extensions/extensions.dart';
-import '../../../../core/extensions/theme_extension.dart';
+
 import '../../../../core/widgets/place_card.dart';
 import '../../../favorites/presentation/cubit/favorites_cubit.dart';
 import '../../domain/entities/place.dart';

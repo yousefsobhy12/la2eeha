@@ -15,47 +15,38 @@ import '../models/place_model.dart';
 import '../models/sports_pricing_model.dart';
 
 class PlacesRemoteDataSource {
-  // كل الكاتيجوريز - مفيش limit، عددهم صغير (7 بس)
   Future<List<CategoryModel>> getCategories() async {
     final response = await supabase.from('categories').select();
-
     return (response as List)
         .map((json) => CategoryModel.fromJson(json))
         .toList();
   }
 
-  // كل المناطق - مفيش limit، عددهم صغير (11 بس)
   Future<List<AreaModel>> getAreas() async {
     final response = await supabase
         .from('areas')
         .select('id, name_ar, name_en');
-
     return (response as List).map((json) => AreaModel.fromJson(json)).toList();
   }
 
-  // قسم "الأكثر زيارة" - مرتب حسب view_count تنازليًا
   Future<List<PlaceModel>> getMostVisitedPreview({int limit = 10}) async {
     final response = await supabase
         .from('places')
         .select()
         .order('view_count', ascending: false)
         .limit(limit);
-
     return (response as List).map((json) => PlaceModel.fromJson(json)).toList();
   }
 
-  // قسم "كل الأماكن" preview - مرتب بالأحدث
   Future<List<PlaceModel>> getAllPlacesPreview({int limit = 10}) async {
     final response = await supabase
         .from('places')
         .select()
         .order('created_at', ascending: false)
         .limit(limit);
-
     return (response as List).map((json) => PlaceModel.fromJson(json)).toList();
   }
 
-  // أماكن كاتيجوري معينة (أو كل الأماكن) مع pagination وفلترة sub_category
   Future<List<PlaceModel>> getCategoryPlaces({
     int? categoryId,
     String? subCategory,
@@ -72,18 +63,15 @@ class PlacesRemoteDataSource {
     final response = await query
         .order('created_at', ascending: false)
         .range(offset, offset + limit - 1);
-
     return (response as List).map((json) => PlaceModel.fromJson(json)).toList();
   }
 
-  // الـ sub_category values الفعلية لكاتيجوري معينة
   Future<List<String>> getSubCategories(int categoryId) async {
     final response = await supabase
         .from('places')
         .select('sub_category')
         .eq('category_id', categoryId)
         .not('sub_category', 'is', null);
-
     final unique = (response as List)
         .map((json) => json['sub_category'] as String)
         .toSet()
@@ -92,7 +80,6 @@ class PlacesRemoteDataSource {
     return unique;
   }
 
-  // العدد الكلي للأماكن بنفس الفلاتر
   Future<int> getCategoryPlacesCount({
     int? categoryId,
     String? subCategory,
@@ -156,9 +143,51 @@ class PlacesRemoteDataSource {
 
   Future<List<PlaceModel>> getPlacesByIds(List<int> ids) async {
     if (ids.isEmpty) return [];
-
     final response = await supabase.from('places').select().inFilter('id', ids);
+    return (response as List).map((json) => PlaceModel.fromJson(json)).toList();
+  }
+
+  // بيبني شرط الـ or() بتاع البحث: اسم المكان + العنوان + (لو موجودة) المناطق المطابقة.
+  // areaIds بتتحسب في الـ Cubit من كاش محلي — مفيش أي query إضافية هنا.
+  String _buildSearchFilter(String query, List<int> areaIds) {
+    var filter = 'name.ilike.%$query%,address.ilike.%$query%';
+    if (areaIds.isNotEmpty) {
+      filter += ',area_id.in.(${areaIds.join(",")})';
+    }
+    return filter;
+  }
+
+  Future<List<PlaceModel>> searchPlaces({
+    required String query,
+    List<int> areaIds = const [],
+    required int limit,
+    required int offset,
+  }) async {
+    final safeQuery = query.replaceAll(',', ' ');
+    final filter = _buildSearchFilter(safeQuery, areaIds);
+
+    final response = await supabase
+        .from('places')
+        .select()
+        .or(filter)
+        .order('created_at', ascending: false)
+        .range(offset, offset + limit - 1);
 
     return (response as List).map((json) => PlaceModel.fromJson(json)).toList();
+  }
+
+  Future<int> getSearchResultsCount({
+    required String query,
+    List<int> areaIds = const [],
+  }) async {
+    final safeQuery = query.replaceAll(',', ' ');
+    final filter = _buildSearchFilter(safeQuery, areaIds);
+
+    final response = await supabase
+        .from('places')
+        .select()
+        .or(filter)
+        .count(CountOption.exact);
+    return response.count;
   }
 }
