@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:la2eeha/core/theme/app_colors.dart';
 import 'package:la2eeha/core/theme/app_text_styles.dart';
-import 'package:la2eeha/core/utils/coming_soon.dart';
 import 'package:la2eeha/core/widgets/custom_button.dart';
 
 import '../../../../core/extensions/extensions.dart';
@@ -51,8 +51,7 @@ class BusinessOwnerCard extends StatelessWidget {
           CustomElevatedButton(
             text: 'دخول التجار',
             onPressed: () {
-              // ⚠️ TODO Phase 6
-              showComingSoon(context);
+              context.push('/login');
             },
             // ثابتة عن قصد في الوضعين (هوية الزرار الأساسي للبراند)
             backgroundColor: AppColors.primary,

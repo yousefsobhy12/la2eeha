@@ -1,10 +1,14 @@
 import 'package:go_router/go_router.dart';
 import '../nav/app_shell.dart';
+import '../../features/auth/presentation/views/login_view.dart';
+import '../../features/auth/presentation/views/register_view.dart';
+import '../../features/auth/presentation/views/verify_email_view.dart';
 import '../../features/browse/presentation/views/category_list_view.dart';
 import '../../features/browse/presentation/views/home_view.dart';
 import '../../features/browse/presentation/views/place_detail_view.dart';
 import '../../features/browse/presentation/views/search_results_view.dart';
 import '../../features/favorites/presentation/views/favorites_view.dart';
+import '../../features/merchant/presentation/views/add_place_placeholder_view.dart';
 import '../../features/more/presentation/views/more_view.dart';
 
 final GoRouter appRouter = GoRouter(
@@ -59,6 +63,29 @@ final GoRouter appRouter = GoRouter(
         final id = int.parse(state.pathParameters['id']!);
         return PlaceDetailView(placeId: id);
       },
+    ),
+    GoRoute(
+      path: '/login',
+      builder: (context, state) => const LoginView(),
+    ),
+    GoRoute(
+      path: '/register',
+      builder: (context, state) => const RegisterView(),
+    ),
+    GoRoute(
+      path: '/verify-email',
+      builder: (context, state) {
+        final email = state.extra as String?;
+        if (email == null) {
+          // Defensive fallback — shouldn't happen via normal navigation
+          return const RegisterView();
+        }
+        return VerifyEmailView(email: email);
+      },
+    ),
+    GoRoute(
+      path: '/add-place-placeholder',
+      builder: (context, state) => const AddPlacePlaceholderView(),
     ),
   ],
 );

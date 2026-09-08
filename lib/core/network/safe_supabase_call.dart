@@ -23,6 +23,7 @@ import 'network_info.dart';
 Future<Either<Failure, T>> safeSupabaseCall<T>(
   Future<T> Function() call, {
   required String callName,
+  Failure Function(AuthException e)? onAuthException,
 }) async {
   // 1. فحص الاتصال الأول — لو مفيش نت، مش هنحاول أصلاً.
   final isConnected = await networkInfo.isConnected;
@@ -41,7 +42,11 @@ Future<Either<Failure, T>> safeSupabaseCall<T>(
     return Left(ServerFailure(e.message));
   } on AuthException catch (e) {
     appLogger.e('[$callName] AuthException: ${e.message}');
-    return Left(ServerFailure(e.message));
+    return Left(
+      onAuthException != null
+          ? onAuthException(e)
+          : ServerFailure(e.message),
+    );
   } on SocketException catch (e) {
     appLogger.e('[$callName] SocketException: $e');
     return const Left(NetworkFailure());
