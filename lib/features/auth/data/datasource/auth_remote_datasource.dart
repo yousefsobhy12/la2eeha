@@ -4,9 +4,14 @@
 // الـ methods هنا بترمي exceptions عادي — الـ safeSupabaseCall في الـ
 // Repository هو اللي بيمسكها ويحولها لـ AuthFailure.
 
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../core/network/supabase_client_provider.dart';
+
+/// Guard flag so `GoogleSignIn.instance.initialize()` is called only once
+/// per app session, as required by the package docs.
+bool _googleSignInInitialized = false;
 
 class AuthRemoteDataSource {
   Future<void> signUp({
@@ -65,5 +70,43 @@ class AuthRemoteDataSource {
     await supabase.auth.updateUser(
       UserAttributes(password: newPassword),
     );
+  }
+
+  Future<bool> signInWithGoogle() async {
+    final googleSignIn = GoogleSignIn.instance;
+
+    if (!_googleSignInInitialized) {
+      await googleSignIn.initialize(
+        serverClientId:
+            '31279045453-2shtf9c41cdn9jrst29vkkrhtfdm9sre.apps.googleusercontent.com',
+      );
+      _googleSignInInitialized = true;
+    }
+
+    final GoogleSignInAccount googleUser;
+    try {
+      googleUser = await googleSignIn.authenticate();
+    } on GoogleSignInException catch (e) {
+      if (e.code == GoogleSignInExceptionCode.canceled) {
+        // User cancelled the Google account picker — not an error.
+        return false;
+      }
+      rethrow;
+    }
+
+    final idToken = googleUser.authentication.idToken;
+
+    if (idToken == null) {
+      throw const AuthException(
+        'Google Sign-In failed: no ID token returned',
+      );
+    }
+
+    await supabase.auth.signInWithIdToken(
+      provider: OAuthProvider.google,
+      idToken: idToken,
+    );
+
+    return true;
   }
 }

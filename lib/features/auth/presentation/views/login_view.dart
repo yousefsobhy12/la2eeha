@@ -64,18 +64,20 @@ class _LoginViewBodyState extends State<_LoginViewBody> {
                     padding: context.cardPadding,
                     decoration: BoxDecoration(
                       color: context.surfaceColor,
-                      borderRadius:
-                          BorderRadius.circular(context.extraLargeRadius),
-                      border:
-                          Border.all(color: context.borderColor, width: 1.2),
+                      borderRadius: BorderRadius.circular(
+                        context.extraLargeRadius,
+                      ),
+                      border: Border.all(
+                        color: context.borderColor,
+                        width: 1.2,
+                      ),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         'دخول التجار'.toResponsiveText(
                           context,
-                          style:
-                              AppTextStyles.cardTitle(context.textPrimary),
+                          style: AppTextStyles.cardTitle(context.textPrimary),
                         ),
                         SizedBox(height: context.smallSpacing),
                         'ادخل ببيانات حسابك'.toResponsiveText(
@@ -95,8 +97,7 @@ class _LoginViewBodyState extends State<_LoginViewBody> {
                                 labelText: 'الإيميل',
                                 keyboardType: TextInputType.emailAddress,
                                 validator: (value) {
-                                  if (value == null ||
-                                      value.trim().isEmpty) {
+                                  if (value == null || value.trim().isEmpty) {
                                     return 'برجاء إدخال الإيميل';
                                   }
                                   if (!value.contains('@') ||
@@ -120,16 +121,14 @@ class _LoginViewBodyState extends State<_LoginViewBody> {
                               ),
                               SizedBox(height: context.smallSpacing),
                               Align(
-                                alignment:
-                                    AlignmentDirectional.centerStart,
+                                alignment: AlignmentDirectional.centerStart,
                                 child: TextButton(
                                   onPressed: () =>
                                       // showComingSoon(context),
                                       context.push('/forgot-password'),
                                   child: Text(
                                     'نسيت كلمة السر؟',
-                                    style:
-                                        AppTextStyles.captionRegular12(
+                                    style: AppTextStyles.captionRegular12(
                                       context.colorScheme.primary,
                                     ),
                                   ),
@@ -139,22 +138,16 @@ class _LoginViewBodyState extends State<_LoginViewBody> {
                               BlocConsumer<LoginCubit, LoginState>(
                                 listener: (context, state) {
                                   if (state is LoginSuccess) {
-                                    ScaffoldMessenger.of(context)
-                                        .showSnackBar(
+                                    ScaffoldMessenger.of(context).showSnackBar(
                                       const SnackBar(
-                                        content: Text(
-                                          'تم تسجيل الدخول',
-                                        ),
+                                        content: Text('تم تسجيل الدخول'),
                                       ),
                                     );
                                     context.go('/');
                                   } else if (state is LoginError) {
-                                    ScaffoldMessenger.of(context)
-                                        .showSnackBar(
+                                    ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
-                                        content: Text(
-                                          state.failure.message,
-                                        ),
+                                        content: Text(state.failure.message),
                                       ),
                                     );
                                   }
@@ -164,15 +157,11 @@ class _LoginViewBodyState extends State<_LoginViewBody> {
                                     text: 'دخول',
                                     isLoading: state is LoginLoading,
                                     onPressed: () {
-                                      if (_formKey.currentState!
-                                          .validate()) {
-                                        context
-                                            .read<LoginCubit>()
-                                            .login(
-                                              _emailController.text
-                                                  .trim(),
-                                              _passwordController.text,
-                                            );
+                                      if (_formKey.currentState!.validate()) {
+                                        context.read<LoginCubit>().login(
+                                          _emailController.text.trim(),
+                                          _passwordController.text,
+                                        );
                                       }
                                     },
                                     backgroundColor: AppColors.primary,
@@ -182,8 +171,7 @@ class _LoginViewBodyState extends State<_LoginViewBody> {
                                     borderRadius: context.largeRadius,
                                     boxShadow: const [
                                       BoxShadow(
-                                        color:
-                                            AppColors.primaryPressedShadow,
+                                        color: AppColors.primaryPressedShadow,
                                         offset: Offset(0, 3),
                                         blurRadius: 0,
                                       ),
@@ -214,15 +202,21 @@ class _LoginViewBodyState extends State<_LoginViewBody> {
                           ],
                         ),
                         SizedBox(height: context.mediumSpacing),
-                        // ── Google (disabled) ──
-                        CustomElevatedButton(
-                          text: 'المتابعة بحساب Google',
-                          isOutlined: true,
-                          borderColor: context.borderColor,
-                          textColor: context.textPrimary,
-                          onPressed: () => showComingSoon(context),
-                          icon: const Icon(Icons.g_mobiledata_rounded),
-                        ).disabled(),
+                        // ── Google ──
+                        BlocBuilder<LoginCubit, LoginState>(
+                          builder: (context, state) {
+                            return CustomElevatedButton(
+                              text: 'المتابعة بحساب Google',
+                              isOutlined: true,
+                              borderColor: context.borderColor,
+                              textColor: context.textPrimary,
+                              isLoading: state is LoginLoading,
+                              onPressed: () =>
+                                  context.read<LoginCubit>().signInWithGoogle(),
+                              icon: const Icon(Icons.g_mobiledata_rounded),
+                            );
+                          },
+                        ),
                         SizedBox(height: context.smallSpacing),
                         // ── Apple (disabled) ──
                         CustomElevatedButton(
@@ -245,8 +239,7 @@ class _LoginViewBodyState extends State<_LoginViewBody> {
                               ),
                             ),
                             TextButton(
-                              onPressed: () =>
-                                  context.push('/register'),
+                              onPressed: () => context.push('/register'),
                               child: Text(
                                 'سجّل مكانك',
                                 style: AppTextStyles.bodyBold14(
@@ -264,10 +257,10 @@ class _LoginViewBodyState extends State<_LoginViewBody> {
                   Container(
                     padding: context.cardPadding,
                     decoration: BoxDecoration(
-                      color: context.colorScheme.primary
-                          .withValues(alpha: 0.08),
-                      borderRadius:
-                          BorderRadius.circular(context.largeRadius),
+                      color: context.colorScheme.primary.withValues(
+                        alpha: 0.08,
+                      ),
+                      borderRadius: BorderRadius.circular(context.largeRadius),
                     ),
                     child: Row(
                       children: [
@@ -280,11 +273,11 @@ class _LoginViewBodyState extends State<_LoginViewBody> {
                           child:
                               'التسجيل للتجار وأصحاب الأماكن فقط — لو بتدور على مكان، استخدم البحث في الصفحة الرئيسية.'
                                   .toResponsiveText(
-                            context,
-                            style: AppTextStyles.captionRegular12(
-                              context.textSecondary,
-                            ),
-                          ),
+                                    context,
+                                    style: AppTextStyles.captionRegular12(
+                                      context.textSecondary,
+                                    ),
+                                  ),
                         ),
                       ],
                     ),
@@ -292,14 +285,13 @@ class _LoginViewBodyState extends State<_LoginViewBody> {
                   SizedBox(height: context.mediumSpacing),
                   // ── Footer ──
                   Center(
-                    child:
-                        '🔒 بياناتك محفوظة ومش بنشاركها مع أي طرف تالت'
-                            .toResponsiveText(
-                      context,
-                      style: AppTextStyles.captionRegular12(
-                        context.textSecondary,
-                      ),
-                    ),
+                    child: '🔒 بياناتك محفوظة ومش بنشاركها مع أي طرف تالت'
+                        .toResponsiveText(
+                          context,
+                          style: AppTextStyles.captionRegular12(
+                            context.textSecondary,
+                          ),
+                        ),
                   ),
                   SizedBox(height: context.extraLargeSpacing),
                 ],

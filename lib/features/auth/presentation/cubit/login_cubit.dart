@@ -18,4 +18,20 @@ class LoginCubit extends Cubit<LoginState> {
       (_) => emit(const LoginSuccess()),
     );
   }
+
+  Future<void> signInWithGoogle() async {
+    emit(const LoginLoading());
+    final result = await repository.signInWithGoogle();
+    result.fold(
+      (failure) => emit(LoginError(failure)),
+      (completed) {
+        if (completed) {
+          emit(const LoginSuccess());
+        } else {
+          // User cancelled the Google picker — return to normal state silently.
+          emit(const LoginInitial());
+        }
+      },
+    );
+  }
 }

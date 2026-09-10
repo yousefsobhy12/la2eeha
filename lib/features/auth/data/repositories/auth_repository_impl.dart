@@ -95,4 +95,13 @@ class AuthRepositoryImpl implements AuthRepository {
       onAuthException: (e) => AuthFailure.fromAuthException(e.message),
     );
   }
+
+  @override
+  Future<Either<Failure, bool>> signInWithGoogle() {
+    return safeSupabaseCall<bool>(
+      () => remoteDataSource.signInWithGoogle(),
+      callName: 'AuthRepository.signInWithGoogle',
+      onAuthException: (e) => AuthFailure.fromAuthException(e.message),
+    );
+  }
 }
