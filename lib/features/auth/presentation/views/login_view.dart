@@ -124,7 +124,8 @@ class _LoginViewBodyState extends State<_LoginViewBody> {
                                     AlignmentDirectional.centerStart,
                                 child: TextButton(
                                   onPressed: () =>
-                                      showComingSoon(context),
+                                      // showComingSoon(context),
+                                      context.push('/forgot-password'),
                                   child: Text(
                                     'نسيت كلمة السر؟',
                                     style:

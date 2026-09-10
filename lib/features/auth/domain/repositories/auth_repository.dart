@@ -22,4 +22,17 @@ abstract class AuthRepository {
   });
 
   Future<Either<Failure, void>> resendOtp({required String email});
+
+  Future<Either<Failure, void>> sendPasswordResetOtp({
+    required String email,
+  });
+
+  Future<Either<Failure, void>> verifyRecoveryOtp({
+    required String email,
+    required String token,
+  });
+
+  Future<Either<Failure, void>> updatePassword({
+    required String newPassword,
+  });
 }

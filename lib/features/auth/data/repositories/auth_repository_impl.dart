@@ -61,4 +61,38 @@ class AuthRepositoryImpl implements AuthRepository {
       onAuthException: (e) => AuthFailure.fromAuthException(e.message),
     );
   }
+
+  @override
+  Future<Either<Failure, void>> sendPasswordResetOtp({
+    required String email,
+  }) {
+    return safeSupabaseCall<void>(
+      () => remoteDataSource.sendPasswordResetOtp(email: email),
+      callName: 'AuthRepository.sendPasswordResetOtp',
+      onAuthException: (e) => AuthFailure.fromAuthException(e.message),
+    );
+  }
+
+  @override
+  Future<Either<Failure, void>> verifyRecoveryOtp({
+    required String email,
+    required String token,
+  }) {
+    return safeSupabaseCall<void>(
+      () => remoteDataSource.verifyRecoveryOtp(email: email, token: token),
+      callName: 'AuthRepository.verifyRecoveryOtp',
+      onAuthException: (e) => AuthFailure.fromAuthException(e.message),
+    );
+  }
+
+  @override
+  Future<Either<Failure, void>> updatePassword({
+    required String newPassword,
+  }) {
+    return safeSupabaseCall<void>(
+      () => remoteDataSource.updatePassword(newPassword: newPassword),
+      callName: 'AuthRepository.updatePassword',
+      onAuthException: (e) => AuthFailure.fromAuthException(e.message),
+    );
+  }
 }

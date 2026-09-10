@@ -3,6 +3,9 @@ import '../nav/app_shell.dart';
 import '../../features/auth/presentation/views/login_view.dart';
 import '../../features/auth/presentation/views/register_view.dart';
 import '../../features/auth/presentation/views/verify_email_view.dart';
+import '../../features/auth/presentation/views/forgot_password_view.dart';
+import '../../features/auth/presentation/views/reset_otp_view.dart';
+import '../../features/auth/presentation/views/reset_password_view.dart';
 import '../../features/browse/presentation/views/category_list_view.dart';
 import '../../features/browse/presentation/views/home_view.dart';
 import '../../features/browse/presentation/views/place_detail_view.dart';
@@ -82,6 +85,25 @@ final GoRouter appRouter = GoRouter(
         }
         return VerifyEmailView(email: email);
       },
+    ),
+    GoRoute(
+      path: '/forgot-password',
+      builder: (context, state) => const ForgotPasswordView(),
+    ),
+    GoRoute(
+      path: '/reset-otp',
+      builder: (context, state) {
+        final email = state.extra as String?;
+        if (email == null) {
+          // Defensive fallback — shouldn't happen via normal navigation
+          return const ForgotPasswordView();
+        }
+        return ResetOtpView(email: email);
+      },
+    ),
+    GoRoute(
+      path: '/reset-password',
+      builder: (context, state) => const ResetPasswordView(),
     ),
     GoRoute(
       path: '/add-place-placeholder',

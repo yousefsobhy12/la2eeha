@@ -58,6 +58,11 @@ class AuthFailure extends Failure {
         lower.contains('invalid token')) {
       return const AuthFailure('الكود غلط أو منتهي');
     }
+    if (lower.contains('should be different')) {
+      return const AuthFailure(
+        'كلمة السر الجديدة لازم تختلف عن القديمة',
+      );
+    }
     if (lower.contains('password')) {
       return const AuthFailure(
         'كلمة السر ضعيفة — استخدم 6 حروف على الأقل',

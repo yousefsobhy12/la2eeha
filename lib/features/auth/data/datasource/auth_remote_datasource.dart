@@ -45,4 +45,25 @@ class AuthRemoteDataSource {
   Future<void> resendOtp({required String email}) async {
     await supabase.auth.resend(type: OtpType.signup, email: email);
   }
+
+  Future<void> sendPasswordResetOtp({required String email}) async {
+    await supabase.auth.resetPasswordForEmail(email);
+  }
+
+  Future<void> verifyRecoveryOtp({
+    required String email,
+    required String token,
+  }) async {
+    await supabase.auth.verifyOTP(
+      type: OtpType.recovery,
+      token: token,
+      email: email,
+    );
+  }
+
+  Future<void> updatePassword({required String newPassword}) async {
+    await supabase.auth.updateUser(
+      UserAttributes(password: newPassword),
+    );
+  }
 }
