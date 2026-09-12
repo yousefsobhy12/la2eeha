@@ -5,6 +5,7 @@ import 'package:la2eeha/core/theme/app_text_styles.dart';
 import 'package:la2eeha/core/widgets/custom_button.dart';
 
 import '../../../../core/extensions/extensions.dart';
+import '../../../../core/network/supabase_client_provider.dart';
 
 class BusinessOwnerCard extends StatelessWidget {
   const BusinessOwnerCard({super.key});
@@ -51,7 +52,11 @@ class BusinessOwnerCard extends StatelessWidget {
           CustomElevatedButton(
             text: 'دخول التجار',
             onPressed: () {
-              context.push('/login');
+              if (supabase.auth.currentSession != null) {
+                context.push('/add-place');
+              } else {
+                context.push('/login');
+              }
             },
             // ثابتة عن قصد في الوضعين (هوية الزرار الأساسي للبراند)
             backgroundColor: AppColors.primary,

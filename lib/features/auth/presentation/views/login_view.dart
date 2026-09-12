@@ -138,12 +138,7 @@ class _LoginViewBodyState extends State<_LoginViewBody> {
                               BlocConsumer<LoginCubit, LoginState>(
                                 listener: (context, state) {
                                   if (state is LoginSuccess) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text('تم تسجيل الدخول'),
-                                      ),
-                                    );
-                                    context.go('/');
+                                    context.go('/add-place');
                                   } else if (state is LoginError) {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(

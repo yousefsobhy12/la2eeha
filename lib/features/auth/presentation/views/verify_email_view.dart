@@ -155,7 +155,7 @@ class _VerifyEmailViewBodyState extends State<_VerifyEmailViewBody> {
                         previous.status != current.status,
                     listener: (context, state) {
                       if (state.status == VerifyEmailStatus.success) {
-                        context.go('/add-place-placeholder');
+                        context.go('/add-place');
                       } else if (state.status ==
                           VerifyEmailStatus.error) {
                         ScaffoldMessenger.of(context).showSnackBar(

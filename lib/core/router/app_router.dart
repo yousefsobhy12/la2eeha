@@ -11,7 +11,7 @@ import '../../features/browse/presentation/views/home_view.dart';
 import '../../features/browse/presentation/views/place_detail_view.dart';
 import '../../features/browse/presentation/views/search_results_view.dart';
 import '../../features/favorites/presentation/views/favorites_view.dart';
-import '../../features/merchant/presentation/views/add_place_placeholder_view.dart';
+import '../../features/merchant/presentation/views/add_place_view.dart';
 import '../../features/more/presentation/views/more_view.dart';
 
 final GoRouter appRouter = GoRouter(
@@ -106,8 +106,8 @@ final GoRouter appRouter = GoRouter(
       builder: (context, state) => const ResetPasswordView(),
     ),
     GoRoute(
-      path: '/add-place-placeholder',
-      builder: (context, state) => const AddPlacePlaceholderView(),
+      path: '/add-place',
+      builder: (context, state) => const AddPlaceView(),
     ),
   ],
 );
