@@ -17,6 +17,10 @@ class Place {
   final String? closeTime;
   final List<int> closedDays;
 
+  /// المكان شغال ٢٤ ساعة — مفيش open_time/close_time وفي الـ status دايماً
+  /// شغال في أوقات الأسبوع غير أيام الإجازة.
+  final bool is24Hours;
+
   const Place({
     required this.id,
     required this.categoryId,
@@ -35,5 +39,6 @@ class Place {
     this.openTime,
     this.closeTime,
     this.closedDays = const [],
+    this.is24Hours = false,
   });
 }

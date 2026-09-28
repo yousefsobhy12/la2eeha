@@ -12,6 +12,9 @@ import '../../data/datasource/auth_remote_datasource.dart';
 import '../../data/repositories/auth_repository_impl.dart';
 import '../cubit/login_cubit.dart';
 import '../cubit/login_state.dart';
+import '../../../merchant/data/datasource/merchant_remote_datasource.dart';
+import '../../../merchant/data/repositories/merchant_repository_impl.dart';
+import '../../../merchant/presentation/merchant_navigation.dart';
 
 class LoginView extends StatelessWidget {
   const LoginView({super.key});
@@ -52,7 +55,7 @@ class _LoginViewBodyState extends State<_LoginViewBody> {
       backgroundColor: context.pageBackground,
       body: Column(
         children: [
-          const AuthHeader(showSubtitle: true),
+          AuthHeader(showSubtitle: true, onBack: context.pop),
           Expanded(
             child: SingleChildScrollView(
               padding: context.pagePadding,
@@ -138,7 +141,13 @@ class _LoginViewBodyState extends State<_LoginViewBody> {
                               BlocConsumer<LoginCubit, LoginState>(
                                 listener: (context, state) {
                                   if (state is LoginSuccess) {
-                                    context.go('/add-place');
+                                    navigateToMerchantEntry(
+                                      context,
+                                      MerchantRepositoryImpl(
+                                        remoteDataSource:
+                                            MerchantRemoteDataSource(),
+                                      ),
+                                    );
                                   } else if (state is LoginError) {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(

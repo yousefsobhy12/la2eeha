@@ -20,6 +20,10 @@ class PlaceDraft {
   final String? closeTime;
   final List<int> closedDays;
 
+  /// لو المكان شغال ٢٤ ساعة — بيخلي الـ open_time/close_time null في
+  /// الـ insert (شوف MerchantRemoteDataSource.addPlace).
+  final bool is24Hours;
+
   const PlaceDraft({
     required this.name,
     required this.categoryId,
@@ -34,5 +38,6 @@ class PlaceDraft {
     this.openTime,
     this.closeTime,
     this.closedDays = const [],
+    this.is24Hours = false,
   });
 }

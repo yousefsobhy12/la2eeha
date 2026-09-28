@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/extensions/time_format_extension.dart';
 import 'place.dart';
 
 enum PlaceOpenStatus { openNow, closedNow, closedToday }
@@ -9,10 +10,15 @@ extension PlaceOpenStatusX on Place {
   /// (open_time/close_time not set yet — e.g. all current test data).
   /// When null, the UI must not render any status pill at all.
   PlaceOpenStatus? get openStatus {
-    if (openTime == null || closeTime == null) return null;
-
     final now = DateTime.now();
+    // أيام الإجازة ميكانيزم مستقل — لو النهارده يوم إجازة يبقى مغلق حتى لو
+    // المكان ٢٤ ساعة.
     if (closedDays.contains(now.weekday)) return PlaceOpenStatus.closedToday;
+
+    // المكان اللي شغال ٢٤ ساعة مفتوح على طول (مافيش open_time/close_time أصلًا).
+    if (is24Hours) return PlaceOpenStatus.openNow;
+
+    if (openTime == null || closeTime == null) return null;
 
     final open = _parseTimeOfDay(openTime!);
     final close = _parseTimeOfDay(closeTime!);
@@ -26,6 +32,18 @@ extension PlaceOpenStatusX on Place {
         : nowMinutes >= openMinutes || nowMinutes < closeMinutes;
 
     return isOpen ? PlaceOpenStatus.openNow : PlaceOpenStatus.closedNow;
+  }
+}
+
+/// Shared working-hours text — single source of truth for PlaceCard
+/// and PlaceDetailView's info list.
+extension PlaceWorkingHoursX on Place {
+  String? get workingHoursText {
+    if (is24Hours) return 'يعمل على مدار الساعة';
+    if (openTime != null && closeTime != null) {
+      return '${openTime!.toArabicTime()} – ${closeTime!.toArabicTime()}';
+    }
+    return null;
   }
 }
 

@@ -188,8 +188,7 @@ class PlaceCard extends StatelessWidget {
                                   ],
                                 ],
                               ),
-                              if (place.workingHours != null &&
-                                  place.workingHours!.isNotEmpty) ...[
+                              if (place.workingHoursText != null) ...[
                                 6.vSpace,
                                 Row(
                                   children: [
@@ -200,7 +199,7 @@ class PlaceCard extends StatelessWidget {
                                     ),
                                     4.hSpace,
                                     Expanded(
-                                      child: place.workingHours!.toCaption(
+                                      child: place.workingHoursText!.toCaption(
                                         context,
                                         color: context.textSecondary,
                                         maxLines: 1,

@@ -6,11 +6,21 @@
 
 import 'dart:io';
 
+import 'package:flutter/material.dart';
+
 import '../../../../core/network/supabase_client_provider.dart';
+import '../../domain/entities/menu_item_draft.dart';
+import '../../domain/entities/my_place_summary.dart';
 import '../../domain/entities/place_draft.dart';
+import '../../domain/entities/sports_pricing_draft.dart';
 
 class MerchantRemoteDataSource {
   Future<int> addPlace(PlaceDraft draft) async {
+    // لو المكان ٢٤ ساعة، الأوقات بتتضرب null مهما كان الـ state القديم في
+    // الفورم — ساعات العمل بتبقى محسوبة من is_24_hours بس.
+    final openTime = draft.is24Hours ? null : draft.openTime;
+    final closeTime = draft.is24Hours ? null : draft.closeTime;
+
     final response = await supabase
         .from('places')
         .insert({
@@ -26,8 +36,9 @@ class MerchantRemoteDataSource {
           'whatsapp': draft.whatsapp,
           'google_maps_url': draft.googleMapsUrl,
           'description': draft.description,
-          'open_time': draft.openTime,
-          'close_time': draft.closeTime,
+          'is_24_hours': draft.is24Hours,
+          'open_time': openTime,
+          'close_time': closeTime,
           'closed_days': draft.closedDays,
         })
         .select('id')
@@ -57,6 +68,82 @@ class MerchantRemoteDataSource {
   }) async {
     await supabase
         .from('places')
-        .update({'image_url': imageUrl}).eq('id', placeId);
+        .update({'image_url': imageUrl})
+        .eq('id', placeId);
+  }
+
+  /// أحدث place للتاجر الحالي (بالترتيب الزمني) — null لو مفيش أي place.
+  Future<MyPlaceSummary?> getMyLatestPlace() async {
+    final response = await supabase
+        .from('places')
+        .select('id,name,category_id,sub_category,is_approved')
+        .eq('owner_id', supabase.auth.currentUser!.id)
+        .order('created_at', ascending: false)
+        .limit(1)
+        .maybeSingle();
+
+    if (response == null) return null;
+
+    return MyPlaceSummary(
+      id: response['id'] as int,
+      name: response['name'] as String,
+      categoryId: response['category_id'] as int,
+      subCategory: response['sub_category'] as String?,
+      isApproved: response['is_approved'] as bool,
+    );
+  }
+
+  /// حالة الموافقة الحالية لمكان مملوك للتاجر الحالي.
+  Future<bool> isPlaceApproved(int placeId) async {
+    final response = await supabase
+        .from('places')
+        .select('is_approved')
+        .eq('id', placeId)
+        .eq('owner_id', supabase.auth.currentUser!.id)
+        .single();
+    return response['is_approved'] as bool;
+  }
+
+  /// بيمسح كل عناصر المنيو الموجودة للمكان وبيعمل insert جديد للقائمة الحالية.
+  /// لو القائمة فاضية، بيمسح بس من غير insert. السطر اللي بيحفظ فيه
+  /// sort_order (ترتيب العنصر الحالي في القائمة) عشان ترتيب العرض يتثبّت.
+  Future<void> replaceMenuItems(int placeId, List<MenuItemDraft> items) async {
+    await supabase.from('menu_items').delete().eq('place_id', placeId);
+    if (items.isEmpty) return;
+    await supabase.from('menu_items').insert([
+      for (final item in items)
+        {
+          'place_id': placeId,
+          'name': item.name,
+          'price': item.price,
+          'description': item.description,
+          'sort_order': item.sortOrder,
+        },
+    ]);
+  }
+
+  /// بيمسح كل فترات التسعير الموجودة للمكان وبيعمل insert جديد.
+  /// TimeOfDay بيتحول لـ "HH:mm:00" (نفس format الـ open_time/close_time).
+  Future<void> replaceSportsPricing(
+    int placeId,
+    List<SportsPricingDraft> items,
+  ) async {
+    await supabase.from('sports_pricing').delete().eq('place_id', placeId);
+    if (items.isEmpty) return;
+    await supabase.from('sports_pricing').insert([
+      for (final item in items)
+        {
+          'place_id': placeId,
+          'start_time': _timeToHhMmSs(item.startTime),
+          'end_time': _timeToHhMmSs(item.endTime),
+          'price': item.price,
+          'description': item.description,
+          'sort_order': item.sortOrder,
+        },
+    ]);
+  }
+
+  String _timeToHhMmSs(TimeOfDay time) {
+    return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}:00';
   }
 }

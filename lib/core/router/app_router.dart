@@ -12,6 +12,10 @@ import '../../features/browse/presentation/views/place_detail_view.dart';
 import '../../features/browse/presentation/views/search_results_view.dart';
 import '../../features/favorites/presentation/views/favorites_view.dart';
 import '../../features/merchant/presentation/views/add_place_view.dart';
+import '../../features/merchant/presentation/views/menu_pricing_view.dart';
+import '../../features/merchant/presentation/views/place_status_view.dart';
+import '../../features/merchant/presentation/views/pricing_args.dart';
+import '../../features/merchant/presentation/views/sports_pricing_view.dart';
 import '../../features/more/presentation/views/more_view.dart';
 
 final GoRouter appRouter = GoRouter(
@@ -67,10 +71,7 @@ final GoRouter appRouter = GoRouter(
         return PlaceDetailView(placeId: id);
       },
     ),
-    GoRoute(
-      path: '/login',
-      builder: (context, state) => const LoginView(),
-    ),
+    GoRoute(path: '/login', builder: (context, state) => const LoginView()),
     GoRoute(
       path: '/register',
       builder: (context, state) => const RegisterView(),
@@ -104,6 +105,36 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/reset-password',
       builder: (context, state) => const ResetPasswordView(),
+    ),
+    GoRoute(
+      path: '/place/:id/menu',
+      builder: (context, state) {
+        final id = int.parse(state.pathParameters['id']!);
+        final args = state.extra;
+        // Defensive fallback — الخلان بيتوصّل من AddPlaceView وهو دايما
+        // بيبعت extra، بس لو ضاع لأي سبب ننزّل على الـ detail screen.
+        if (args is PricingArgs) return MenuPricingView(args: args);
+        return PlaceDetailView(placeId: id);
+      },
+    ),
+    GoRoute(
+      path: '/place/:id/pricing',
+      builder: (context, state) {
+        final id = int.parse(state.pathParameters['id']!);
+        final args = state.extra;
+        if (args is PricingArgs) return SportsPricingView(args: args);
+        return PlaceDetailView(placeId: id);
+      },
+    ),
+    GoRoute(
+      path: '/place/:id/status',
+      builder: (context, state) {
+        final id = int.parse(state.pathParameters['id']!);
+        final args = state.extra;
+        // شاشة الحالة مالية شاشة تسعير (صيدليات) — بندخلها بـ PricingArgs.
+        if (args is PricingArgs) return PlaceStatusView(args: args);
+        return PlaceDetailView(placeId: id);
+      },
     ),
     GoRoute(
       path: '/add-place',

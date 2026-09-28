@@ -6,6 +6,9 @@ import 'package:la2eeha/core/widgets/custom_button.dart';
 
 import '../../../../core/extensions/extensions.dart';
 import '../../../../core/network/supabase_client_provider.dart';
+import '../../../merchant/data/datasource/merchant_remote_datasource.dart';
+import '../../../merchant/data/repositories/merchant_repository_impl.dart';
+import '../../../merchant/presentation/merchant_navigation.dart';
 
 class BusinessOwnerCard extends StatelessWidget {
   const BusinessOwnerCard({super.key});
@@ -53,7 +56,12 @@ class BusinessOwnerCard extends StatelessWidget {
             text: 'دخول التجار',
             onPressed: () {
               if (supabase.auth.currentSession != null) {
-                context.push('/add-place');
+                navigateToMerchantEntry(
+                  context,
+                  MerchantRepositoryImpl(
+                    remoteDataSource: MerchantRemoteDataSource(),
+                  ),
+                );
               } else {
                 context.push('/login');
               }

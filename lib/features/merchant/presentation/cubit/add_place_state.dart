@@ -49,8 +49,17 @@ class AddPlaceState {
   final String? openTime;
   final String? closeTime;
   final List<int> closedDays;
+
+  /// لو التاجر فعّل "يعمل ٢٤ ساعة" — الأوقات بتبقى ماسحة (لو كان فيها حاجة)
+  /// والعرض بيخفي حقول الساعات.
+  final bool is24Hours;
+
   final File? imageFile;
   final bool imageUploadFailed;
+
+  /// الـ id اللي رجعه addPlace بعد submit ناجح — بيستخدم في شاشة النجاح
+  /// عشان التاجر يتنقل لشاشة المنيو/الأسعار بتاعة البيزنس الجديد.
+  final int? submittedPlaceId;
 
   const AddPlaceState({
     this.status = AddPlaceStatus.initial,
@@ -71,11 +80,14 @@ class AddPlaceState {
     this.openTime,
     this.closeTime,
     this.closedDays = const [],
+    this.is24Hours = false,
     this.imageFile,
     this.imageUploadFailed = false,
+    this.submittedPlaceId,
   });
 
-  bool get isFormReady => status == AddPlaceStatus.ready && categories.isNotEmpty;
+  bool get isFormReady =>
+      status == AddPlaceStatus.ready && categories.isNotEmpty;
 
   AddPlaceState copyWith({
     AddPlaceStatus? status,
@@ -96,8 +108,10 @@ class AddPlaceState {
     Object? openTime = _unset,
     Object? closeTime = _unset,
     List<int>? closedDays,
+    bool? is24Hours,
     Object? imageFile = _unset,
     bool? imageUploadFailed,
+    Object? submittedPlaceId = _unset,
   }) {
     return AddPlaceState(
       status: status ?? this.status,
@@ -107,9 +121,7 @@ class AddPlaceState {
       categories: categories ?? this.categories,
       areas: areas ?? this.areas,
       name: name ?? this.name,
-      categoryId: categoryId == _unset
-          ? this.categoryId
-          : categoryId as int?,
+      categoryId: categoryId == _unset ? this.categoryId : categoryId as int?,
       subCategory: subCategory == _unset
           ? this.subCategory
           : subCategory as String?,
@@ -128,8 +140,12 @@ class AddPlaceState {
       openTime: openTime == _unset ? this.openTime : openTime as String?,
       closeTime: closeTime == _unset ? this.closeTime : closeTime as String?,
       closedDays: closedDays ?? this.closedDays,
+      is24Hours: is24Hours ?? this.is24Hours,
       imageFile: imageFile == _unset ? this.imageFile : imageFile as File?,
       imageUploadFailed: imageUploadFailed ?? this.imageUploadFailed,
+      submittedPlaceId: submittedPlaceId == _unset
+          ? this.submittedPlaceId
+          : submittedPlaceId as int?,
     );
   }
 }

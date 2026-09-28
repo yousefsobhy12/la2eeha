@@ -24,11 +24,8 @@ import '../../domain/repositories/merchant_repository.dart';
 import 'add_place_state.dart';
 
 class AddPlaceCubit extends Cubit<AddPlaceState> {
-  AddPlaceCubit(
-    this._merchantRepository,
-    this._placesRepository,
-    this._storage,
-  ) : super(const AddPlaceState());
+  AddPlaceCubit(this._merchantRepository, this._placesRepository, this._storage)
+    : super(const AddPlaceState());
 
   final MerchantRepository _merchantRepository;
   final PlacesRepository _placesRepository;
@@ -56,10 +53,7 @@ class AddPlaceCubit extends Cubit<AddPlaceState> {
       if (either.isLeft()) {
         final message = either.fold((failure) => failure.message, (_) => null);
         emit(
-          state.copyWith(
-            status: AddPlaceStatus.error,
-            errorMessage: message,
-          ),
+          state.copyWith(status: AddPlaceStatus.error, errorMessage: message),
         );
         return;
       }
@@ -98,12 +92,18 @@ class AddPlaceCubit extends Cubit<AddPlaceState> {
           whatsapp: json['whatsapp'] as String?,
           googleMapsUrl: json['googleMapsUrl'] as String?,
           description: json['description'] as String?,
-          openTime: json['openTime'] as String?,
-          closeTime: json['closeTime'] as String?,
-          closedDays:
-              ((json['closedDays'] as List?) ?? const [])
-                  .map((e) => (e as num).toInt())
-                  .toList(),
+          is24Hours: (json['is24Hours'] as bool?) ?? false,
+          // لو المكان كان على وضع ٢٤ ساعة، الأوقات القديمة في الـ draft
+          // مش هتتستعاد على كل حال.
+          openTime: (json['is24Hours'] as bool?) ?? false
+              ? null
+              : json['openTime'] as String?,
+          closeTime: (json['is24Hours'] as bool?) ?? false
+              ? null
+              : json['closeTime'] as String?,
+          closedDays: ((json['closedDays'] as List?) ?? const [])
+              .map((e) => (e as num).toInt())
+              .toList(),
           imageFile: imageFile,
         );
       } catch (e) {
@@ -196,6 +196,19 @@ class AddPlaceCubit extends Cubit<AddPlaceState> {
     _saveDraft();
   }
 
+  void setIs24Hours(bool value) {
+    emit(
+      state.copyWith(
+        is24Hours: value,
+        // لو فعّل الـ ٢٤ ساعة، بنمسح أي أوقات قديمة من الـ state فورًا —
+        // مش بنستخدمها خالص، و لو رجع تاني لازم يختار من الأول.
+        openTime: value ? null : state.openTime,
+        closeTime: value ? null : state.closeTime,
+      ),
+    );
+    _saveDraft();
+  }
+
   Future<void> pickImage() async {
     try {
       final xfile = await ImagePicker().pickImage(
@@ -219,7 +232,12 @@ class AddPlaceCubit extends Cubit<AddPlaceState> {
   Future<void> submit() async {
     final validationError = _validate();
     if (validationError != null) {
-      emit(state.copyWith(status: AddPlaceStatus.error, errorMessage: validationError));
+      emit(
+        state.copyWith(
+          status: AddPlaceStatus.error,
+          errorMessage: validationError,
+        ),
+      );
       return;
     }
 
@@ -230,21 +248,29 @@ class AddPlaceCubit extends Cubit<AddPlaceState> {
       categoryId: state.categoryId!,
       subCategory: state.subCategory,
       areaId: state.isOtherAreaSelected ? null : state.areaId,
-      pendingAreaName: state.isOtherAreaSelected ? state.otherAreaName.trim() : null,
+      pendingAreaName: state.isOtherAreaSelected
+          ? state.otherAreaName.trim()
+          : null,
       address: state.address.trim(),
       phone: state.phone.trim(),
       whatsapp: state.whatsapp?.trim(),
       googleMapsUrl: state.googleMapsUrl,
       description: state.description,
-      openTime: state.openTime,
-      closeTime: state.closeTime,
+      openTime: state.is24Hours ? null : state.openTime,
+      closeTime: state.is24Hours ? null : state.closeTime,
       closedDays: state.closedDays,
+      is24Hours: state.is24Hours,
     );
 
     final result = await _merchantRepository.addPlace(draft);
     await result.fold(
       (failure) async {
-        emit(state.copyWith(status: AddPlaceStatus.error, errorMessage: failure.message));
+        emit(
+          state.copyWith(
+            status: AddPlaceStatus.error,
+            errorMessage: failure.message,
+          ),
+        );
       },
       (placeId) async {
         var imageUploadFailed = false;
@@ -266,12 +292,9 @@ class AddPlaceCubit extends Cubit<AddPlaceState> {
                 placeId: placeId,
                 imageUrl: url,
               );
-              await urlResult.fold(
-                (failure) async {
-                  imageUploadFailed = true;
-                },
-                (_) async {},
-              );
+              await urlResult.fold((failure) async {
+                imageUploadFailed = true;
+              }, (_) async {});
             },
           );
         }
@@ -281,6 +304,7 @@ class AddPlaceCubit extends Cubit<AddPlaceState> {
         emit(
           state.copyWith(
             status: AddPlaceStatus.success,
+            submittedPlaceId: placeId,
             imageUploadFailed: imageUploadFailed,
           ),
         );
@@ -317,10 +341,12 @@ class AddPlaceCubit extends Cubit<AddPlaceState> {
       return 'رقم الواتساب غير صحيح';
     }
 
-    final hasOpen = state.openTime != null;
-    final hasClose = state.closeTime != null;
-    if (hasOpen != hasClose) {
-      return 'حدد وقت الفتح والقفل مع بعض';
+    // لما مفيش ٢٤ ساعة، الفتح والقفل مطلوبين مع بعض (inline errors في الفورم
+    // هي اللي بتظهر فعلًا — ده guard دفاعي بيترمى من الـ snackbar بس لو
+    // السطر الوحيد وصل هنا).
+    if (!state.is24Hours &&
+        (state.openTime == null || state.closeTime == null)) {
+      return 'حدد ميعاد الفتح والقفل مع بعض';
     }
 
     return null;
@@ -343,9 +369,10 @@ class AddPlaceCubit extends Cubit<AddPlaceState> {
         'whatsapp': state.whatsapp,
         'googleMapsUrl': state.googleMapsUrl,
         'description': state.description,
-        'openTime': state.openTime,
-        'closeTime': state.closeTime,
+        'openTime': state.is24Hours ? null : state.openTime,
+        'closeTime': state.is24Hours ? null : state.closeTime,
         'closedDays': state.closedDays,
+        'is24Hours': state.is24Hours,
         'imageFilePath': state.imageFile?.path,
       });
       await _storage.setString(draftKey, json);

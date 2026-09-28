@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/constants/category_visuals.dart';
 import '../../../../core/constants/sub_category_visuals.dart';
+import '../../../../core/constants/weekday_names.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/extensions/extensions.dart';
 import '../../../../core/utils/coming_soon.dart';
@@ -234,11 +235,12 @@ class _PlaceDetailBody extends StatelessWidget {
                 // 9. Footer Disclaimer Text
                 Center(
                   child:
-                      'البيانات مسجّلة من صاحب المكان. لو فيه حاجة غلط اضغط علامة التبليغ فوق.'
+                      'البيانات مسجّلة من صاحب المكان.\nلو فيه حاجة غلط اضغط علامة التبليغ فوق.'
                           .toCaption(
                             context,
                             color: context.textSecondary,
                             textAlign: TextAlign.center,
+                            maxLines: 2,
                           ),
                 ).fadeSlideIn(delay: AppAnimations.stagger(animIndex++)),
 
@@ -314,7 +316,7 @@ class _PlaceDetailBody extends StatelessWidget {
           top: MediaQuery.of(context).padding.top + 8.h,
           start: context.hSpacing,
           child: _HeaderCircleButton(
-            icon: Icons.arrow_forward_ios_rounded,
+            icon: Icons.arrow_back_ios_new_rounded,
             onPressed: () => context.pop(),
           ),
         ),
@@ -397,8 +399,12 @@ class _PlaceDetailBody extends StatelessWidget {
 
   Widget _buildInfoList(BuildContext context, Place place) {
     final hasAddress = place.address.isNotEmpty;
-    // Strict source: only openTime and closeTime, never legacy working_hours
-    final hasWorkingHours = place.openTime != null && place.closeTime != null;
+    final String? workingHours = place.workingHoursText;
+    final hasWorkingHours = workingHours != null;
+    final closedDays = place.closedDays
+        .map((day) => arabicWeekdayNames[day])
+        .whereType<String>()
+        .join('، ');
 
     return Container(
       width: double.infinity,
@@ -438,14 +444,16 @@ class _PlaceDetailBody extends StatelessWidget {
             ),
           ],
 
-          // Working hours row (if both openTime and closeTime exist)
+          // Working hours row (for 24-hour places or when both times are set).
           if (hasWorkingHours) ...[
             Divider(color: context.borderColor, height: 16.h),
             _InfoRow(
               icon: Icons.access_time_rounded,
-              label: 'مواعيد العمل',
-              value:
-                  '${place.openTime!.toArabicTime()} – ${place.closeTime!.toArabicTime()}',
+              label: 'ساعات\nالعمل',
+              value: workingHours,
+              secondaryValue: closedDays.isEmpty
+                  ? null
+                  : 'مغلق يوم: $closedDays',
             ),
           ],
         ],
@@ -583,6 +591,7 @@ class _InfoRow extends StatelessWidget {
   final IconData icon;
   final String label;
   final String value;
+  final String? secondaryValue;
   final bool isAddress;
   final VoidCallback? onTap;
 
@@ -590,6 +599,7 @@ class _InfoRow extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.value,
+    this.secondaryValue,
     this.isAddress = false,
     this.onTap,
   });
@@ -615,21 +625,34 @@ class _InfoRow extends StatelessWidget {
               child: label.toBody(context, color: context.textSecondary),
             ),
             Expanded(
-              child: isAddress
-                  ? value.toBody(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  isAddress
+                      ? value.toBody(
+                          context,
+                          color: context.textPrimary,
+                          textAlign: value.isMostlyArabic
+                              ? TextAlign.right
+                              : TextAlign.left,
+                          maxLines: 3,
+                        )
+                      : value.toBody(
+                          context,
+                          color: onTap != null
+                              ? context.colorScheme.primary
+                              : context.textPrimary,
+                          fontWeight: onTap != null ? FontWeight.w600 : null,
+                        ),
+                  if (secondaryValue != null) ...[
+                    2.vSpace,
+                    secondaryValue!.toCaption(
                       context,
-                      color: context.textPrimary,
-                      textAlign: value.isMostlyArabic
-                          ? TextAlign.right
-                          : TextAlign.left,
-                    )
-                  : value.toBody(
-                      context,
-                      color: onTap != null
-                          ? context.colorScheme.primary
-                          : context.textPrimary,
-                      fontWeight: onTap != null ? FontWeight.w600 : null,
+                      color: context.textSecondary,
                     ),
+                  ],
+                ],
+              ),
             ),
           ],
         ),
@@ -739,7 +762,7 @@ class _PlaceDetailErrorView extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_forward_ios_rounded),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded),
           onPressed: () => context.pop(),
         ),
       ),

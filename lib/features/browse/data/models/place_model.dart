@@ -19,6 +19,7 @@ class PlaceModel extends Place {
     super.openTime,
     super.closeTime,
     super.closedDays,
+    super.is24Hours,
   });
 
   factory PlaceModel.fromJson(Map<String, dynamic> json) {
@@ -39,10 +40,12 @@ class PlaceModel extends Place {
       description: json['description'] as String?,
       openTime: json['open_time'] as String?,
       closeTime: json['close_time'] as String?,
-      closedDays: (json['closed_days'] as List?)
+      closedDays:
+          (json['closed_days'] as List?)
               ?.map((e) => (e as num).toInt())
               .toList() ??
           const [],
+      is24Hours: json['is_24_hours'] as bool? ?? false,
     );
   }
 
@@ -65,6 +68,7 @@ class PlaceModel extends Place {
       'open_time': openTime,
       'close_time': closeTime,
       'closed_days': closedDays,
+      'is_24_hours': is24Hours,
     };
   }
 }

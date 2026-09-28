@@ -8,6 +8,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/constants/place_pricing_helpers.dart';
+import '../../../../core/constants/weekday_names.dart';
 import '../../../../core/extensions/extensions.dart';
 import '../../../../core/storage/local_storage_service.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -22,6 +24,7 @@ import '../../data/datasource/merchant_remote_datasource.dart';
 import '../../data/repositories/merchant_repository_impl.dart';
 import '../cubit/add_place_cubit.dart';
 import '../cubit/add_place_state.dart';
+import 'pricing_args.dart';
 
 class AddPlaceView extends StatelessWidget {
   const AddPlaceView({super.key});
@@ -48,28 +51,30 @@ class _AddPlaceViewBody extends StatefulWidget {
 
 class _AddPlaceViewBodyState extends State<_AddPlaceViewBody> {
   bool _showingSuccessDialog = false;
+  final _formKey = GlobalKey<FormState>();
 
   // القيم الثابتة بتاعة الـ sub-categories للكاتيجوريز المعروفة.
   // Hardcoded عمدًا — مش بندور عليها في Supabase ولا بنستنتجها من الأسماء.
+  // الـ 22/26 قيمهم عربية مقصودة (free text زي ما بيتخزن في Supabase فعلًا).
+  // الـ Sports (27) مخزّنة بمفاتيح إنجليزية عشان SubCategoryVisuals/
+  // PlaceDetailCubit بيتعاملوا بيها — العربية للعرض بس.
   static const Map<int, List<String>> _subCategoryOptions = {
     22: ['مطعم', 'كافيه', 'حلواني'],
     26: ['بقالة', 'فراخ', 'جزارة'],
-    27: ['ملاعب كورة', 'ملاعب بادل', 'ملاكمة', 'كونغ فو', 'بلايستيشن'],
+  };
+
+  /// Sports: الـ key (المخزّن في sub_category) ← الـ label العربي المعروض.
+  static const Map<String, String> _sportsSubCategories = {
+    'football': 'ملاعب كورة',
+    'padel': 'ملاعب بادل',
+    'boxing': 'ملاكمة',
+    'kungfu': 'كونغ فو',
+    'playstation': 'بلايستيشن',
   };
 
   static const String _otherSubCategoryMarker = '__OTHER__';
   static const int _otherAreaMarker = -1;
-
-  static const List<int> _closedDayOrder = [6, 7, 1, 2, 3, 4, 5];
-  static const Map<int, String> _closedDayLabels = {
-    6: 'السبت',
-    7: 'الأحد',
-    1: 'الاثنين',
-    2: 'الثلاثاء',
-    3: 'الأربعاء',
-    4: 'الخميس',
-    5: 'الجمعة',
-  };
+  static const String _phonePattern = r'^01[0125][0-9]{8}$';
 
   TimeOfDay? _parseHhMmSs(String raw) {
     final parts = raw.split(':');
@@ -87,10 +92,7 @@ class _AddPlaceViewBodyState extends State<_AddPlaceViewBody> {
     final parsed = (raw == null || raw.isEmpty)
         ? const TimeOfDay(hour: 9, minute: 0)
         : _parseHhMmSs(raw) ?? const TimeOfDay(hour: 9, minute: 0);
-    final picked = await showTimePicker(
-      context: context,
-      initialTime: parsed,
-    );
+    final picked = await showTimePicker(context: context, initialTime: parsed);
     if (picked == null) return;
     if (!mounted) return;
     final formatted = _timeToHhMmSs(picked);
@@ -115,13 +117,38 @@ class _AddPlaceViewBodyState extends State<_AddPlaceViewBody> {
     );
   }
 
-  void _showSuccessDialog(bool imageUploadFailed) {
+  void _showSuccessDialog(BuildContext context, AddPlaceState state) {
     if (_showingSuccessDialog) return;
     _showingSuccessDialog = true;
 
-    final message = imageUploadFailed
-        ? 'تم إضافة بيزنسك بنجاح! ⚠️ الصورة مقدرناش نرفعها — هتقدر تضيفها بعدين من صفحة أعمالي'
-        : 'تم إضافة بيزنسك بنجاح!';
+    final message = state.imageUploadFailed
+        ? 'تمت الإضافة! بيزنسك دلوقتي قيد المراجعة ⚠️ الصورة مقدرناش نرفعها — هتقدر تضيفها بعدين من صفحة أعمالي'
+        : 'تمت الإضافة! بيزنسك دلوقتي قيد المراجعة';
+
+    // حسب الكاتيجوري، ممكن نقفل الدايلوج وندخل الشاشة المناسبة للمنيو/الأسعار.
+    final categoryId = state.categoryId;
+    final screenType = categoryId == null
+        ? PlacePricingScreenType.none
+        : pricingScreenTypeFor(
+            categoryId: categoryId,
+            subCategory: state.subCategory,
+          );
+
+    final placeId = state.submittedPlaceId;
+    final nextAction =
+        (placeId != null && screenType != PlacePricingScreenType.none)
+        ? screenType == PlacePricingScreenType.sportsPricing
+              ? (
+                  label: 'أضف أسعار الساعة دلوقتي',
+                  path: '/place/$placeId/pricing',
+                )
+              : (
+                  label: isDeliveryPricing(categoryId!)
+                      ? 'أضف أسعار التوصيل دلوقتي'
+                      : 'أضف المنيو دلوقتي',
+                  path: '/place/$placeId/menu',
+                )
+        : null;
 
     showDialog<void>(
       context: context,
@@ -150,6 +177,28 @@ class _AddPlaceViewBodyState extends State<_AddPlaceViewBody> {
               },
               child: const Text('تمام'),
             ),
+            if (nextAction != null)
+              ElevatedButton(
+                onPressed: () {
+                  _showingSuccessDialog = false;
+                  Navigator.of(dialogContext).pop();
+                  // pushReplacement بدل push — عشان زر الرجوع على شاشة
+                  // المنيو/الأسعار ميرجعش تاني على شاشة إضافة البيزنس.
+                  context.pushReplacement(
+                    nextAction.path,
+                    extra: PricingArgs(
+                      placeId: placeId!,
+                      placeName: state.name.trim(),
+                      categoryId: state.categoryId!,
+                    ),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: context.colorScheme.primary,
+                  foregroundColor: context.colorScheme.onPrimary,
+                ),
+                child: Text(nextAction.label),
+              ),
           ],
         );
       },
@@ -159,12 +208,11 @@ class _AddPlaceViewBodyState extends State<_AddPlaceViewBody> {
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<AddPlaceCubit, AddPlaceState>(
-      listenWhen: (previous, current) =>
-          previous.status != current.status,
+      listenWhen: (previous, current) => previous.status != current.status,
       listener: (context, state) {
         switch (state.status) {
           case AddPlaceStatus.success:
-            _showSuccessDialog(state.imageUploadFailed);
+            _showSuccessDialog(context, state);
           case AddPlaceStatus.error:
             // لو الحالة error والـ form لسه عندها داتا (categories/areas)،
             // يبقى ده validation أو فشل submit → رسالة snackbar.
@@ -174,9 +222,7 @@ class _AddPlaceViewBodyState extends State<_AddPlaceViewBody> {
                 (state.categories.isNotEmpty || state.areas.isNotEmpty)) {
               ScaffoldMessenger.of(context)
                 ..hideCurrentSnackBar()
-                ..showSnackBar(
-                  SnackBar(content: Text(state.errorMessage!)),
-                );
+                ..showSnackBar(SnackBar(content: Text(state.errorMessage!)));
             }
           case AddPlaceStatus.initial:
           case AddPlaceStatus.loadingFormData:
@@ -191,25 +237,23 @@ class _AddPlaceViewBodyState extends State<_AddPlaceViewBody> {
 
         return Scaffold(
           backgroundColor: context.pageBackground,
-          body: SafeArea(
-            child: Column(
-              children: [
-                ColoredSectionHeader(
-                  title: 'إضافة بيزنس جديد',
-                  subtitle: 'اضبط بيانات المكان واحنا هنتواصل معاك قريب',
-                  leading: IconButton(
-                    icon: const Icon(Icons.arrow_forward_ios_rounded),
-                    color: context.colorScheme.onPrimary,
-                    onPressed: () => context.pop(),
-                  ),
+          body: Column(
+            children: [
+              ColoredSectionHeader(
+                title: 'إضافة بيزنس جديد',
+                subtitle: 'اضبط بيانات المكان واحنا هنتواصل معاك قريب',
+                leading: IconButton(
+                  icon: const Icon(Icons.arrow_back_ios_new_rounded),
+                  color: context.colorScheme.onPrimary,
+                  onPressed: () => context.pop(),
                 ),
-                Expanded(
-                  child: hasFormData
-                      ? _buildForm(context, state)
-                      : _buildStatusView(context, state),
-                ),
-              ],
-            ),
+              ),
+              Expanded(
+                child: hasFormData
+                    ? _buildForm(context, state)
+                    : _buildStatusView(context, state),
+              ),
+            ],
           ),
         );
       },
@@ -217,19 +261,14 @@ class _AddPlaceViewBodyState extends State<_AddPlaceViewBody> {
   }
 
   Widget _buildStatusView(BuildContext context, AddPlaceState state) {
-    if (state.status == AddPlaceStatus.error &&
-        state.errorMessage != null) {
+    if (state.status == AddPlaceStatus.error && state.errorMessage != null) {
       return Center(
         child: Padding(
           padding: context.pagePadding,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(
-                Icons.cloud_off_rounded,
-                size: 48,
-                color: context.iconColor,
-              ),
+              Icon(Icons.cloud_off_rounded, size: 48, color: context.iconColor),
               context.smallSpacing.vSpace,
               state.errorMessage!.toBody(
                 context,
@@ -238,8 +277,7 @@ class _AddPlaceViewBodyState extends State<_AddPlaceViewBody> {
               ),
               context.smallSpacing.vSpace,
               ElevatedButton(
-                onPressed: () =>
-                    context.read<AddPlaceCubit>().loadFormData(),
+                onPressed: () => context.read<AddPlaceCubit>().loadFormData(),
                 child: 'حاول تاني'.toBody(
                   context,
                   color: context.colorScheme.primary,
@@ -251,47 +289,50 @@ class _AddPlaceViewBodyState extends State<_AddPlaceViewBody> {
       );
     }
 
-    return const Center(
-      child: CircularProgressIndicator(),
-    );
+    return const Center(child: CircularProgressIndicator());
   }
 
   Widget _buildForm(BuildContext context, AddPlaceState state) {
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
       padding: context.pagePadding.copyWith(top: context.mediumSpacing),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _buildNameField(context, state),
-          context.mediumSpacing.vSpace,
-          _buildCategoryField(context, state),
-          if (AddPlaceCubit.subCategoryCategories.contains(state.categoryId)) ...[
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _buildNameField(context, state),
             context.mediumSpacing.vSpace,
-            _buildSubCategorySection(context, state),
+            _buildCategoryField(context, state),
+            if (AddPlaceCubit.subCategoryCategories.contains(
+              state.categoryId,
+            )) ...[
+              context.mediumSpacing.vSpace,
+              _buildSubCategorySection(context, state),
+            ],
+            context.mediumSpacing.vSpace,
+            _buildAreaField(context, state),
+            context.mediumSpacing.vSpace,
+            _buildAddressField(context, state),
+            context.mediumSpacing.vSpace,
+            _buildPhoneField(context, state),
+            context.mediumSpacing.vSpace,
+            _buildWhatsappField(context, state),
+            context.mediumSpacing.vSpace,
+            _buildGoogleMapsField(context, state),
+            context.mediumSpacing.vSpace,
+            _buildDescriptionField(context, state),
+            context.mediumSpacing.vSpace,
+            _buildTimesSection(context, state),
+            context.mediumSpacing.vSpace,
+            _buildClosedDaysSection(context, state),
+            context.mediumSpacing.vSpace,
+            _buildCoverPhoto(context, state),
+            context.largeSpacing.vSpace,
+            _buildSubmitButton(context),
+            context.extraLargeSpacing.vSpace,
           ],
-          context.mediumSpacing.vSpace,
-          _buildAreaField(context, state),
-          context.mediumSpacing.vSpace,
-          _buildAddressField(context, state),
-          context.mediumSpacing.vSpace,
-          _buildPhoneField(context, state),
-          context.mediumSpacing.vSpace,
-          _buildWhatsappField(context, state),
-          context.mediumSpacing.vSpace,
-          _buildGoogleMapsField(context, state),
-          context.mediumSpacing.vSpace,
-          _buildDescriptionField(context, state),
-          context.mediumSpacing.vSpace,
-          _buildTimesSection(context, state),
-          context.mediumSpacing.vSpace,
-          _buildClosedDaysSection(context, state),
-          context.mediumSpacing.vSpace,
-          _buildCoverPhoto(context, state),
-          context.largeSpacing.vSpace,
-          _buildSubmitButton(context),
-          context.extraLargeSpacing.vSpace,
-        ],
+        ),
       ),
     );
   }
@@ -337,8 +378,10 @@ class _AddPlaceViewBodyState extends State<_AddPlaceViewBody> {
         CustomTextFormField(
           initialValue: state.name,
           labelText: 'مثال: مطعم أبو علي',
-          onChanged: (value) =>
-              context.read<AddPlaceCubit>().updateName(value),
+          onChanged: (value) => context.read<AddPlaceCubit>().updateName(value),
+          validator: (value) => (value == null || value.trim().isEmpty)
+              ? 'اكتب اسم البيزنس'
+              : null,
         ),
       ],
     );
@@ -366,6 +409,8 @@ class _AddPlaceViewBodyState extends State<_AddPlaceViewBody> {
           ],
           onChanged: (value) =>
               context.read<AddPlaceCubit>().updateCategory(value),
+          validator: (_) =>
+              state.categoryId == null ? 'اختار الكاتيجوري' : null,
         ),
         context.smallSpacing.vSpace,
         Align(
@@ -392,9 +437,12 @@ class _AddPlaceViewBodyState extends State<_AddPlaceViewBody> {
   // ── 3. Sub-category (فقط للكاتيجوريز المعروفة) ──
   Widget _buildSubCategorySection(BuildContext context, AddPlaceState state) {
     final categoryId = state.categoryId!;
-    final fixedOptions = _subCategoryOptions[categoryId] ?? const [];
-    final isOtherSelected = state.subCategory != null &&
-        !fixedOptions.contains(state.subCategory);
+    final isSports = categoryId == 27;
+    final fixedOptions = isSports
+        ? _sportsSubCategories.keys.toList()
+        : (_subCategoryOptions[categoryId] ?? const []);
+    final isOtherSelected =
+        state.subCategory != null && !fixedOptions.contains(state.subCategory);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -405,13 +453,13 @@ class _AddPlaceViewBodyState extends State<_AddPlaceViewBody> {
               ? _otherSubCategoryMarker
               : state.subCategory,
           isExpanded: true,
-          decoration: _dropdownDecoration(
-            'اختار النوع',
-            hint: 'اختار النوع',
-          ),
+          decoration: _dropdownDecoration('اختار النوع', hint: 'اختار النوع'),
           items: [
             for (final option in fixedOptions)
-              DropdownMenuItem(value: option, child: Text(option)),
+              DropdownMenuItem(
+                value: option,
+                child: Text(isSports ? _sportsSubCategories[option]! : option),
+              ),
             const DropdownMenuItem(
               value: _otherSubCategoryMarker,
               child: Text('أخرى — اكتبها'),
@@ -421,11 +469,22 @@ class _AddPlaceViewBodyState extends State<_AddPlaceViewBody> {
             final cubit = context.read<AddPlaceCubit>();
             if (value == _otherSubCategoryMarker) {
               // التاجر اختار "أخرى" — السباب-كاتيجوري هيتكتب في الحقل اللي
-              // بيظهر. مفيش pending mechanism — اللي يتكتب بيتحط مباشرة.
-              cubit.updateSubCategory(null);
+              // بيظهر. بنحط قيمة فاضية عشان الـ validator يتعامل مع الـ text
+              // field (وليس الـ dropdown).
+              cubit.updateSubCategory('');
             } else {
               cubit.updateSubCategory(value);
             }
+          },
+          // لو التاجر شغال بوضع "أخرى" (الـ text field شغال)، الـ validator
+          // بتاع الـ dropdown بيحيّد نفسه — السؤال بيبقى على النسخة المكتوبة.
+          validator: (_) {
+            if (isOtherSelected) return null;
+            if (state.subCategory == null ||
+                state.subCategory!.trim().isEmpty) {
+              return 'اختار النوع الفرعي أو اكتبه';
+            }
+            return null;
           },
         ),
         if (isOtherSelected) ...[
@@ -435,6 +494,8 @@ class _AddPlaceViewBodyState extends State<_AddPlaceViewBody> {
             labelText: 'اكتب النوع',
             onChanged: (value) =>
                 context.read<AddPlaceCubit>().updateSubCategory(value),
+            validator: (value) =>
+                (value == null || value.trim().isEmpty) ? 'اكتب النوع' : null,
           ),
         ],
       ],
@@ -452,7 +513,10 @@ class _AddPlaceViewBodyState extends State<_AddPlaceViewBody> {
               ? _otherAreaMarker
               : state.areaId,
           isExpanded: true,
-          decoration: _dropdownDecoration('اختار المنطقة', hint: 'اختار المنطقة'),
+          decoration: _dropdownDecoration(
+            'اختار المنطقة',
+            hint: 'اختار المنطقة',
+          ),
           items: [
             for (final area in state.areas)
               DropdownMenuItem(value: area.id, child: Text(area.nameAr)),
@@ -469,6 +533,12 @@ class _AddPlaceViewBodyState extends State<_AddPlaceViewBody> {
               cubit.selectExistingArea(value);
             }
           },
+          validator: (_) {
+            if (state.isOtherAreaSelected) return null;
+            return state.areaId == null
+                ? 'اختار المنطقة أو اكتب اسم منطقتك'
+                : null;
+          },
         ),
         if (state.isOtherAreaSelected) ...[
           context.smallSpacing.vSpace,
@@ -477,6 +547,9 @@ class _AddPlaceViewBodyState extends State<_AddPlaceViewBody> {
             labelText: 'اكتب اسم منطقتك',
             onChanged: (value) =>
                 context.read<AddPlaceCubit>().updateOtherAreaName(value),
+            validator: (value) => (value == null || value.trim().isEmpty)
+                ? 'اكتب اسم منطقتك'
+                : null,
           ),
         ],
       ],
@@ -495,6 +568,8 @@ class _AddPlaceViewBodyState extends State<_AddPlaceViewBody> {
           maxLines: 3,
           onChanged: (value) =>
               context.read<AddPlaceCubit>().updateAddress(value),
+          validator: (value) =>
+              (value == null || value.trim().isEmpty) ? 'اكتب العنوان' : null,
         ),
       ],
     );
@@ -512,6 +587,14 @@ class _AddPlaceViewBodyState extends State<_AddPlaceViewBody> {
           keyboardType: TextInputType.phone,
           onChanged: (value) =>
               context.read<AddPlaceCubit>().updatePhone(value),
+          validator: (value) {
+            final phone = value?.trim() ?? '';
+            if (phone.isEmpty) return 'اكتب رقم الهاتف';
+            if (!RegExp(_phonePattern).hasMatch(phone)) {
+              return 'رقم الموبايل غير صحيح (مثال: 01012345678)';
+            }
+            return null;
+          },
         ),
       ],
     );
@@ -529,6 +612,14 @@ class _AddPlaceViewBodyState extends State<_AddPlaceViewBody> {
           keyboardType: TextInputType.phone,
           onChanged: (value) =>
               context.read<AddPlaceCubit>().updateWhatsapp(value),
+          validator: (value) {
+            final whatsapp = value?.trim() ?? '';
+            if (whatsapp.isNotEmpty &&
+                !RegExp(_phonePattern).hasMatch(whatsapp)) {
+              return 'رقم الواتساب غير صحيح';
+            }
+            return null;
+          },
         ),
       ],
     );
@@ -574,38 +665,78 @@ class _AddPlaceViewBodyState extends State<_AddPlaceViewBody> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _sectionLabel(context, 'ساعات العمل (اختياري — لو حددت واحد حدد الاتنين)'),
-        Row(
-          children: [
-            Expanded(
-              child: CustomTextFormField(
-                key: ValueKey(state.openTime),
-                initialValue: state.openTime?.toArabicTime(),
-                labelText: 'الفتح',
-                readOnly: true,
-                onTap: () => _pickTime(true),
-                suffixIcon: Icon(
-                  Icons.schedule_rounded,
-                  color: context.textSecondary,
-                ),
-              ),
-            ),
-            context.smallSpacing.hSpace,
-            Expanded(
-              child: CustomTextFormField(
-                key: ValueKey(state.closeTime),
-                initialValue: state.closeTime?.toArabicTime(),
-                labelText: 'القفل',
-                readOnly: true,
-                onTap: () => _pickTime(false),
-                suffixIcon: Icon(
-                  Icons.schedule_rounded,
-                  color: context.textSecondary,
-                ),
-              ),
-            ),
-          ],
+        _sectionLabel(
+          context,
+          state.is24Hours ? 'ساعات العمل' : 'ساعات العمل *',
         ),
+        Container(
+          padding: EdgeInsets.symmetric(horizontal: context.mediumSpacing),
+          decoration: BoxDecoration(
+            color: context.surfaceColor,
+            borderRadius: context.mediumRadius.circularRadius,
+            border: Border.all(color: context.borderColor),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: 'يعمل ٢٤ ساعة'.toBody(
+                  context,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              Switch(
+                value: state.is24Hours,
+                activeThumbColor: context.colorScheme.onPrimary,
+                activeTrackColor: context.colorScheme.primary,
+                onChanged: (value) =>
+                    context.read<AddPlaceCubit>().setIs24Hours(value),
+              ),
+            ],
+          ),
+        ),
+        // في وضع ٢٤ ساعة بنخفي حقول الساعات خالص — الأوقات مش مطلوبة.
+        if (!state.is24Hours) ...[
+          context.smallSpacing.vSpace,
+          Row(
+            children: [
+              Expanded(
+                child: CustomTextFormField(
+                  key: ValueKey(state.openTime),
+                  initialValue: state.openTime?.toArabicTime(),
+                  labelText: 'الفتح',
+                  readOnly: true,
+                  onTap: () => _pickTime(true),
+                  suffixIcon: Icon(
+                    Icons.schedule_rounded,
+                    color: context.textSecondary,
+                  ),
+                  validator: (_) {
+                    if (state.openTime == null) return 'حدد ميعاد الفتح';
+                    return null;
+                  },
+                ),
+              ),
+              context.smallSpacing.hSpace,
+              Expanded(
+                child: CustomTextFormField(
+                  key: ValueKey(state.closeTime),
+                  initialValue: state.closeTime?.toArabicTime(),
+                  labelText: 'القفل',
+                  readOnly: true,
+                  onTap: () => _pickTime(false),
+                  suffixIcon: Icon(
+                    Icons.schedule_rounded,
+                    color: context.textSecondary,
+                  ),
+                  validator: (_) {
+                    if (state.closeTime == null) return 'حدد ميعاد القفل';
+                    return null;
+                  },
+                ),
+              ),
+            ],
+          ),
+        ],
       ],
     );
   }
@@ -620,9 +751,9 @@ class _AddPlaceViewBodyState extends State<_AddPlaceViewBody> {
           spacing: context.smallSpacing,
           runSpacing: context.smallSpacing,
           children: [
-            for (final day in _closedDayOrder)
+            for (final day in arabicWeekdayDisplayOrder)
               FilterChip(
-                label: Text(_closedDayLabels[day]!),
+                label: Text(arabicWeekdayNames[day]!),
                 selected: state.closedDays.contains(day),
                 onSelected: (_) =>
                     context.read<AddPlaceCubit>().toggleClosedDay(day),
@@ -734,7 +865,12 @@ class _AddPlaceViewBodyState extends State<_AddPlaceViewBody> {
         return CustomElevatedButton(
           text: 'احفظ البيزنس',
           isLoading: state.status == AddPlaceStatus.submitting,
-          onPressed: () => context.read<AddPlaceCubit>().submit(),
+          onPressed: () {
+            // لو فيه حقول غلط، نوقف هنا ونخلي الأخطاء تبان تحت الحقول —
+            // من غير ما نبعت submit أصلاً.
+            if (!(_formKey.currentState?.validate() ?? false)) return;
+            context.read<AddPlaceCubit>().submit();
+          },
           backgroundColor: AppColors.primary,
           textColor: AppColors.onPrimary,
           height: context.buttonHeight,
