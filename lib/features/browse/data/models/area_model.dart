@@ -18,4 +18,4 @@ class AreaModel extends Area {
       nameEn: json['name_en'] as String,
     );
   }
-}
+}

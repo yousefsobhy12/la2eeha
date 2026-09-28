@@ -19,11 +19,8 @@ class AuthRepositoryImpl implements AuthRepository {
     required String name,
   }) {
     return safeSupabaseCall<void>(
-      () => remoteDataSource.signUp(
-        email: email,
-        password: password,
-        name: name,
-      ),
+      () =>
+          remoteDataSource.signUp(email: email, password: password, name: name),
       callName: 'AuthRepository.signUp',
       onAuthException: (e) => AuthFailure.fromAuthException(e.message),
     );
@@ -63,9 +60,7 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<Either<Failure, void>> sendPasswordResetOtp({
-    required String email,
-  }) {
+  Future<Either<Failure, void>> sendPasswordResetOtp({required String email}) {
     return safeSupabaseCall<void>(
       () => remoteDataSource.sendPasswordResetOtp(email: email),
       callName: 'AuthRepository.sendPasswordResetOtp',
@@ -86,9 +81,7 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<Either<Failure, void>> updatePassword({
-    required String newPassword,
-  }) {
+  Future<Either<Failure, void>> updatePassword({required String newPassword}) {
     return safeSupabaseCall<void>(
       () => remoteDataSource.updatePassword(newPassword: newPassword),
       callName: 'AuthRepository.updatePassword',

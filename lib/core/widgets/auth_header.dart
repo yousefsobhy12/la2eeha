@@ -45,7 +45,7 @@ class AuthHeader extends StatelessWidget {
               child: IconButton(
                 onPressed: onBack,
                 icon: Icon(
-                  Icons.chevron_right_rounded, // RTL-aware — points "back"
+                  Icons.arrow_back_ios_new_rounded, // RTL-aware — points "back"
                   color: context.colorScheme.onPrimary,
                   size: context.largeIconSize,
                 ),
@@ -74,8 +74,9 @@ class AuthHeader extends StatelessWidget {
                       fontFamily: AppFonts.tajawal,
                       fontSize: 13.sp,
                       fontWeight: FontWeight.bold,
-                      color: context.colorScheme.onPrimary
-                          .withValues(alpha: 0.65),
+                      color: context.colorScheme.onPrimary.withValues(
+                        alpha: 0.65,
+                      ),
                     ),
                   ),
                 ],

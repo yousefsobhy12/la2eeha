@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:la2eeha/core/extensions/extensions.dart';
+import 'package:la2eeha/core/theme/app_colors.dart';
 
 class CustomTextFormField extends StatelessWidget {
   final String? labelText;
@@ -99,7 +101,7 @@ class CustomTextFormField extends StatelessWidget {
         prefixIcon: prefixIcon,
         suffixIcon: suffixIcon,
         filled: filled,
-        fillColor: fillColor ?? Colors.grey[100],
+        fillColor: context.isDarkMode ? AppColors.onPrimary : Colors.grey[100],
         contentPadding:
             contentPadding ??
             const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
@@ -119,7 +121,7 @@ class CustomTextFormField extends StatelessWidget {
             focusedBorder ??
             OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(width: 2),
+              borderSide: const BorderSide(width: 2, color: AppColors.primary),
             ),
         errorBorder:
             errorBorder ??

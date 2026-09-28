@@ -44,15 +44,12 @@ class _FavoritesBody extends StatelessWidget {
                 subtitle: 'الأماكن اللي حفظتها',
               ),
               Expanded(
-                child: SafeArea(
-                  top: false,
-                  child: switch (state) {
-                    FavoritesViewLoading() => const _FavoritesSkeleton(),
-                    FavoritesViewError(failure: final failure) =>
-                      _FavoritesErrorView(failure: failure),
-                    FavoritesViewLoaded() => _buildLoadedView(context, state),
-                  },
-                ),
+                child: switch (state) {
+                  FavoritesViewLoading() => const _FavoritesSkeleton(),
+                  FavoritesViewError(failure: final failure) =>
+                    _FavoritesErrorView(failure: failure),
+                  FavoritesViewLoaded() => _buildLoadedView(context, state),
+                },
               ),
             ],
           );

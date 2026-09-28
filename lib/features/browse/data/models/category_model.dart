@@ -26,11 +26,6 @@ class CategoryModel extends Category {
   // بيحول الكائن لـ JSON (مش هنحتاجه كتير دلوقتي لأن categories مقروءة بس،
   // بس بنضيفه دايمًا كعادة ثابتة لكل Model)
   Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'name_ar': nameAr,
-      'name_en': nameEn,
-      'icon': icon,
-    };
+    return {'id': id, 'name_ar': nameAr, 'name_en': nameEn, 'icon': icon};
   }
-}
+}

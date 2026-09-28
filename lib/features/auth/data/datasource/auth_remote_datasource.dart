@@ -67,9 +67,7 @@ class AuthRemoteDataSource {
   }
 
   Future<void> updatePassword({required String newPassword}) async {
-    await supabase.auth.updateUser(
-      UserAttributes(password: newPassword),
-    );
+    await supabase.auth.updateUser(UserAttributes(password: newPassword));
   }
 
   Future<bool> signInWithGoogle() async {
@@ -97,9 +95,7 @@ class AuthRemoteDataSource {
     final idToken = googleUser.authentication.idToken;
 
     if (idToken == null) {
-      throw const AuthException(
-        'Google Sign-In failed: no ID token returned',
-      );
+      throw const AuthException('Google Sign-In failed: no ID token returned');
     }
 
     await supabase.auth.signInWithIdToken(

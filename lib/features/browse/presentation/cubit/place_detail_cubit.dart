@@ -16,7 +16,7 @@ class PlaceDetailCubit extends Cubit<PlaceDetailState> {
   final int placeId;
 
   PlaceDetailCubit(this.repository, {required this.placeId})
-      : super(const PlaceDetailLoading());
+    : super(const PlaceDetailLoading());
 
   Future<void> loadPlaceDetails() async {
     emit(const PlaceDetailLoading());
@@ -32,8 +32,7 @@ class PlaceDetailCubit extends Cubit<PlaceDetailState> {
     final place = placeEither.getOrElse(() => throw StateError('Unreachable'));
 
     // تحديد نوع جدول الأسعار مباشرة بناءً على subCategory
-    final usesSportsPricing =
-        ['football', 'padel'].contains(place.subCategory);
+    final usesSportsPricing = ['football', 'padel'].contains(place.subCategory);
 
     // 2. إطلاق باقي الطلبات بالتوازي عبر Future.wait
     final results = await Future.wait([
@@ -72,45 +71,36 @@ class PlaceDetailCubit extends Cubit<PlaceDetailState> {
     final categories = categoriesEither.getOrElse(() => []);
     final areas = areasEither.getOrElse(() => []);
 
-    final matchedCategory =
-        categories.where((c) => c.id == place.categoryId).firstOrNull;
+    final matchedCategory = categories
+        .where((c) => c.id == place.categoryId)
+        .firstOrNull;
     final categoryName = matchedCategory?.nameAr ?? '';
     final categoryIcon = matchedCategory?.icon ?? '';
 
-    final matchedArea =
-        areas.where((a) => a.id == place.areaId).firstOrNull;
+    final matchedArea = areas.where((a) => a.id == place.areaId).firstOrNull;
     final areaName = matchedArea?.nameAr;
 
     // فشل الأماكن المشابهة أو الأسعار ثانوي ولا يوقف الشاشة
-    final similarPlaces = similarPlacesEither.fold(
-      (failure) {
-        appLogger.w('Failed to load similar places: ${failure.message}');
-        return <Place>[];
-      },
-      (places) => places,
-    );
+    final similarPlaces = similarPlacesEither.fold((failure) {
+      appLogger.w('Failed to load similar places: ${failure.message}');
+      return <Place>[];
+    }, (places) => places);
 
     List<SportsPricing>? sportsPricing;
     List<MenuItem>? menuItems;
 
     if (usesSportsPricing) {
       final either = pricingEither as Either<Failure, List<SportsPricing>>;
-      sportsPricing = either.fold(
-        (failure) {
-          appLogger.w('Failed to load sports pricing: ${failure.message}');
-          return <SportsPricing>[];
-        },
-        (items) => items,
-      );
+      sportsPricing = either.fold((failure) {
+        appLogger.w('Failed to load sports pricing: ${failure.message}');
+        return <SportsPricing>[];
+      }, (items) => items);
     } else {
       final either = pricingEither as Either<Failure, List<MenuItem>>;
-      menuItems = either.fold(
-        (failure) {
-          appLogger.w('Failed to load menu items: ${failure.message}');
-          return <MenuItem>[];
-        },
-        (items) => items,
-      );
+      menuItems = either.fold((failure) {
+        appLogger.w('Failed to load menu items: ${failure.message}');
+        return <MenuItem>[];
+      }, (items) => items);
     }
 
     emit(

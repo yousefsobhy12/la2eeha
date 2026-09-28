@@ -33,11 +33,9 @@ class HomeLoaded extends HomeState {
     required this.areaNameById,
   });
 
-  String categoryNameOf(int? categoryId) =>
-      categoryNameById[categoryId] ?? '';
+  String categoryNameOf(int? categoryId) => categoryNameById[categoryId] ?? '';
 
-  String categoryIconOf(int? categoryId) =>
-      categoryIconById[categoryId] ?? '';
+  String categoryIconOf(int? categoryId) => categoryIconById[categoryId] ?? '';
 
   String? areaNameOf(int? areaId) => areaNameById[areaId];
 }

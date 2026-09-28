@@ -54,124 +54,118 @@ class _HomeViewBody extends StatelessWidget {
             subtitle: 'لاقي كل حاجة قريبة منك في مكان واحد',
           ),
           Expanded(
-            child: SafeArea(
-              top: false,
-              child: BlocBuilder<HomeCubit, HomeState>(
-                builder: (context, state) {
-                  if (state is HomeLoading || state is HomeInitial) {
-                    return const HomeSkeleton();
-                  }
+            child: BlocBuilder<HomeCubit, HomeState>(
+              builder: (context, state) {
+                if (state is HomeLoading || state is HomeInitial) {
+                  return const HomeSkeleton();
+                }
 
-                  if (state is HomeError) {
-                    return Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          state.message.toBody(
+                if (state is HomeError) {
+                  return Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        state.message.toBody(
+                          context,
+                          color: context.textSecondary,
+                        ),
+                        context.smallSpacing.vSpace,
+                        TextButton(
+                          onPressed: () => context.read<HomeCubit>().loadHome(),
+                          child: 'حاول تاني'.toBody(
                             context,
-                            color: context.textSecondary,
-                          ),
-                          context.smallSpacing.vSpace,
-                          TextButton(
-                            onPressed: () =>
-                                context.read<HomeCubit>().loadHome(),
-                            child: 'حاول تاني'.toBody(
-                              context,
-                              color: context.colorScheme.primary,
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }
-
-                  final loaded = state as HomeLoaded;
-
-                  return RefreshIndicator(
-                    onRefresh: () => context.read<HomeCubit>().refresh(),
-                    child: CustomScrollView(
-                      physics: const BouncingScrollPhysics(
-                        parent: AlwaysScrollableScrollPhysics(),
-                      ),
-                      slivers: [
-                        SliverPadding(
-                          padding: context.pagePadding,
-                          sliver: SliverMainAxisGroup(
-                            slivers: [
-                              // ─── Search bar ───
-                              SliverPadding(
-                                padding: EdgeInsets.only(top: context.vSpacing),
-                                sliver: SliverToBoxAdapter(
-                                  child: const HomeSearchBar().fadeSlideIn(),
-                                ),
-                              ),
-
-                              // ─── Categories grid ───
-                              SliverPadding(
-                                padding: EdgeInsets.only(
-                                  top: context.largeSpacing,
-                                ),
-                                sliver: CategoryGrid(
-                                  categories: loaded.categories,
-                                ),
-                              ),
-
-                              // ─── Most visited carousel ───
-                              SliverPadding(
-                                padding: EdgeInsets.only(
-                                  top: context.largeSpacing,
-                                ),
-                                sliver: SliverToBoxAdapter(
-                                  child:
-                                      MostVisitedSection(
-                                        places: loaded.mostVisited,
-                                        categoryNameOf: loaded.categoryNameOf,
-                                        categoryIconOf: loaded.categoryIconOf,
-                                      ).fadeSlideIn(
-                                        delay: const Duration(
-                                          milliseconds: 120,
-                                        ),
-                                      ),
-                                ),
-                              ),
-
-                              // ─── All places section (spread slivers) ───
-                              ...() {
-                                final allPlacesSlivers = AllPlacesSection(
-                                  places: loaded.allPlacesPreview,
-                                  categoryNameOf: loaded.categoryNameOf,
-                                  categoryIconOf: loaded.categoryIconOf,
-                                  areaNameOf: loaded.areaNameOf,
-                                ).buildSlivers(context);
-                                if (allPlacesSlivers.isEmpty) {
-                                  return <Widget>[];
-                                }
-                                return <Widget>[
-                                  SliverPadding(
-                                    padding: EdgeInsets.only(
-                                      top: context.largeSpacing,
-                                    ),
-                                    sliver: SliverMainAxisGroup(
-                                      slivers: allPlacesSlivers,
-                                    ),
-                                  ),
-                                ];
-                              }(),
-
-                              // ─── Bottom padding (floating nav bar) ───
-                              SliverToBoxAdapter(
-                                child: SizedBox(
-                                  height: context.extraLargeSpacing * 2,
-                                ),
-                              ),
-                            ],
+                            color: context.colorScheme.primary,
                           ),
                         ),
                       ],
                     ),
                   );
-                },
-              ),
+                }
+
+                final loaded = state as HomeLoaded;
+
+                return RefreshIndicator(
+                  onRefresh: () => context.read<HomeCubit>().refresh(),
+                  child: CustomScrollView(
+                    physics: const BouncingScrollPhysics(
+                      parent: AlwaysScrollableScrollPhysics(),
+                    ),
+                    slivers: [
+                      SliverPadding(
+                        padding: context.pagePadding,
+                        sliver: SliverMainAxisGroup(
+                          slivers: [
+                            // ─── Search bar ───
+                            SliverPadding(
+                              padding: EdgeInsets.only(top: context.vSpacing),
+                              sliver: SliverToBoxAdapter(
+                                child: const HomeSearchBar().fadeSlideIn(),
+                              ),
+                            ),
+
+                            // ─── Categories grid ───
+                            SliverPadding(
+                              padding: EdgeInsets.only(
+                                top: context.largeSpacing,
+                              ),
+                              sliver: CategoryGrid(
+                                categories: loaded.categories,
+                              ),
+                            ),
+
+                            // ─── Most visited carousel ───
+                            SliverPadding(
+                              padding: EdgeInsets.only(
+                                top: context.largeSpacing,
+                              ),
+                              sliver: SliverToBoxAdapter(
+                                child:
+                                    MostVisitedSection(
+                                      places: loaded.mostVisited,
+                                      categoryNameOf: loaded.categoryNameOf,
+                                      categoryIconOf: loaded.categoryIconOf,
+                                    ).fadeSlideIn(
+                                      delay: const Duration(milliseconds: 120),
+                                    ),
+                              ),
+                            ),
+
+                            // ─── All places section (spread slivers) ───
+                            ...() {
+                              final allPlacesSlivers = AllPlacesSection(
+                                places: loaded.allPlacesPreview,
+                                categoryNameOf: loaded.categoryNameOf,
+                                categoryIconOf: loaded.categoryIconOf,
+                                areaNameOf: loaded.areaNameOf,
+                              ).buildSlivers(context);
+                              if (allPlacesSlivers.isEmpty) {
+                                return <Widget>[];
+                              }
+                              return <Widget>[
+                                SliverPadding(
+                                  padding: EdgeInsets.only(
+                                    top: context.largeSpacing,
+                                  ),
+                                  sliver: SliverMainAxisGroup(
+                                    slivers: allPlacesSlivers,
+                                  ),
+                                ),
+                              ];
+                            }(),
+
+                            // ─── Bottom padding (floating nav bar) ───
+                            SliverToBoxAdapter(
+                              child: SizedBox(
+                                height: context.extraLargeSpacing * 2,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
             ),
           ),
         ],

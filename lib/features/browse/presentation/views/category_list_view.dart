@@ -103,7 +103,7 @@ class _CategoryListBodyState extends State<_CategoryListBody> {
                 subtitle: subtitle,
                 backgroundColor: headerBgColor,
                 leading: IconButton(
-                  icon: const Icon(Icons.arrow_forward_ios_rounded),
+                  icon: const Icon(Icons.arrow_back_ios_new_rounded),
                   color: context.colorScheme.onPrimary,
                   onPressed: () => context.pop(),
                 ),

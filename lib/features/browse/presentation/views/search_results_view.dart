@@ -43,7 +43,8 @@ class _SearchResultsBodyState extends State<_SearchResultsBody> {
   void initState() {
     super.initState();
     _scrollController = ScrollController()..addListener(_onScroll);
-    _textController = TextEditingController()..addListener(() => setState(() {}));
+    _textController = TextEditingController()
+      ..addListener(() => setState(() {}));
   }
 
   void _onScroll() {
@@ -78,13 +79,15 @@ class _SearchResultsBodyState extends State<_SearchResultsBody> {
               child: Row(
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.arrow_forward_ios_rounded),
+                    icon: const Icon(Icons.arrow_back_ios_new_rounded),
                     onPressed: () => context.pop(),
                   ),
                   Expanded(
                     child: Container(
                       height: context.textFieldHeight,
-                      padding: EdgeInsets.symmetric(horizontal: context.hSpacing),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: context.hSpacing,
+                      ),
                       decoration: BoxDecoration(
                         color: context.surfaceColor,
                         borderRadius: context.roundRadius.circularRadius,
@@ -92,7 +95,10 @@ class _SearchResultsBodyState extends State<_SearchResultsBody> {
                       ),
                       child: Row(
                         children: [
-                          Icon(Icons.search_rounded, color: context.textSecondary),
+                          Icon(
+                            Icons.search_rounded,
+                            color: context.textSecondary,
+                          ),
                           context.smallSpacing.hSpace,
                           Expanded(
                             child: TextField(
@@ -118,16 +124,20 @@ class _SearchResultsBodyState extends State<_SearchResultsBody> {
                                 isDense: true,
                                 contentPadding: EdgeInsets.zero,
                               ),
-                              onChanged: (value) =>
-                                  context.read<SearchCubit>().onQueryChanged(value),
+                              onChanged: (value) => context
+                                  .read<SearchCubit>()
+                                  .onQueryChanged(value),
                             ),
                           ),
                           if (_textController.text.isNotEmpty)
                             IconButton(
                               padding: EdgeInsets.zero,
                               constraints: const BoxConstraints(),
-                              icon: Icon(Icons.close_rounded,
-                                  color: context.textSecondary, size: 20),
+                              icon: Icon(
+                                Icons.close_rounded,
+                                color: context.textSecondary,
+                                size: 20,
+                              ),
                               onPressed: () {
                                 _textController.clear();
                                 context.read<SearchCubit>().onQueryChanged('');
@@ -146,22 +156,26 @@ class _SearchResultsBodyState extends State<_SearchResultsBody> {
                 builder: (context, state) {
                   return switch (state) {
                     SearchInitial() => Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.search_rounded,
-                                size: 48, color: context.iconColor),
-                            context.smallSpacing.vSpace,
-                            'اكتب حرفين على الأقل عشان نقدر ندور'.toBody(
-                              context,
-                              color: context.textSecondary,
-                            ),
-                          ],
-                        ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.search_rounded,
+                            size: 48,
+                            color: context.iconColor,
+                          ),
+                          context.smallSpacing.vSpace,
+                          'اكتب حرفين على الأقل عشان نقدر ندور'.toBody(
+                            context,
+                            color: context.textSecondary,
+                          ),
+                        ],
                       ),
+                    ),
                     SearchLoading() => const _SearchListSkeleton(),
-                    SearchError(failure: final failure) =>
-                      _SearchListErrorView(failure: failure),
+                    SearchError(failure: final failure) => _SearchListErrorView(
+                      failure: failure,
+                    ),
                     SearchLoaded() => _buildLoadedView(context, state),
                   };
                 },
@@ -192,7 +206,9 @@ class _SearchResultsBodyState extends State<_SearchResultsBody> {
 
     return CustomScrollView(
       controller: _scrollController,
-      physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+      physics: const BouncingScrollPhysics(
+        parent: AlwaysScrollableScrollPhysics(),
+      ),
       slivers: [
         SliverPadding(
           padding: EdgeInsets.symmetric(
@@ -217,22 +233,26 @@ class _SearchResultsBodyState extends State<_SearchResultsBody> {
                   top: context.smallSpacing,
                   bottom: context.smallSpacing,
                 ),
-                child: PlaceCard(
-                  place: place,
-                  categoryName: state.categoryNameOf(place.categoryId),
-                  categoryIcon: state.categoryIconOf(place.categoryId),
-                  areaName: state.areaNameOf(place.areaId),
-                  isFavorite:
-                      context.watch<FavoritesCubit>().state.contains(place.id),
-                  onFavoriteToggle: () =>
-                      context.read<FavoritesCubit>().toggleFavorite(place.id),
-                  onTap: () => context.push('/place/${place.id}'),
-                ).fadeSlideIn(
-                  delay: AppAnimations.stagger(
-                    index % 10,
-                    base: const Duration(milliseconds: 60),
-                  ),
-                ),
+                child:
+                    PlaceCard(
+                      place: place,
+                      categoryName: state.categoryNameOf(place.categoryId),
+                      categoryIcon: state.categoryIconOf(place.categoryId),
+                      areaName: state.areaNameOf(place.areaId),
+                      isFavorite: context
+                          .watch<FavoritesCubit>()
+                          .state
+                          .contains(place.id),
+                      onFavoriteToggle: () => context
+                          .read<FavoritesCubit>()
+                          .toggleFavorite(place.id),
+                      onTap: () => context.push('/place/${place.id}'),
+                    ).fadeSlideIn(
+                      delay: AppAnimations.stagger(
+                        index % 10,
+                        base: const Duration(milliseconds: 60),
+                      ),
+                    ),
               );
             },
           ),

@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/extensions/extensions.dart';
 
-
 class HomeSearchBar extends StatelessWidget {
   const HomeSearchBar({super.key});
 

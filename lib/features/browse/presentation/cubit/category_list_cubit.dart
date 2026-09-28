@@ -18,7 +18,7 @@ class CategoryListCubit extends Cubit<CategoryListState> {
   int _offset = 0;
 
   CategoryListCubit(this.repository, {this.categoryId})
-      : super(const CategoryListLoading());
+    : super(const CategoryListLoading());
 
   Future<void> loadInitial() async {
     emit(const CategoryListLoading());
