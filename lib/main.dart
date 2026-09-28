@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:la2eeha/core/theme/cubit/theme_cubit.dart';
+import 'package:liquid_tab_bar/liquid_tab_bar.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'core/config/env.dart';
 import 'core/router/app_router.dart';
@@ -24,6 +25,12 @@ Future<void> main() async {
     url: Env.supabaseUrl,
     publishableKey: Env.supabaseAnonKey,
   );
+
+  // EXPERIMENT: liquid_tab_bar
+  // Load the glass shader first so the bar can use the refraction tier, then
+  // arm the frame governor (it only watches while the glass tier is on).
+  await LiquidGlass.load();
+  LiquidTabBarController.shared.armGovernor();
 
   runApp(
     MultiBlocProvider(

@@ -2,9 +2,13 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:la2eeha/core/theme/app_colors.dart';
+import 'package:liquid_tab_bar/liquid_tab_bar.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../extensions/extensions.dart'; // بارل الـ extensions بتاعتك
+
+// ignore_for_file: unused_element
 
 class AppShell extends StatelessWidget {
   const AppShell({super.key, required this.navigationShell});
@@ -22,14 +26,50 @@ class AppShell extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       extendBody: true,
-      body: navigationShell,
-      bottomNavigationBar: _RoundedFloatingNavBar(
-        currentIndex: navigationShell.currentIndex,
-        onTap: _onTap,
+      body: NotificationListener<ScrollNotification>(
+        onNotification: (notification) =>
+            LiquidTabBarController.shared.handleScroll(notification),
+        child: navigationShell,
+      ),
+      bottomNavigationBar: Padding(
+        padding: EdgeInsets.only(bottom: context.bottomSafeArea),
+        child: LiquidTabBar(
+          items: [
+            LiquidTabItem.icon(
+              label: 'الرئيسية',
+              icon: Icons.home_outlined,
+              activeIcon: Icons.home_rounded,
+            ),
+            LiquidTabItem.icon(
+              label: 'المفضلة',
+              icon: Icons.favorite_border_rounded,
+              activeIcon: Icons.favorite,
+            ),
+            LiquidTabItem.icon(
+              label: 'المزيد', // ثابت لحد Phase 6
+              icon: Icons.menu_rounded,
+              activeIcon: Icons.menu_rounded,
+            ),
+          ],
+          theme: LiquidTabBarTheme(
+            activeColor: context.isDarkMode
+                ? AppColors.textMuted
+                : AppColors.primary,
+            inactiveColor: context.isDarkMode
+                ? AppColors.textSecondary
+                : AppColors.onPrimary,
+          ),
+          selectedIndex: navigationShell.currentIndex,
+          onSelected: _onTap,
+        ),
       ),
     );
   }
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// OLD IMPLEMENTATION (اتسابت للـ revert — غير مستخدمة حالياً)
+// ─────────────────────────────────────────────────────────────────────────────
 
 class _RoundedFloatingNavBar extends StatelessWidget {
   const _RoundedFloatingNavBar({
