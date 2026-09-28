@@ -108,7 +108,8 @@ class PlacesRemoteDataSource {
     final response = await supabase
         .from('menu_items')
         .select()
-        .eq('place_id', placeId);
+        .eq('place_id', placeId)
+        .order('sort_order', ascending: true);
     return (response as List)
         .map((json) => MenuItemModel.fromJson(json))
         .toList();
@@ -119,7 +120,7 @@ class PlacesRemoteDataSource {
         .from('sports_pricing')
         .select()
         .eq('place_id', placeId)
-        .order('start_time');
+        .order('sort_order', ascending: true);
     return (response as List)
         .map((json) => SportsPricingModel.fromJson(json))
         .toList();

@@ -7,6 +7,8 @@ class SportsPricingModel extends SportsPricing {
     required super.startTime,
     required super.endTime,
     required super.price,
+    super.description,
+    super.sortOrder,
   });
 
   factory SportsPricingModel.fromJson(Map<String, dynamic> json) {
@@ -16,6 +18,8 @@ class SportsPricingModel extends SportsPricing {
       startTime: json['start_time'] as String,
       endTime: json['end_time'] as String,
       price: (json['price'] as num).toDouble(),
+      description: json['description'] as String?,
+      sortOrder: (json['sort_order'] as num?)?.toInt() ?? 0,
     );
   }
 
@@ -26,6 +30,8 @@ class SportsPricingModel extends SportsPricing {
       'start_time': startTime,
       'end_time': endTime,
       'price': price,
+      'description': description,
+      'sort_order': sortOrder,
     };
   }
 }

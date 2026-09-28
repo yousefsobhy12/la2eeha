@@ -6,6 +6,8 @@ class MenuItemModel extends MenuItem {
     required super.placeId,
     required super.name,
     required super.price,
+    super.description,
+    super.sortOrder,
   });
 
   factory MenuItemModel.fromJson(Map<String, dynamic> json) {
@@ -14,6 +16,8 @@ class MenuItemModel extends MenuItem {
       placeId: json['place_id'] as int,
       name: json['name'] as String,
       price: (json['price'] as num).toDouble(),
+      description: json['description'] as String?,
+      sortOrder: (json['sort_order'] as num?)?.toInt() ?? 0,
     );
   }
 
@@ -23,6 +27,8 @@ class MenuItemModel extends MenuItem {
       'place_id': placeId,
       'name': name,
       'price': price,
+      'description': description,
+      'sort_order': sortOrder,
     };
   }
 }

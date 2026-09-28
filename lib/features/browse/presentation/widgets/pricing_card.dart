@@ -87,23 +87,40 @@ class PricingCard extends StatelessWidget {
     final timeRange =
         '${pricing.startTime.toArabicTime()} – ${pricing.endTime.toArabicTime()}';
     final priceLabel = '${pricing.price.toStringAsFixed(0)} ج.م / ساعة';
+    final description = pricing.description;
 
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 6.h),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Icon(
-                Icons.access_time_rounded,
-                size: context.tinyIconSize,
-                color: context.textSecondary,
-              ),
-              6.hSpace,
-              timeRange.toBody(context, color: context.textPrimary),
-            ],
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      Icons.access_time_rounded,
+                      size: context.tinyIconSize,
+                      color: context.textSecondary,
+                    ),
+                    6.hSpace,
+                    timeRange.toBody(context, color: context.textPrimary),
+                  ],
+                ),
+                if (description != null && description.isNotEmpty) ...[
+                  2.vSpace,
+                  description.toCaption(
+                    context,
+                    color: context.textSecondary,
+                    maxLines: 2,
+                  ),
+                ],
+              ],
+            ),
           ),
+          context.smallSpacing.hSpace,
           priceLabel.toBody(
             context,
             fontWeight: FontWeight.bold,
@@ -136,19 +153,33 @@ class PricingCard extends StatelessWidget {
 
   Widget _buildMenuItemRow(BuildContext context, MenuItem item) {
     final priceLabel = '${item.price.toStringAsFixed(0)} ج.م';
+    final description = item.description;
 
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 6.h),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(
-            child: item.name.toBody(
-              context,
-              color: context.textPrimary,
-              textAlign: item.name.isMostlyArabic
-                  ? TextAlign.right
-                  : TextAlign.left,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                item.name.toBody(
+                  context,
+                  color: context.textPrimary,
+                  textAlign: item.name.isMostlyArabic
+                      ? TextAlign.right
+                      : TextAlign.left,
+                ),
+                if (description != null && description.isNotEmpty) ...[
+                  2.vSpace,
+                  description.toCaption(
+                    context,
+                    color: context.textSecondary,
+                    maxLines: 2,
+                  ),
+                ],
+              ],
             ),
           ),
           context.smallSpacing.hSpace,
