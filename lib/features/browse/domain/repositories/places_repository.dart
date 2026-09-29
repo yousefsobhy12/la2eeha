@@ -5,6 +5,7 @@ import '../entities/area.dart';
 import '../entities/category.dart';
 import '../entities/menu_item.dart';
 import '../entities/place.dart';
+import '../entities/promotion.dart';
 import '../entities/sports_pricing.dart';
 
 abstract class PlacesRepository {
@@ -12,6 +13,10 @@ abstract class PlacesRepository {
   Future<Either<Failure, List<Area>>> getAreas();
   Future<Either<Failure, List<Place>>> getMostVisitedPreview({int limit});
   Future<Either<Failure, List<Place>>> getAllPlacesPreview({int limit});
+
+  // العروض الترويجية الحيّة بس — الفلترة بتاعت التاريخ والحالة
+  // بتتعمل في سياسات الـ RLS على مستوى الداتابيز.
+  Future<Either<Failure, List<Promotion>>> getLivePromotions();
   Future<Either<Failure, List<Place>>> getCategoryPlaces({
     int? categoryId,
     String? subCategory,

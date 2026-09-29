@@ -6,6 +6,7 @@ import '../../domain/entities/area.dart';
 import '../../domain/entities/category.dart';
 import '../../domain/entities/menu_item.dart';
 import '../../domain/entities/place.dart';
+import '../../domain/entities/promotion.dart';
 import '../../domain/entities/sports_pricing.dart';
 import '../../domain/repositories/places_repository.dart';
 import '../datasource/places_remote_datasource.dart';
@@ -44,6 +45,14 @@ class PlacesRepositoryImpl implements PlacesRepository {
     return safeSupabaseCall(
       () => remoteDataSource.getAllPlacesPreview(limit: limit),
       callName: 'getAllPlacesPreview',
+    );
+  }
+
+  @override
+  Future<Either<Failure, List<Promotion>>> getLivePromotions() {
+    return safeSupabaseCall(
+      () => remoteDataSource.getLivePromotions(),
+      callName: 'getLivePromotions',
     );
   }
 

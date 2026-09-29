@@ -3,6 +3,7 @@
 import '../../../../core/errors/failures.dart';
 import '../../domain/entities/category.dart';
 import '../../domain/entities/place.dart';
+import '../../domain/entities/promotion.dart';
 
 abstract class HomeState {
   const HomeState();
@@ -19,7 +20,10 @@ class HomeLoading extends HomeState {
 class HomeLoaded extends HomeState {
   final List<Category> categories;
   final List<Place> mostVisited;
-  final List<Place> allPlacesPreview;
+
+  /// العروض الترويجية الحيّة. فاضي معناها إن مفيش عروض شغالة دلوقتي —
+  /// الـ UI بيعرض CTA بدال الـ carousel. مش معناها error.
+  final List<Promotion> promotions;
   final Map<int, String> categoryNameById;
   final Map<int, String> categoryIconById;
   final Map<int, String> areaNameById;
@@ -27,7 +31,7 @@ class HomeLoaded extends HomeState {
   const HomeLoaded({
     required this.categories,
     required this.mostVisited,
-    required this.allPlacesPreview,
+    required this.promotions,
     required this.categoryNameById,
     required this.categoryIconById,
     required this.areaNameById,

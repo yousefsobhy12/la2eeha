@@ -4,10 +4,16 @@
 // بيستخدم لجلب الـ CategoryVisual المناسب (أيقونة + لون).
 // categoryName — الاسم العربي للكاتيجوري بيتعرض في الـ subtitle.
 // areaName — اسم المنطقة (اختياري) بيتعرض جنب الكاتيجوري في الـ subtitle.
+// rank — الترتيب في قسم "الأكثر زيارة" (1-based). الأول 3 بس بياخدوا medal
+// (ذهب/فضة/نحاس)، وأي rank أكبر من كده بيتجاهَل. null = بدون بادج.
+//
+// صورة المكان بتتحمّل بـ CachedNetworkImage (مفيش NetworkImage مباشرة عشان
+// الكاش والـ placeholder)؛ لو مفيش صورة أو التحميل فشل بيرجع للأيقونة.
 //
 // "مميز" badge — متخفي تمامًا (لسه مش متفعّل).
 // أيقونة القلب (Favorite) موجودة كـ UI جاهزة، بس مقفولة وظيفيًا.
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -26,6 +32,7 @@ class PlaceCard extends StatelessWidget {
   final bool isFavorite;
   final VoidCallback? onFavoriteToggle;
   final VoidCallback? onTap;
+  final int? rank;
 
   const PlaceCard({
     super.key,
@@ -36,6 +43,7 @@ class PlaceCard extends StatelessWidget {
     this.isFavorite = false,
     this.onFavoriteToggle,
     this.onTap,
+    this.rank,
   });
 
   Future<void> _call(BuildContext context) async {
@@ -43,6 +51,38 @@ class PlaceCard extends StatelessWidget {
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri);
     }
+  }
+
+  /// البديل اللي بيتعرض لما المكان مفيش له صورة، أو الصورة مفشلتش في التحميل:
+  /// تدرّج لون الكاتيجوري + أيقونته. بيتستخدم كـ placeholder و errorWidget كمان.
+  Widget _iconAvatar(BuildContext context, CategoryVisual visual) {
+    return Container(
+      width: context.mediumAvatarSize,
+      height: context.mediumAvatarSize,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            visual.color.withValues(alpha: 0.20),
+            visual.color.withValues(alpha: 0.08),
+          ],
+          begin: AlignmentDirectional.topStart,
+          end: AlignmentDirectional.bottomEnd,
+        ),
+        borderRadius: context.mediumRadius.circularRadius,
+        boxShadow: [
+          BoxShadow(
+            color: visual.color.withValues(alpha: 0.15),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Icon(
+        visual.icon,
+        color: visual.color,
+        size: context.largeIconSize,
+      ),
+    );
   }
 
   @override
@@ -98,54 +138,40 @@ class PlaceCard extends StatelessWidget {
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // أيقونة الكاتيجوري (أو الصورة لو موجودة)
-                        Container(
+                        // الأفاتار + بادج الترتيب (اللي بيطلع برّه الكارت)
+                        SizedBox(
                           width: context.mediumAvatarSize,
                           height: context.mediumAvatarSize,
-                          decoration: BoxDecoration(
-                            gradient:
-                                place.imageUrl != null &&
-                                    place.imageUrl!.isNotEmpty
-                                ? null
-                                : LinearGradient(
-                                    colors: [
-                                      visual.color.withValues(alpha: 0.20),
-                                      visual.color.withValues(alpha: 0.08),
-                                    ],
-                                    begin: AlignmentDirectional.topStart,
-                                    end: AlignmentDirectional.bottomEnd,
-                                  ),
-                            borderRadius: context.mediumRadius.circularRadius,
-                            boxShadow:
-                                place.imageUrl != null &&
-                                    place.imageUrl!.isNotEmpty
-                                ? null
-                                : [
-                                    BoxShadow(
-                                      color: visual.color.withValues(
-                                        alpha: 0.15,
-                                      ),
-                                      blurRadius: 8,
-                                      offset: const Offset(0, 3),
-                                    ),
-                                  ],
-                            image:
-                                place.imageUrl != null &&
-                                    place.imageUrl!.isNotEmpty
-                                ? DecorationImage(
-                                    image: NetworkImage(place.imageUrl!),
-                                    fit: BoxFit.cover,
-                                  )
-                                : null,
+                          child: Stack(
+                            clipBehavior: Clip.none,
+                            children: [
+                              Positioned.fill(
+                                child:
+                                    place.imageUrl != null &&
+                                        place.imageUrl!.isNotEmpty
+                                    ? ClipRRect(
+                                        borderRadius:
+                                            context.mediumRadius.circularRadius,
+                                        child: CachedNetworkImage(
+                                          imageUrl: place.imageUrl!,
+                                          memCacheWidth: 200,
+                                          fit: BoxFit.cover,
+                                          placeholder: (_, _) =>
+                                              _iconAvatar(context, visual),
+                                          errorWidget: (_, _, _) =>
+                                              _iconAvatar(context, visual),
+                                        ),
+                                      )
+                                    : _iconAvatar(context, visual),
+                              ),
+                              if (rank != null && rank! <= 3)
+                                PositionedDirectional(
+                                  top: -4,
+                                  start: -4,
+                                  child: _RankBadge(rank: rank!),
+                                ),
+                            ],
                           ),
-                          child:
-                              place.imageUrl == null || place.imageUrl!.isEmpty
-                              ? Icon(
-                                  visual.icon,
-                                  color: visual.color,
-                                  size: context.largeIconSize,
-                                )
-                              : null,
                         ),
                         context.hSpacing.hSpace,
                         // النص + الأزرار
@@ -259,6 +285,42 @@ class PlaceCard extends StatelessWidget {
   }
 }
 
+/// بادج الترتيب اللي بيظهر فوق الأفاتار في قسم "الأكثر زيارة".
+/// الأول 3 مراكز بس: ذهب / فضة / نحاس. الحافّة بلون الكارت عشان
+/// يبقى واضح إن البادج برّه الكارت لما الخلفية فاتحة.
+class _RankBadge extends StatelessWidget {
+  final int rank;
+
+  const _RankBadge({required this.rank});
+
+  Color get _medalColor => switch (rank) {
+    1 => const Color(0xFFF5B301), // ذهب
+    2 => const Color(0xFFA8B0B8), // فضة
+    _ => const Color(0xFFCD7F32), // نحاس
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      label: 'ترتيب $rank من الأكثر زيارة',
+      child: Container(
+        width: context.rankBadgeSize,
+        height: context.rankBadgeSize,
+        decoration: BoxDecoration(
+          color: _medalColor,
+          shape: BoxShape.circle,
+          border: Border.all(color: context.cardColor, width: 1.5),
+        ),
+        child: Icon(
+          Icons.military_tech_rounded,
+          size: context.rankBadgeSize * 0.6,
+          color: Colors.white.withValues(alpha: 0.9),
+        ),
+      ),
+    );
+  }
+}
+
 class FavoriteButton extends StatefulWidget {
   final bool isFavorite;
   final VoidCallback? onTap;
@@ -318,9 +380,7 @@ class _FavoriteButtonState extends State<FavoriteButton>
                 ? Icons.favorite_rounded
                 : Icons.favorite_border_rounded,
             size: context.mediumIconSize,
-            color: widget.isFavorite
-                ? Colors.redAccent
-                : context.textSecondary,
+            color: widget.isFavorite ? Colors.redAccent : context.textSecondary,
           ),
         ),
       ),

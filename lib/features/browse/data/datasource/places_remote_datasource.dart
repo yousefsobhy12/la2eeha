@@ -12,6 +12,7 @@ import '../models/area_model.dart';
 import '../models/category_model.dart';
 import '../models/menu_item_model.dart';
 import '../models/place_model.dart';
+import '../models/promotion_model.dart';
 import '../models/sports_pricing_model.dart';
 
 class PlacesRemoteDataSource {
@@ -45,6 +46,19 @@ class PlacesRemoteDataSource {
         .order('created_at', ascending: false)
         .limit(limit);
     return (response as List).map((json) => PlaceModel.fromJson(json)).toList();
+  }
+
+  // العروض الترويجية: مفيش فلترة بالتاريخ ولا بـ is_active هنا — سياسات
+  // الـ RLS في Supabase بترجّع الصفوف الحيّة بس، فالـ query بيبقى نضيف.
+  Future<List<PromotionModel>> getLivePromotions() async {
+    final response = await supabase
+        .from('promotions')
+        .select('place_id, slot, image_url')
+        .order('slot')
+        .limit(6);
+    return (response as List)
+        .map((json) => PromotionModel.fromJson(json))
+        .toList();
   }
 
   Future<List<PlaceModel>> getCategoryPlaces({
