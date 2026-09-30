@@ -398,7 +398,7 @@ class _AddPlaceViewBodyState extends State<_AddPlaceViewBody> {
           isExpanded: true,
           decoration: _dropdownDecoration(
             'اختار الكاتيجوري',
-            hint: 'اختار الكاتيجوري',
+            // hint: 'اختار الكاتيجوري',
           ),
           items: [
             for (final category in state.categories)
@@ -453,7 +453,10 @@ class _AddPlaceViewBodyState extends State<_AddPlaceViewBody> {
               ? _otherSubCategoryMarker
               : state.subCategory,
           isExpanded: true,
-          decoration: _dropdownDecoration('اختار النوع', hint: 'اختار النوع'),
+          decoration: _dropdownDecoration(
+            'اختار النوع',
+            // hint: 'اختار النوع'
+          ),
           items: [
             for (final option in fixedOptions)
               DropdownMenuItem(
@@ -515,7 +518,7 @@ class _AddPlaceViewBodyState extends State<_AddPlaceViewBody> {
           isExpanded: true,
           decoration: _dropdownDecoration(
             'اختار المنطقة',
-            hint: 'اختار المنطقة',
+            // hint: 'اختار المنطقة',
           ),
           items: [
             for (final area in state.areas)

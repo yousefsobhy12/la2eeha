@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/extensions/extensions.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -212,12 +213,15 @@ class _LoginViewBodyState extends State<_LoginViewBody> {
                             return CustomElevatedButton(
                               text: 'المتابعة بحساب Google',
                               isOutlined: true,
-                              borderColor: context.borderColor,
+                              borderColor: AppColors.primary,
                               textColor: context.textPrimary,
                               isLoading: state is LoginLoading,
                               onPressed: () =>
                                   context.read<LoginCubit>().signInWithGoogle(),
-                              icon: const Icon(Icons.g_mobiledata_rounded),
+                              icon: SvgPicture.asset(
+                                'assets/svg/google-icon.svg',
+                                height: context.smallIconSize,
+                              ),
                             );
                           },
                         ),
@@ -226,11 +230,11 @@ class _LoginViewBodyState extends State<_LoginViewBody> {
                         CustomElevatedButton(
                           text: 'المتابعة بحساب Apple',
                           isOutlined: true,
-                          borderColor: context.borderColor,
+                          borderColor: context.textPrimary,
                           textColor: context.textPrimary,
                           onPressed: () => showComingSoon(context),
                           icon: const Icon(Icons.apple_rounded),
-                        ).disabled(),
+                        ),
                         SizedBox(height: context.mediumSpacing),
                         // ── Register link ──
                         Row(
@@ -281,6 +285,8 @@ class _LoginViewBodyState extends State<_LoginViewBody> {
                                     style: AppTextStyles.captionRegular12(
                                       context.textSecondary,
                                     ),
+                                    maxLines: 2,
+                                    textAlign: TextAlign.center,
                                   ),
                         ),
                       ],

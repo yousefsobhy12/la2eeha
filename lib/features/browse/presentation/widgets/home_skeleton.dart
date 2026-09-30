@@ -4,6 +4,10 @@
 // وقت التحميل، بيستخدم shimmerLoop() الجاهزة أصلاً في animation_extension.dart
 // (مفيش package جديد). مبيغطيش الهيدر — الهيدر الملون (ColoredSectionHeader)
 // ثابت برّه الـ BlocBuilder وبيبان فورًا.
+//
+// 🔧 الـ skeleton بيتبع ترتيب الصفحة: search bar، شبكة الكاتيجوريات،
+// placeholder للكاروسيل الترويجي (16:9)، ثم عنوان + 3 كروت أماكن عمودية
+// زي قسم "الأكثر زيارة" الجديد.
 
 import 'package:flutter/material.dart';
 
@@ -52,32 +56,13 @@ class HomeSkeleton extends StatelessWidget {
               ),
             ),
           ),
-          context.largeSpacing.vSpace,
-          Align(
-            alignment: AlignmentDirectional.centerStart,
+          // Placeholder للكاروسيل الترويجي — 16:9 زي PromotionsCarousel بالظبط
+          AspectRatio(
+            aspectRatio: 16 / 9,
             child: _Bone(
-              width: context.skeletonTitleWidth,
-              height: context.mediumSpacing,
-            ),
-          ),
-          context.smallSpacing.vSpace,
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            physics: const NeverScrollableScrollPhysics(),
-            child: Row(
-              children: [
-                for (int i = 0; i < 3; i++) ...[
-                  if (i > 0) context.smallSpacing.hSpace,
-                  _Bone(
-                    width: context.mostVisitedCardWidth,
-                    height:
-                        context.mostVisitedHeaderHeight +
-                        context.cardPadding.vertical +
-                        context.mediumSpacing * 3,
-                    radius: context.mediumRadius,
-                  ),
-                ],
-              ],
+              width: double.infinity,
+              height: double.infinity,
+              radius: context.largeRadius,
             ),
           ),
           context.largeSpacing.vSpace,

@@ -23,6 +23,7 @@ class CustomElevatedButton extends StatelessWidget {
   final double? borderWidth;
   final List<BoxShadow>? boxShadow;
   final Gradient? gradient;
+  final TextAlign? textAlign;
 
   const CustomElevatedButton({
     super.key,
@@ -45,6 +46,7 @@ class CustomElevatedButton extends StatelessWidget {
     this.borderWidth = 2,
     this.boxShadow,
     this.gradient,
+    this.textAlign,
   });
 
   @override
@@ -121,6 +123,7 @@ class CustomElevatedButton extends StatelessWidget {
                       fontWeight: fontWeight,
                       color: isOutlined ? defaultBorderColor : defaultTextColor,
                     ),
+                    textAlign: textAlign,
                   ),
                   if (icon != null) ...[SizedBox(width: 10.w), icon!],
                 ],

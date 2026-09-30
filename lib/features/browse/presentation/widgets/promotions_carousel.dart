@@ -1,17 +1,3 @@
-// lib/features/browse/presentation/widgets/promotions_carousel.dart
-//
-// 🔧 كاروسيل العروض الترويجية في أول الصفحة الرئيسية (تحت الكاتيجوريات).
-// كل سلايد = صورة ترويجية + ضغطة بتودّي لصفحة المكان المرتبط بيها.
-//
-// 👌 الـ CTA ("عايز إعلانك يظهر هنا؟") جزء من نفس الكاروسيل، مش قسم منفصل:
-//   - لو مفيش أي عروض شغالة → الـ CTA لوحده (من غير CarouselSlider) عشان
-//     متعملش carousel ببند واحد.
-//   - لو فيه عروض → الـ CTA بيتضاف كآخر سلايد، بس لو عدد العروض 6 بالظبط
-//     (اللي الـ datasource بيجيبه) مش بنزوده عشان الكاروسيل ميفرقش.
-//
-// الـ Semantics labels موجودة عشان الـ screen reader يقرا السلايدات.
-// الـ autoPlay بيتقفل لو فيه سلايد واحد عشان ميتحرقش CPU من غير فايدة.
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
@@ -43,11 +29,14 @@ class PromotionsCarousel extends StatelessWidget {
     return CarouselSlider(
       items: items,
       options: CarouselOptions(
+        enableInfiniteScroll: false,
+        initialPage: 0,
         aspectRatio: 16 / 9,
-        viewportFraction: 1.0,
+        viewportFraction: 0.8,
         autoPlay: items.length > 1,
-        autoPlayInterval: const Duration(seconds: 5),
+        autoPlayInterval: const Duration(seconds: 3),
         autoPlayAnimationDuration: const Duration(milliseconds: 600),
+        enlargeCenterPage: true,
       ),
     );
   }
@@ -154,7 +143,7 @@ class _CtaBanner extends StatelessWidget {
                   ),
                 ),
                 Icon(
-                  Icons.arrow_back_rounded,
+                  Icons.arrow_forward_rounded,
                   color: Colors.white,
                   size: context.mediumIconSize,
                 ),
