@@ -7,3 +7,4 @@ export 'animation_extension.dart';
 export 'theme_extension.dart';
 export 'text_direction_extension.dart';
 export 'time_format_extension.dart';
+export 'relative_time_extension.dart';

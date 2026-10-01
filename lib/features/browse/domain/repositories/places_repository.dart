@@ -5,6 +5,7 @@ import '../entities/area.dart';
 import '../entities/category.dart';
 import '../entities/menu_item.dart';
 import '../entities/place.dart';
+import '../entities/place_event.dart';
 import '../entities/promotion.dart';
 import '../entities/sports_pricing.dart';
 
@@ -51,5 +52,13 @@ abstract class PlacesRepository {
   Future<Either<Failure, int>> getSearchResultsCount({
     required String query,
     List<int> areaIds,
+  });
+
+  /// تسجيل حدث على المكان (مشاهدة/اتصال/واتساب) عن طريق RPC في الداتابيز.
+  /// الاستدعاء بيتبعت fire-and-forget — أي فشل بيتسجّل في اللوج بس ومش
+  /// بيظهر للمستخدم، فالـ UI بيتجاهل الـ result.
+  Future<Either<Failure, void>> trackPlaceEvent({
+    required int placeId,
+    required PlaceEvent event,
   });
 }

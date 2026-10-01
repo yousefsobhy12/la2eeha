@@ -205,4 +205,16 @@ class PlacesRemoteDataSource {
         .count(CountOption.exact);
     return response.count;
   }
+
+  // تسجيل حدث على المكان — call خام بيرمي على أي error (زي باقي الميثودز)
+  // والـ safeSupabaseCall في الـ Repository هو اللي بيمسكه ويسجّله.
+  Future<void> trackPlaceEvent({
+    required int placeId,
+    required String event,
+  }) async {
+    await supabase.rpc(
+      'track_place_event',
+      params: {'p_place_id': placeId, 'p_event': event},
+    );
+  }
 }

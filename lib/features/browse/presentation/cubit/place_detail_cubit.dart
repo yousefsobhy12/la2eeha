@@ -1,12 +1,16 @@
+import 'dart:async';
+
 import 'package:dartz/dartz.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/errors/failures.dart';
 import '../../../../core/network/app_logger.dart';
+import '../../../../core/storage/daily_event_gate.dart';
 import '../../domain/entities/area.dart';
 import '../../domain/entities/category.dart';
 import '../../domain/entities/menu_item.dart';
 import '../../domain/entities/place.dart';
+import '../../domain/entities/place_event.dart';
 import '../../domain/entities/sports_pricing.dart';
 import '../../domain/repositories/places_repository.dart';
 import 'place_detail_state.dart';
@@ -15,8 +19,18 @@ class PlaceDetailCubit extends Cubit<PlaceDetailState> {
   final PlacesRepository repository;
   final int placeId;
 
-  PlaceDetailCubit(this.repository, {required this.placeId})
-    : super(const PlaceDetailLoading());
+  /// بوابة الـ 24 ساعة — عشان المشاهدة متتحسبش مع كل فتح/refresh.
+  final DailyEventGate viewGate;
+
+  /// اتسجلت مشاهدة واحدة بس لكل فتح للشاشة — عشان الـ refresh مايعيدش
+  /// Count++ على نفس الزيارة.
+  bool _viewTracked = false;
+
+  PlaceDetailCubit(
+    this.repository, {
+    required this.placeId,
+    required this.viewGate,
+  }) : super(const PlaceDetailLoading());
 
   Future<void> loadPlaceDetails() async {
     emit(const PlaceDetailLoading());
@@ -114,7 +128,31 @@ class PlaceDetailCubit extends Cubit<PlaceDetailState> {
         similarPlaces: similarPlaces,
       ),
     );
+
+    unawaited(_trackViewOnce());
   }
 
   Future<void> refresh() => loadPlaceDetails();
+
+  // ميثودز التتبع دي كلها fire-and-forget بالتصميم: النتيجة متتجاهلوش
+  // والنجاح/الفشل ميوصلش للـ UI — الـ safeSupabaseCall بيعمل اللوج.
+
+  /// مشاهدة واحدة بس لكل فتح للشاشة، وبعد كده واحدة كل 24 ساعة بالـ gate.
+  Future<void> _trackViewOnce() async {
+    if (_viewTracked) return;
+    _viewTracked = true;
+    final shouldCount = await viewGate.shouldCount('view:$placeId');
+    if (!shouldCount) return;
+    unawaited(
+      repository.trackPlaceEvent(placeId: placeId, event: PlaceEvent.view),
+    );
+  }
+
+  void trackCall() => unawaited(
+    repository.trackPlaceEvent(placeId: placeId, event: PlaceEvent.call),
+  );
+
+  void trackWhatsapp() => unawaited(
+    repository.trackPlaceEvent(placeId: placeId, event: PlaceEvent.whatsapp),
+  );
 }

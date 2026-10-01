@@ -13,7 +13,10 @@ Future<void> _launchContactLink(String url) async {
 }
 
 class ContactSheet extends StatelessWidget {
-  const ContactSheet({super.key});
+  /// رسالة جاهزة تتلحق بواتساب — لو null البوتن بيفتح الشات فاضي عادي.
+  final String? whatsappMessage;
+
+  const ContactSheet({super.key, this.whatsappMessage});
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +35,11 @@ class ContactSheet extends StatelessWidget {
           label: 'راسلنا على واتساب',
           background: const Color(0xFF25D366).withValues(alpha: 0.14),
           foreground: const Color(0xFF128C4A),
-          onTap: () => _launchContactLink(ContactLinks.whatsappUrl),
+          onTap: () => _launchContactLink(
+            whatsappMessage != null
+                ? ContactLinks.whatsappUriWithText(whatsappMessage!).toString()
+                : ContactLinks.whatsappUrl,
+          ),
         ),
         context.smallSpacing.vSpace,
 

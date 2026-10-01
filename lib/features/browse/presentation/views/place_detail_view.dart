@@ -2,16 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/constants/category_visuals.dart';
+import '../../../../core/constants/contact_links.dart';
 import '../../../../core/constants/sub_category_visuals.dart';
 import '../../../../core/constants/weekday_names.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/extensions/extensions.dart';
-import '../../../../core/utils/coming_soon.dart';
+import '../../../../core/storage/daily_event_gate.dart';
+import '../../../../core/storage/local_storage_service.dart';
 import '../../../../core/widgets/place_card.dart';
 import '../../../favorites/presentation/cubit/favorites_cubit.dart';
+import '../../../more/presentation/widgets/contact_bottom_sheet.dart';
 import '../../data/datasource/places_remote_datasource.dart';
 import '../../data/repositories/places_repository_impl.dart';
 import '../../domain/entities/place.dart';
@@ -33,6 +37,7 @@ class PlaceDetailView extends StatelessWidget {
       create: (_) => PlaceDetailCubit(
         PlacesRepositoryImpl(remoteDataSource: PlacesRemoteDataSource()),
         placeId: placeId,
+        viewGate: DailyEventGate(LocalStorageService()),
       )..loadPlaceDetails(),
       child: const _PlaceDetailBody(),
     );
@@ -244,6 +249,39 @@ class _PlaceDetailBody extends StatelessWidget {
                           ),
                 ).fadeSlideIn(delay: AppAnimations.stagger(animIndex++)),
 
+                if (place.updatedAt != null) ...[
+                  context.smallSpacing.vSpace,
+                  Center(
+                    child:
+                        'آخر تحديث: ${place.updatedAt!.toRelativeArabic()}'
+                            .toCaption(
+                              context,
+                              color: context.textSecondary,
+                              textAlign: TextAlign.center,
+                            ),
+                  ).fadeSlideIn(delay: AppAnimations.stagger(animIndex++)),
+                ],
+
+                context.smallSpacing.vSpace,
+
+                // 10. Link للتاجر صاحب المكان إنه يوثّق ملكيته
+                Center(
+                  child: InkWell(
+                    onTap: () => _showClaimSheet(context, place),
+                    borderRadius: context.smallRadius.circularRadius,
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(minHeight: 48),
+                      child: Center(
+                        child: 'هل ده مكانك؟'.toCaption(
+                          context,
+                          color: context.colorScheme.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                ).fadeSlideIn(delay: AppAnimations.stagger(animIndex++)),
+
                 context.largeSpacing.vSpace,
               ]),
             ),
@@ -326,6 +364,11 @@ class _PlaceDetailBody extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
+              _HeaderCircleButton(
+                icon: Icons.share_outlined,
+                onPressed: () => _sharePlace(place),
+              ),
+              context.smallSpacing.hSpace,
               Container(
                 decoration: BoxDecoration(
                   color: Colors.black.withValues(alpha: 0.35),
@@ -342,7 +385,7 @@ class _PlaceDetailBody extends StatelessWidget {
               context.smallSpacing.hSpace,
               _HeaderCircleButton(
                 icon: Icons.flag_outlined,
-                onPressed: () => showComingSoon(context),
+                onPressed: () => _reportPlace(place),
               ),
             ],
           ),
@@ -364,7 +407,7 @@ class _PlaceDetailBody extends StatelessWidget {
             icon: Icons.phone_rounded,
             label: 'اتصال',
             color: context.colorScheme.primary,
-            onPressed: () => _call(place.phone),
+            onPressed: () => _call(context, place.phone),
           ),
         ),
 
@@ -389,7 +432,7 @@ class _PlaceDetailBody extends StatelessWidget {
               icon: Icons.chat_bubble_outline_rounded,
               label: 'واتساب',
               color: const Color(0xFF2F6B3A),
-              onPressed: () => _openWhatsApp(place.whatsapp!),
+              onPressed: () => _openWhatsApp(context, place.whatsapp!),
             ),
           ),
         ],
@@ -430,7 +473,7 @@ class _PlaceDetailBody extends StatelessWidget {
             icon: Icons.phone_outlined,
             label: 'التليفون',
             value: place.phone,
-            onTap: () => _call(place.phone),
+            onTap: () => _call(context, place.phone),
           ),
 
           // Address row (if present)
@@ -499,7 +542,8 @@ class _PlaceDetailBody extends StatelessWidget {
     );
   }
 
-  Future<void> _call(String phone) async {
+  Future<void> _call(BuildContext context, String phone) async {
+    context.read<PlaceDetailCubit>().trackCall();
     final uri = Uri(scheme: 'tel', path: phone);
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri);
@@ -513,7 +557,8 @@ class _PlaceDetailBody extends StatelessWidget {
     }
   }
 
-  Future<void> _openWhatsApp(String phone) async {
+  Future<void> _openWhatsApp(BuildContext context, String phone) async {
+    context.read<PlaceDetailCubit>().trackWhatsapp();
     final phoneNum = phone.replaceAll(RegExp(r'\D'), '');
     final fullNum = phoneNum.startsWith('20')
         ? phoneNum
@@ -522,6 +567,47 @@ class _PlaceDetailBody extends StatelessWidget {
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     }
+  }
+
+  // بلّغ عن مشكلة في بيانات المكان — بيفتح واتساب برسالة جاهزة.
+  Future<void> _reportPlace(Place place) async {
+    final uri = ContactLinks.reportUri(
+      placeName: place.name,
+      placeId: place.id,
+    );
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
+
+  void _sharePlace(Place place) {
+    final lines = <String>[
+      place.name,
+      '📞 ${place.phone}',
+      if (place.address.isNotEmpty) '📍 ${place.address}',
+      if (place.googleMapsUrl != null && place.googleMapsUrl!.isNotEmpty)
+        '🗺️ ${place.googleMapsUrl}',
+      'من تطبيق لاقيها',
+    ];
+    SharePlus.instance.share(ShareParams(text: lines.join('\n')));
+  }
+
+  // تاجر المكان يفتح شيت التواصل وواتساب بيتعبّى برسالة "أنا صاحب المكان".
+  void _showClaimSheet(BuildContext context, Place place) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: context.surfaceColor,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(context.extraLargeRadius),
+        ),
+      ),
+      builder: (sheetContext) => ContactSheet(
+        whatsappMessage:
+            'أنا صاحب مكان: ${place.name} (رقم ${place.id}) وعايز أوثّق ملكيتي',
+      ),
+    );
   }
 }
 

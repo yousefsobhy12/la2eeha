@@ -17,6 +17,9 @@ class Place {
   final String? closeTime;
   final List<int> closedDays;
 
+  /// آخر مرة بيانات المكان اتحدّثت — بيتحسب منها "من امبارح"/"من شهر" إلخ.
+  final DateTime? updatedAt;
+
   /// المكان شغال ٢٤ ساعة — مفيش open_time/close_time وفي الـ status دايماً
   /// شغال في أوقات الأسبوع غير أيام الإجازة.
   final bool is24Hours;
@@ -39,6 +42,7 @@ class Place {
     this.openTime,
     this.closeTime,
     this.closedDays = const [],
+    this.updatedAt,
     this.is24Hours = false,
   });
 }

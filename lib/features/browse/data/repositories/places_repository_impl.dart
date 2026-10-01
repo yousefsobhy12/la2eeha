@@ -6,6 +6,7 @@ import '../../domain/entities/area.dart';
 import '../../domain/entities/category.dart';
 import '../../domain/entities/menu_item.dart';
 import '../../domain/entities/place.dart';
+import '../../domain/entities/place_event.dart';
 import '../../domain/entities/promotion.dart';
 import '../../domain/entities/sports_pricing.dart';
 import '../../domain/repositories/places_repository.dart';
@@ -178,6 +179,20 @@ class PlacesRepositoryImpl implements PlacesRepository {
         areaIds: areaIds,
       ),
       callName: 'getSearchResultsCount',
+    );
+  }
+
+  @override
+  Future<Either<Failure, void>> trackPlaceEvent({
+    required int placeId,
+    required PlaceEvent event,
+  }) {
+    return safeSupabaseCall<void>(
+      () => remoteDataSource.trackPlaceEvent(
+        placeId: placeId,
+        event: event.name,
+      ),
+      callName: 'trackPlaceEvent',
     );
   }
 }

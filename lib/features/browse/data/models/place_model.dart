@@ -19,6 +19,7 @@ class PlaceModel extends Place {
     super.openTime,
     super.closeTime,
     super.closedDays,
+    super.updatedAt,
     super.is24Hours,
   });
 
@@ -45,6 +46,7 @@ class PlaceModel extends Place {
               ?.map((e) => (e as num).toInt())
               .toList() ??
           const [],
+      updatedAt: DateTime.tryParse(json['updated_at'] as String? ?? ''),
       is24Hours: json['is_24_hours'] as bool? ?? false,
     );
   }
@@ -69,6 +71,7 @@ class PlaceModel extends Place {
       'close_time': closeTime,
       'closed_days': closedDays,
       'is_24_hours': is24Hours,
+      'updated_at': updatedAt?.toIso8601String(),
     };
   }
 }
