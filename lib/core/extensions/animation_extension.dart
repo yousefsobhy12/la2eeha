@@ -90,6 +90,46 @@ extension WidgetAnimationExtension on Widget {
   }
 
   // ════════════════════════════════════════════════════════════
+  // TOGGLE / SWAP ANIMATIONS
+  // ════════════════════════════════════════════════════════════
+
+  /// تبديل أيقونة بأنيميشن ناعم (دوران أفقي 2.5D + pop + fade)
+  /// استخدمها للأيقونات اللي بتتبدّل زي عين كلمة السر أو أي toggle
+  ///
+  /// ملاحظة مهمة: الـ key لازم يتمرر هنا (مش على الـ child)، لأن Animate
+  /// بيبدأ الأنيميشن في initState بس. من غير key مختلف كل مرة، الـ element
+  /// بيتعاد استخدامه والأنيميشن مش هيشتغل تاني.
+  Widget iconSwap({
+    Key? key,
+    Duration duration = AppAnimations.fast,
+    Curve curve = Curves.easeOutCubic,
+    double beginScale = 0.6,
+    bool flip = true,
+  }) {
+    var manager = animate(key: key)
+        .fadeIn(duration: duration, curve: curve)
+        .scale(
+          begin: Offset(beginScale, beginScale),
+          end: const Offset(1, 1),
+          duration: duration,
+          curve: AppAnimations.popCurve,
+        );
+
+    if (flip) {
+      manager = manager.flip(
+        begin: 0.5,
+        end: 0,
+        direction: Axis.horizontal,
+        alignment: Alignment.center,
+        duration: duration,
+        curve: curve,
+      );
+    }
+
+    return manager;
+  }
+
+  // ════════════════════════════════════════════════════════════
   // INTERACTIVE / LOOPING ANIMATIONS
   // ════════════════════════════════════════════════════════════
 

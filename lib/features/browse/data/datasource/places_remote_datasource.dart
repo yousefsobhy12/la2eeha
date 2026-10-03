@@ -8,6 +8,7 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../core/network/supabase_client_provider.dart';
+import '../../../../core/extensions/search_normalizer_extension.dart';
 import '../models/area_model.dart';
 import '../models/category_model.dart';
 import '../models/menu_item_model.dart';
@@ -162,10 +163,15 @@ class PlacesRemoteDataSource {
     return (response as List).map((json) => PlaceModel.fromJson(json)).toList();
   }
 
-  // بيبني شرط الـ or() بتاع البحث: اسم المكان + العنوان + (لو موجودة) المناطق المطابقة.
+  // بيبني شرط الـ or() بتاع البحث على العمود المُطبَّع search_text (اسم + عنوان،
+  // مطبَّع في الـ DB بـ normalize_arabic()). كل كلمة في الـ query لازم تكون
+  // موجودة (AND)، + (لو موجودة) المناطق المطابقة.
   // areaIds بتتحسب في الـ Cubit من كاش محلي — مفيش أي query إضافية هنا.
-  String _buildSearchFilter(String query, List<int> areaIds) {
-    var filter = 'name.ilike.%$query%,address.ilike.%$query%';
+  String _buildSearchFilter(List<String> words, List<int> areaIds) {
+    final wordFilters = [for (final w in words) 'search_text.ilike.%$w%'];
+    var filter = wordFilters.length == 1
+        ? wordFilters.first
+        : 'and(${wordFilters.join(",")})';
     if (areaIds.isNotEmpty) {
       filter += ',area_id.in.(${areaIds.join(",")})';
     }
@@ -178,8 +184,9 @@ class PlacesRemoteDataSource {
     required int limit,
     required int offset,
   }) async {
-    final safeQuery = query.replaceAll(',', ' ');
-    final filter = _buildSearchFilter(safeQuery, areaIds);
+    final words = query.toSearchWords();
+    if (words.isEmpty) return [];
+    final filter = _buildSearchFilter(words, areaIds);
 
     final response = await supabase
         .from('places')
@@ -195,8 +202,9 @@ class PlacesRemoteDataSource {
     required String query,
     List<int> areaIds = const [],
   }) async {
-    final safeQuery = query.replaceAll(',', ' ');
-    final filter = _buildSearchFilter(safeQuery, areaIds);
+    final words = query.toSearchWords();
+    if (words.isEmpty) return 0;
+    final filter = _buildSearchFilter(words, areaIds);
 
     final response = await supabase
         .from('places')

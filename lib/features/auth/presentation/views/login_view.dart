@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:go_router/go_router.dart';
+import 'package:la2eeha/core/constants/app_icons.dart';
 import '../../../../core/extensions/extensions.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -42,6 +43,7 @@ class _LoginViewBodyState extends State<_LoginViewBody> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  bool obscureText = true;
 
   @override
   void dispose() {
@@ -115,13 +117,33 @@ class _LoginViewBodyState extends State<_LoginViewBody> {
                               CustomTextFormField(
                                 controller: _passwordController,
                                 labelText: 'كلمة السر',
-                                obscureText: true,
+                                obscureText: obscureText,
                                 validator: (value) {
                                   if (value == null || value.isEmpty) {
                                     return 'برجاء إدخال كلمة السر';
                                   }
                                   return null;
                                 },
+                                suffixIcon: IconButton(
+                                  onPressed: () {
+                                    obscureText = !obscureText;
+                                    setState(() {});
+                                  },
+                                  icon: obscureText == true
+                                      ? SvgPicture.asset(
+                                          'assets/svg/eye-opened-icon.svg',
+                                          height: context.smallIconSize,
+                                        ).iconSwap(
+                                          key: const ValueKey('eye_opened'),
+                                          flip: false,
+                                        )
+                                      : SvgPicture.asset(
+                                          'assets/svg/eye-closed-icon.svg',
+                                          height: context.smallIconSize * 1.1,
+                                        ).iconSwap(
+                                          key: const ValueKey('eye_closed'),
+                                        ),
+                                ),
                               ),
                               SizedBox(height: context.smallSpacing),
                               Align(
@@ -219,7 +241,7 @@ class _LoginViewBodyState extends State<_LoginViewBody> {
                               onPressed: () =>
                                   context.read<LoginCubit>().signInWithGoogle(),
                               icon: SvgPicture.asset(
-                                'assets/svg/google-icon.svg',
+                                AppIcons.googleIcon,
                                 height: context.smallIconSize,
                               ),
                             );
@@ -233,7 +255,10 @@ class _LoginViewBodyState extends State<_LoginViewBody> {
                           borderColor: context.textPrimary,
                           textColor: context.textPrimary,
                           onPressed: () => showComingSoon(context),
-                          icon: const Icon(Icons.apple_rounded),
+                          icon: SvgPicture.asset(
+                            'assets/svg/apple-icon.svg',
+                            height: context.smallIconSize,
+                          ),
                         ),
                         SizedBox(height: context.mediumSpacing),
                         // ── Register link ──
