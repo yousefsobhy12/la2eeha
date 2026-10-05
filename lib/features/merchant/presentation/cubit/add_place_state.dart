@@ -54,6 +54,10 @@ class AddPlaceState {
   /// والعرض بيخفي حقول الساعات.
   final bool is24Hours;
 
+  /// لو التاجر فعّل "متاح توصيل" — بيظهر بس للأقسام اللي بتسمح بيه
+  /// (AddPlaceCubit.deliveryCategories).
+  final bool isDelivery;
+
   final File? imageFile;
   final bool imageUploadFailed;
 
@@ -81,6 +85,7 @@ class AddPlaceState {
     this.closeTime,
     this.closedDays = const [],
     this.is24Hours = false,
+    this.isDelivery = false,
     this.imageFile,
     this.imageUploadFailed = false,
     this.submittedPlaceId,
@@ -109,6 +114,7 @@ class AddPlaceState {
     Object? closeTime = _unset,
     List<int>? closedDays,
     bool? is24Hours,
+    bool? isDelivery,
     Object? imageFile = _unset,
     bool? imageUploadFailed,
     Object? submittedPlaceId = _unset,
@@ -141,6 +147,7 @@ class AddPlaceState {
       closeTime: closeTime == _unset ? this.closeTime : closeTime as String?,
       closedDays: closedDays ?? this.closedDays,
       is24Hours: is24Hours ?? this.is24Hours,
+      isDelivery: isDelivery ?? this.isDelivery,
       imageFile: imageFile == _unset ? this.imageFile : imageFile as File?,
       imageUploadFailed: imageUploadFailed ?? this.imageUploadFailed,
       submittedPlaceId: submittedPlaceId == _unset

@@ -1,27 +1,12 @@
-// lib/core/widgets/place_card.dart
-//
-// categoryIcon — الـ icon key المخزن في عمود categories.icon (زي 'restaurant')
-// بيستخدم لجلب الـ CategoryVisual المناسب (أيقونة + لون).
-// categoryName — الاسم العربي للكاتيجوري بيتعرض في الـ subtitle.
-// areaName — اسم المنطقة (اختياري) بيتعرض جنب الكاتيجوري في الـ subtitle.
-// rank — الترتيب في قسم "الأكثر زيارة" (1-based). الأول 3 بس بياخدوا medal
-// (ذهب/فضة/نحاس)، وأي rank أكبر من كده بيتجاهَل. null = بدون بادج.
-//
-// صورة المكان بتتحمّل بـ CachedNetworkImage (مفيش NetworkImage مباشرة عشان
-// الكاش والـ placeholder)؛ لو مفيش صورة أو التحميل فشل بيرجع للأيقونة.
-//
-// "مميز" badge — متخفي تمامًا (لسه مش متفعّل).
-// أيقونة القلب (Favorite) موجودة كـ UI جاهزة، بس مقفولة وظيفيًا.
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
-
 import '../constants/category_visuals.dart';
 import '../constants/sub_category_visuals.dart';
 import '../extensions/extensions.dart';
 import '../../features/browse/domain/entities/place.dart';
 import '../../features/browse/domain/entities/place_open_status.dart';
+import '../../features/browse/presentation/widgets/place_delivery_pill.dart';
 import '../../features/browse/presentation/widgets/place_open_status_pill.dart';
 
 class PlaceCard extends StatelessWidget {
@@ -231,8 +216,20 @@ class PlaceCard extends StatelessWidget {
                                         maxLines: 1,
                                       ),
                                     ),
+                                    // البادج آخر السطر والنص Expanded (بيتقص
+                                    // بـ ellipsis) — عشان الشيب عمره ما يطلع
+                                    // برّه الكارت على الموبايل الضيق.
+                                    if (place.isDelivery) ...[
+                                      6.hSpace,
+                                      const PlaceDeliveryPill(),
+                                    ],
                                   ],
                                 ),
+                              ] else if (place.isDelivery) ...[
+                                // مفيش سطر ساعات للمكان ده — البادج بيتعرض
+                                // لوحده تحت الـ subtitle.
+                                6.vSpace,
+                                const Row(children: [PlaceDeliveryPill()]),
                               ],
                               context.smallSpacing.vSpace,
                               if (place.phone.isNotEmpty)

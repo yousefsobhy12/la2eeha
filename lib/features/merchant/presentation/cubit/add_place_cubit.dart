@@ -15,6 +15,7 @@ import 'dart:io';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../../core/constants/delivery_categories.dart';
 import '../../../../core/storage/local_storage_service.dart';
 import '../../../browse/domain/entities/area.dart';
 import '../../../browse/domain/entities/category.dart';
@@ -39,6 +40,10 @@ class AddPlaceCubit extends Cubit<AddPlaceState> {
   // الـ IDs دي hardcoded عمدًا — يعني قصدنا نثبتها هنا مباشرة، مش بنسأل
   // Supabase عنها ولا بنستنتجها من أسماء/ترتيب الكاتيجوريز.
   static const subCategoryCategories = {22, 26, 27};
+
+  // الأقسام اللي بتقدّم خدمة توصيل — مصدر الأرقام كمان هو kDeliveryCategoryIds
+  // (نفس الـ pattern بتاع subCategoryCategories فوق: IDs hardcoded هنا عن قصد).
+  static const deliveryCategories = kDeliveryCategoryIds;
 
   Timer? _saveTimer;
 
@@ -93,6 +98,8 @@ class AddPlaceCubit extends Cubit<AddPlaceState> {
           googleMapsUrl: json['googleMapsUrl'] as String?,
           description: json['description'] as String?,
           is24Hours: (json['is24Hours'] as bool?) ?? false,
+          // drafts قديمة (من قبل الخاصية دي) مفيش فيها المفتاح — false افتراضيًا.
+          isDelivery: (json['isDelivery'] as bool?) ?? false,
           // لو المكان كان على وضع ٢٤ ساعة، الأوقات القديمة في الـ draft
           // مش هتتستعاد على كل حال.
           openTime: (json['is24Hours'] as bool?) ?? false
@@ -128,7 +135,15 @@ class AddPlaceCubit extends Cubit<AddPlaceState> {
   }
 
   void updateCategory(int? categoryId) {
-    emit(state.copyWith(categoryId: categoryId));
+    // تغيّر الكاتيجوري لغير قسم مش بيقبل توصيل — بنمسح الفلاج فورًا
+    // عشان متفضلش معلقة على قسم مش بتعرضه أصلًا.
+    final keepsDelivery = deliveryCategories.contains(categoryId);
+    emit(
+      state.copyWith(
+        categoryId: categoryId,
+        isDelivery: keepsDelivery ? state.isDelivery : false,
+      ),
+    );
     _saveDraft();
   }
 
@@ -209,6 +224,11 @@ class AddPlaceCubit extends Cubit<AddPlaceState> {
     _saveDraft();
   }
 
+  void setIsDelivery(bool value) {
+    emit(state.copyWith(isDelivery: value));
+    _saveDraft();
+  }
+
   Future<void> pickImage() async {
     try {
       final xfile = await ImagePicker().pickImage(
@@ -260,6 +280,8 @@ class AddPlaceCubit extends Cubit<AddPlaceState> {
       closeTime: state.is24Hours ? null : state.closeTime,
       closedDays: state.closedDays,
       is24Hours: state.is24Hours,
+      isDelivery:
+          deliveryCategories.contains(state.categoryId) && state.isDelivery,
     );
 
     final result = await _merchantRepository.addPlace(draft);
@@ -373,6 +395,7 @@ class AddPlaceCubit extends Cubit<AddPlaceState> {
         'closeTime': state.is24Hours ? null : state.closeTime,
         'closedDays': state.closedDays,
         'is24Hours': state.is24Hours,
+        'isDelivery': state.isDelivery,
         'imageFilePath': state.imageFile?.path,
       });
       await _storage.setString(draftKey, json);

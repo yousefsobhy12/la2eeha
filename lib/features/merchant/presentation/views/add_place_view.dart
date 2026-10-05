@@ -326,6 +326,11 @@ class _AddPlaceViewBodyState extends State<_AddPlaceViewBody> {
             _buildTimesSection(context, state),
             context.mediumSpacing.vSpace,
             _buildClosedDaysSection(context, state),
+            // التوصيل بيظهر للأقسام اللي بتقبله بس (deliveryCategories).
+            if (AddPlaceCubit.deliveryCategories.contains(state.categoryId)) ...[
+              context.mediumSpacing.vSpace,
+              _buildDeliverySection(context, state),
+            ],
             context.mediumSpacing.vSpace,
             _buildCoverPhoto(context, state),
             context.largeSpacing.vSpace,
@@ -788,7 +793,42 @@ class _AddPlaceViewBodyState extends State<_AddPlaceViewBody> {
     );
   }
 
-  // ── 12. Cover photo ──
+  // ── 12. Delivery (فقط للأقسام اللي بتقبله) ──
+  Widget _buildDeliverySection(BuildContext context, AddPlaceState state) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _sectionLabel(context, 'التوصيل (اختياري)'),
+        Container(
+          padding: EdgeInsets.symmetric(horizontal: context.mediumSpacing),
+          decoration: BoxDecoration(
+            color: context.surfaceColor,
+            borderRadius: context.mediumRadius.circularRadius,
+            border: Border.all(color: context.borderColor),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: 'متاح توصيل'.toBody(
+                  context,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              Switch(
+                value: state.isDelivery,
+                activeThumbColor: context.colorScheme.onPrimary,
+                activeTrackColor: context.colorScheme.primary,
+                onChanged: (value) =>
+                    context.read<AddPlaceCubit>().setIsDelivery(value),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ── 13. Cover photo ──
   Widget _buildCoverPhoto(BuildContext context, AddPlaceState state) {
     final image = state.imageFile;
     return Column(
@@ -861,7 +901,7 @@ class _AddPlaceViewBodyState extends State<_AddPlaceViewBody> {
     );
   }
 
-  // ── 13. Submit ──
+  // ── 14. Submit ──
   Widget _buildSubmitButton(BuildContext context) {
     return BlocBuilder<AddPlaceCubit, AddPlaceState>(
       builder: (context, state) {

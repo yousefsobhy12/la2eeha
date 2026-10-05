@@ -37,6 +37,7 @@ class MerchantRemoteDataSource {
           'google_maps_url': draft.googleMapsUrl,
           'description': draft.description,
           'is_24_hours': draft.is24Hours,
+          'is_delivery': draft.isDelivery,
           'open_time': openTime,
           'close_time': closeTime,
           'closed_days': draft.closedDays,

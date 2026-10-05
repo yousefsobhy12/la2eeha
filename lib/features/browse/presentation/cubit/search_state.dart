@@ -2,18 +2,24 @@
 
 import '../../../../core/errors/failures.dart';
 import '../../domain/entities/place.dart';
+import '../../domain/entities/place_filters.dart';
 
 sealed class SearchState {
-  const SearchState();
+  /// الفلاتر المفعّلة — موجودة على الـ base class عشان كل حالة (الكل مش بس
+  /// الـ loaded) تحملها، فزرار الفلترة في الهيدر يقدر يبني نقطته من أي حالة
+  /// من غير ما يبقى متعلق بـ SearchLoaded.
+  final PlaceFilters filters;
+
+  const SearchState({this.filters = const PlaceFilters()});
 }
 
 // No query yet, or query is under 2 characters — nothing has been searched.
 class SearchInitial extends SearchState {
-  const SearchInitial();
+  const SearchInitial({super.filters});
 }
 
 class SearchLoading extends SearchState {
-  const SearchLoading();
+  const SearchLoading({super.filters});
 }
 
 class SearchLoaded extends SearchState {
@@ -35,6 +41,7 @@ class SearchLoaded extends SearchState {
     required this.totalCount,
     required this.hasMore,
     required this.isLoadingMore,
+    super.filters,
   });
 
   String categoryNameOf(int? categoryId) => categoryNameById[categoryId] ?? '';
@@ -46,6 +53,7 @@ class SearchLoaded extends SearchState {
     int? totalCount,
     bool? hasMore,
     bool? isLoadingMore,
+    PlaceFilters? filters,
   }) {
     return SearchLoaded(
       query: query,
@@ -56,12 +64,13 @@ class SearchLoaded extends SearchState {
       totalCount: totalCount ?? this.totalCount,
       hasMore: hasMore ?? this.hasMore,
       isLoadingMore: isLoadingMore ?? this.isLoadingMore,
+      filters: filters ?? this.filters,
     );
   }
 }
 
 class SearchError extends SearchState {
   final Failure failure;
-  const SearchError(this.failure);
+  const SearchError(this.failure, {super.filters});
   String get message => failure.message;
 }

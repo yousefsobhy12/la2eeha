@@ -9,16 +9,20 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/category_visuals.dart';
+import '../../../../core/constants/delivery_categories.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/extensions/extensions.dart';
-import '../../../../core/utils/coming_soon.dart';
 import '../../../../core/widgets/colored_section_header.dart';
+import '../../../../core/widgets/custom_button.dart';
 import '../../../../core/widgets/place_card.dart';
 import '../../data/datasource/places_remote_datasource.dart';
 import '../../data/repositories/places_repository_impl.dart';
+import '../../domain/entities/place_filters.dart';
 import '../cubit/category_list_cubit.dart';
 import '../cubit/category_list_state.dart';
 import '../../../favorites/presentation/cubit/favorites_cubit.dart';
+import '../widgets/place_filters_button.dart';
+import '../widgets/place_filters_sheet.dart';
 import '../widgets/sub_category_chips.dart';
 
 class CategoryListView extends StatelessWidget {
@@ -96,6 +100,32 @@ class _CategoryListBodyState extends State<_CategoryListBody> {
             headerBgColor = null;
           }
 
+          // زرار الفلترة بيظهر بس لما يكون عندنا قايمة — وقت التحميل أو
+          // الخطأ مفيش نتايج نفلترها أصلاً.
+          final Widget? headerTrailing = state is CategoryListLoaded
+              ? PlaceFiltersButton(
+                  // الفلاتر من الـ state مش من الـ Cubit عشان النطة
+                  // تتحدث مع كل rebuild.
+                  filters: state.filters,
+                  color: context.colorScheme.onPrimary,
+                  onPressed: () {
+                    // بنمسك الـ Cubit قبل ما نفتح الشيت — جواه الـ context
+                    // بتاع الشيت نفسه.
+                    final cubit = context.read<CategoryListCubit>();
+                    PlaceFiltersSheet.show(
+                      context,
+                      initial: cubit.filters,
+                      // فلتر التوصيل معروض بس للأقسام اللي بتقبله؛ صفحة
+                      // "كل الأماكن" بتعرضه دايماً.
+                      showDelivery:
+                          widget.categoryId == null ||
+                          kDeliveryCategoryIds.contains(widget.categoryId),
+                      onChanged: cubit.applyFilters,
+                    );
+                  },
+                )
+              : null;
+
           return Column(
             children: [
               ColoredSectionHeader(
@@ -107,11 +137,7 @@ class _CategoryListBodyState extends State<_CategoryListBody> {
                   color: context.colorScheme.onPrimary,
                   onPressed: () => context.pop(),
                 ),
-                trailing: IconButton(
-                  icon: const Icon(Icons.search_rounded),
-                  color: context.colorScheme.onPrimary,
-                  onPressed: () => showComingSoon(context),
-                ),
+                trailing: headerTrailing,
               ),
               Expanded(
                 child: SafeArea(
@@ -158,10 +184,15 @@ class _CategoryListBodyState extends State<_CategoryListBody> {
               ),
             ),
 
-          // ─── Places list or empty state ───
-          if (state.places.isEmpty)
+          // ─── Reloading skeleton / places list / empty state ───
+          // أثناء إعادة التحميل (تغيير نوع فرعي أو فلاتر) القايمة بتتفضّى،
+          // فبنعرض skeleton بدل "مفيش نتائج". الـ sub-categories بتفضل فوقه
+          // زي ما هي عشان المستخدم يشوف هو واقف على إيه.
+          if (state.isReloading)
+            const SliverToBoxAdapter(child: _ReloadSkeletonList())
+          else if (state.places.isEmpty)
             SliverFillRemaining(
-              hasScrollBody: false,
+              hasScrollBody: true,
               child: Center(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -172,8 +203,13 @@ class _CategoryListBodyState extends State<_CategoryListBody> {
                       color: context.iconColor,
                     ),
                     context.smallSpacing.vSpace,
+                    // فرق في الرسالة مهم: "مفيش أماكن في القسم ده" تاني
+                    // حاجة غير "مفيش حاجة طالعة من الفلتر" — والتانية
+                    // بتاعتها بتدي زرار يمسح الفلتر ويرجّع كل الأماكن.
                     Text(
-                      'مفيش أماكن في القسم ده حاليًا',
+                      state.filters.isActive
+                          ? 'مفيش أماكن مطابقة للفلاتر دي'
+                          : 'مفيش أماكن في القسم ده حاليًا',
                       style: TextStyle(
                         fontSize: (14.sp * context.fontScale).clamp(
                           12.sp,
@@ -183,6 +219,25 @@ class _CategoryListBodyState extends State<_CategoryListBody> {
                       ),
                       textAlign: TextAlign.center,
                     ),
+                    if (state.filters.isActive) ...[
+                      context.mediumSpacing.vSpace,
+                      Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: context.largeSpacing,
+                        ),
+                        child: CustomElevatedButton(
+                          text: 'مسح الفلاتر',
+                          onPressed: () => context
+                              .read<CategoryListCubit>()
+                              .applyFilters(const PlaceFilters()),
+                          isOutlined: true,
+                          backgroundColor: context.colorScheme.primary,
+                          height: 48,
+                          fontSize: 14,
+                          borderRadius: 12,
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -241,6 +296,36 @@ class _CategoryListBodyState extends State<_CategoryListBody> {
         ],
       ),
     );
+  }
+}
+
+/// بديل الـ _CategoryListSkeleton أثناء إعادة تحميل نفس الشاشة (تغيير نوع
+/// فرعي أو فلاتر): 4 كروت وهمية بنفس الشكل والارتفاع بالظبط، عشان الارتفاع
+/// ميطفيشش والـ scroll bar مايقفزش في إيد المستخدم.
+class _ReloadSkeletonList extends StatelessWidget {
+  const _ReloadSkeletonList();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: context.pagePadding,
+      child: Column(
+        children: [
+          for (var i = 0; i < 4; i++)
+            Padding(
+              padding: EdgeInsets.only(bottom: context.mediumSpacing),
+              child: Container(
+                width: double.infinity,
+                height: context.skeletonPlaceCardHeight,
+                decoration: BoxDecoration(
+                  color: context.borderColor,
+                  borderRadius: context.mediumRadius.circularRadius,
+                ),
+              ),
+            ),
+        ],
+      ),
+    ).shimmerLoop();
   }
 }
 

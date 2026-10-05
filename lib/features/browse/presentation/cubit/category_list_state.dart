@@ -1,7 +1,6 @@
-// lib/features/browse/presentation/cubit/category_list_state.dart
-
 import '../../../../core/errors/failures.dart';
 import '../../domain/entities/place.dart';
+import '../../domain/entities/place_filters.dart';
 
 sealed class CategoryListState {
   const CategoryListState();
@@ -16,11 +15,13 @@ class CategoryListLoaded extends CategoryListState {
   final Map<int, String> categoryNameById;
   final Map<int, String> categoryIconById;
   final Map<int, String> areaNameById;
-  final List<String> subCategories; // empty = don't render filter chips
-  final String? selectedSubCategory; // null = "الكل" selected
+  final List<String> subCategories;
+  final String? selectedSubCategory;
   final int totalCount;
   final bool hasMore;
   final bool isLoadingMore;
+  final bool isReloading;
+  final PlaceFilters filters;
 
   const CategoryListLoaded({
     required this.places,
@@ -32,6 +33,8 @@ class CategoryListLoaded extends CategoryListState {
     required this.totalCount,
     required this.hasMore,
     required this.isLoadingMore,
+    this.filters = const PlaceFilters(),
+    this.isReloading = false,
   });
 
   String categoryNameOf(int? categoryId) => categoryNameById[categoryId] ?? '';
@@ -46,6 +49,8 @@ class CategoryListLoaded extends CategoryListState {
     int? totalCount,
     bool? hasMore,
     bool? isLoadingMore,
+    PlaceFilters? filters,
+    bool? isReloading,
   }) {
     return CategoryListLoaded(
       places: places ?? this.places,
@@ -59,6 +64,8 @@ class CategoryListLoaded extends CategoryListState {
       totalCount: totalCount ?? this.totalCount,
       hasMore: hasMore ?? this.hasMore,
       isLoadingMore: isLoadingMore ?? this.isLoadingMore,
+      filters: filters ?? this.filters,
+      isReloading: isReloading ?? this.isReloading,
     );
   }
 }

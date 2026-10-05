@@ -24,6 +24,10 @@ class Place {
   /// شغال في أوقات الأسبوع غير أيام الإجازة.
   final bool is24Hours;
 
+  /// المكان بيقدّم خدمة توصيل (للأقسام اللي بتسمح بيها بس — Restaurants/
+  /// Shops/Pharmacy مثلاً).
+  final bool isDelivery;
+
   const Place({
     required this.id,
     required this.categoryId,
@@ -44,5 +48,6 @@ class Place {
     this.closedDays = const [],
     this.updatedAt,
     this.is24Hours = false,
+    this.isDelivery = false,
   });
 }

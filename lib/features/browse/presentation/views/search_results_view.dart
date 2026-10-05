@@ -7,12 +7,16 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/errors/failures.dart';
 import '../../../../core/extensions/extensions.dart';
+import '../../../../core/widgets/custom_button.dart';
 import '../../../../core/widgets/place_card.dart';
 import '../../data/datasource/places_remote_datasource.dart';
 import '../../data/repositories/places_repository_impl.dart';
+import '../../domain/entities/place_filters.dart';
 import '../../../favorites/presentation/cubit/favorites_cubit.dart';
 import '../cubit/search_cubit.dart';
 import '../cubit/search_state.dart';
+import '../widgets/place_filters_button.dart';
+import '../widgets/place_filters_sheet.dart';
 
 class SearchResultsView extends StatelessWidget {
   const SearchResultsView({super.key});
@@ -70,85 +74,108 @@ class _SearchResultsBodyState extends State<_SearchResultsBody> {
       body: SafeArea(
         child: Column(
           children: [
-            // Custom Header
-            Container(
-              padding: EdgeInsets.symmetric(
-                horizontal: context.pagePadding.horizontal / 2,
-                vertical: context.smallSpacing,
-              ),
-              child: Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back_ios_new_rounded),
-                    onPressed: () => context.pop(),
+            // Custom Header — BlocBuilder حوالينه كله عشان زرار الفلترة يبقى
+            // يبني نقطته في أي حالة (Searching/Loading/Error/Loaded) وميحتاجش
+            // الحالة تكون Loaded.
+            BlocBuilder<SearchCubit, SearchState>(
+              builder: (context, state) {
+                return Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: context.pagePadding.horizontal / 2,
+                    vertical: context.smallSpacing,
                   ),
-                  Expanded(
-                    child: Container(
-                      height: context.textFieldHeight,
-                      padding: EdgeInsets.symmetric(
-                        horizontal: context.hSpacing,
+                  child: Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.arrow_back_ios_new_rounded),
+                        onPressed: () => context.pop(),
                       ),
-                      decoration: BoxDecoration(
-                        color: context.surfaceColor,
-                        borderRadius: context.roundRadius.circularRadius,
-                        border: Border.all(color: context.borderColor),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.search_rounded,
-                            color: context.textSecondary,
+                      Expanded(
+                        child: Container(
+                          height: context.textFieldHeight,
+                          padding: EdgeInsets.symmetric(
+                            horizontal: context.hSpacing,
                           ),
-                          context.smallSpacing.hSpace,
-                          Expanded(
-                            child: TextField(
-                              controller: _textController,
-                              autofocus: true,
-                              style: TextStyle(
-                                fontSize: (14.sp * context.fontScale).clamp(
-                                  12.sp,
-                                  16.sp,
-                                ),
-                                color: context.textPrimary,
-                              ),
-                              decoration: InputDecoration(
-                                hintText: 'ابحث عن اسم المكان أو العنوان...',
-                                hintStyle: TextStyle(
-                                  fontSize: (14.sp * context.fontScale).clamp(
-                                    12.sp,
-                                    16.sp,
-                                  ),
-                                  color: context.hintColor,
-                                ),
-                                border: InputBorder.none,
-                                isDense: true,
-                                contentPadding: EdgeInsets.zero,
-                              ),
-                              onChanged: (value) => context
-                                  .read<SearchCubit>()
-                                  .onQueryChanged(value),
-                            ),
+                          decoration: BoxDecoration(
+                            color: context.surfaceColor,
+                            borderRadius: context.roundRadius.circularRadius,
+                            border: Border.all(color: context.borderColor),
                           ),
-                          if (_textController.text.isNotEmpty)
-                            IconButton(
-                              padding: EdgeInsets.zero,
-                              constraints: const BoxConstraints(),
-                              icon: Icon(
-                                Icons.close_rounded,
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.search_rounded,
                                 color: context.textSecondary,
-                                size: 20,
                               ),
-                              onPressed: () {
-                                _textController.clear();
-                                context.read<SearchCubit>().onQueryChanged('');
-                              },
-                            ),
-                        ],
+                              context.smallSpacing.hSpace,
+                              Expanded(
+                                child: TextField(
+                                  controller: _textController,
+                                  autofocus: true,
+                                  style: TextStyle(
+                                    fontSize: (14.sp * context.fontScale).clamp(
+                                      12.sp,
+                                      16.sp,
+                                    ),
+                                    color: context.textPrimary,
+                                  ),
+                                  decoration: InputDecoration(
+                                    hintText:
+                                        'ابحث عن اسم المكان أو العنوان...',
+                                    hintStyle: TextStyle(
+                                      fontSize: (14.sp * context.fontScale)
+                                          .clamp(12.sp, 16.sp),
+                                      color: context.hintColor,
+                                    ),
+                                    border: InputBorder.none,
+                                    isDense: true,
+                                    contentPadding: EdgeInsets.zero,
+                                  ),
+                                  onChanged: (value) => context
+                                      .read<SearchCubit>()
+                                      .onQueryChanged(value),
+                                ),
+                              ),
+                              if (_textController.text.isNotEmpty)
+                                IconButton(
+                                  padding: EdgeInsets.zero,
+                                  constraints: const BoxConstraints(),
+                                  icon: Icon(
+                                    Icons.close_rounded,
+                                    color: context.textSecondary,
+                                    size: 20,
+                                  ),
+                                  onPressed: () {
+                                    _textController.clear();
+                                    context.read<SearchCubit>().onQueryChanged(
+                                      '',
+                                    );
+                                  },
+                                ),
+                            ],
+                          ),
+                        ),
                       ),
-                    ),
+                      PlaceFiltersButton(
+                        filters: state.filters,
+                        onPressed: () {
+                          // بنمسك الـ Cubit قبل ما نفتح الشيت — جواه الـ
+                          // context بتاع الشيت نفسه.
+                          final cubit = context.read<SearchCubit>();
+                          PlaceFiltersSheet.show(
+                            context,
+                            initial: cubit.filters,
+                            // شاشة البحث مش قايدة على قسم واحد، ففلتر
+                            // التوصيل معروض دايماً.
+                            showDelivery: true,
+                            onChanged: cubit.applyFilters,
+                          );
+                        },
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                );
+              },
             ),
             // Body
             Expanded(
@@ -195,10 +222,36 @@ class _SearchResultsBodyState extends State<_SearchResultsBody> {
           children: [
             Icon(Icons.search_off_rounded, size: 48, color: context.iconColor),
             context.smallSpacing.vSpace,
-            'مفيش نتايج لـ "${state.query}"'.toBody(
-              context,
-              color: context.textSecondary,
-            ),
+            // فرق مهم في الرسالة: "مفيش نتايج" غير "مفيش نتايج بالفلاتر دي" —
+            // والتانية محتاجة زرار يمسح الفلتر ويرجّع كل نتايج البحث.
+            if (state.filters.isActive)
+              'مفيش نتايج لـ "${state.query}" بالفلاتر دي'.toBody(
+                context,
+                color: context.textSecondary,
+                textAlign: TextAlign.center,
+              )
+            else
+              'مفيش نتايج لـ "${state.query}"'.toBody(
+                context,
+                color: context.textSecondary,
+              ),
+            if (state.filters.isActive) ...[
+              context.mediumSpacing.vSpace,
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: context.largeSpacing),
+                child: CustomElevatedButton(
+                  text: 'مسح الفلاتر',
+                  onPressed: () => context.read<SearchCubit>().applyFilters(
+                    const PlaceFilters(),
+                  ),
+                  isOutlined: true,
+                  backgroundColor: context.colorScheme.primary,
+                  height: 48,
+                  fontSize: 14,
+                  borderRadius: 12,
+                ),
+              ),
+            ],
           ],
         ),
       );

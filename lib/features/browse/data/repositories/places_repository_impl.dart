@@ -7,6 +7,7 @@ import '../../domain/entities/category.dart';
 import '../../domain/entities/menu_item.dart';
 import '../../domain/entities/place.dart';
 import '../../domain/entities/place_event.dart';
+import '../../domain/entities/place_filters.dart';
 import '../../domain/entities/promotion.dart';
 import '../../domain/entities/sports_pricing.dart';
 import '../../domain/repositories/places_repository.dart';
@@ -61,6 +62,7 @@ class PlacesRepositoryImpl implements PlacesRepository {
   Future<Either<Failure, List<Place>>> getCategoryPlaces({
     int? categoryId,
     String? subCategory,
+    PlaceFilters filters = const PlaceFilters(),
     required int limit,
     required int offset,
   }) {
@@ -68,6 +70,7 @@ class PlacesRepositoryImpl implements PlacesRepository {
       () => remoteDataSource.getCategoryPlaces(
         categoryId: categoryId,
         subCategory: subCategory,
+        filters: filters,
         limit: limit,
         offset: offset,
       ),
@@ -87,11 +90,13 @@ class PlacesRepositoryImpl implements PlacesRepository {
   Future<Either<Failure, int>> getCategoryPlacesCount({
     int? categoryId,
     String? subCategory,
+    PlaceFilters filters = const PlaceFilters(),
   }) {
     return safeSupabaseCall(
       () => remoteDataSource.getCategoryPlacesCount(
         categoryId: categoryId,
         subCategory: subCategory,
+        filters: filters,
       ),
       callName: 'getCategoryPlacesCount',
     );
@@ -154,6 +159,7 @@ class PlacesRepositoryImpl implements PlacesRepository {
   Future<Either<Failure, List<Place>>> searchPlaces({
     required String query,
     List<int> areaIds = const [],
+    PlaceFilters filters = const PlaceFilters(),
     required int limit,
     required int offset,
   }) {
@@ -161,6 +167,7 @@ class PlacesRepositoryImpl implements PlacesRepository {
       () => remoteDataSource.searchPlaces(
         query: query,
         areaIds: areaIds,
+        filters: filters,
         limit: limit,
         offset: offset,
       ),
@@ -172,11 +179,13 @@ class PlacesRepositoryImpl implements PlacesRepository {
   Future<Either<Failure, int>> getSearchResultsCount({
     required String query,
     List<int> areaIds = const [],
+    PlaceFilters filters = const PlaceFilters(),
   }) {
     return safeSupabaseCall(
       () => remoteDataSource.getSearchResultsCount(
         query: query,
         areaIds: areaIds,
+        filters: filters,
       ),
       callName: 'getSearchResultsCount',
     );

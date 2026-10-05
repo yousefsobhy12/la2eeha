@@ -22,6 +22,7 @@ import '../../domain/entities/place.dart';
 import '../../domain/entities/place_open_status.dart';
 import '../cubit/place_detail_cubit.dart';
 import '../cubit/place_detail_state.dart';
+import '../widgets/place_delivery_pill.dart';
 import '../widgets/place_open_status_pill.dart';
 import '../widgets/pricing_card.dart';
 import '../widgets/similar_places_section.dart';
@@ -93,8 +94,13 @@ class _PlaceDetailBody extends StatelessWidget {
             padding: context.pagePadding.copyWith(top: context.mediumSpacing),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
-                // 1. Category badge + Open/Closed status pill
-                Row(
+                // 1. Category badge + Open/Closed status pill + delivery pill
+                // Wrap مش Row عشان البادجات لو كتير تنزل سطر تاني بدل ما
+                // تعمل overflow على الموبايل الضيق.
+                Wrap(
+                  spacing: 8.w,
+                  runSpacing: 6.h,
+                  crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     Container(
                       padding: EdgeInsets.symmetric(
@@ -122,10 +128,9 @@ class _PlaceDetailBody extends StatelessWidget {
                         ],
                       ),
                     ),
-                    if (place.openStatus != null) ...[
-                      8.hSpace,
+                    if (place.openStatus != null)
                       PlaceOpenStatusPill(status: place.openStatus),
-                    ],
+                    if (place.isDelivery) const PlaceDeliveryPill(),
                   ],
                 ).fadeSlideIn(delay: AppAnimations.stagger(animIndex++)),
 

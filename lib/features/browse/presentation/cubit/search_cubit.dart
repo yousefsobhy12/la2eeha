@@ -10,6 +10,7 @@ import '../../../../core/extensions/search_normalizer_extension.dart';
 import '../../domain/entities/area.dart';
 import '../../domain/entities/category.dart';
 import '../../domain/entities/place.dart';
+import '../../domain/entities/place_filters.dart';
 import '../../domain/repositories/places_repository.dart';
 import 'search_state.dart';
 
@@ -26,6 +27,17 @@ class SearchCubit extends Cubit<SearchState> {
   // separately (SearchLoaded.query) and stays exactly what they typed.
   String _currentQuery = '';
   List<int> _currentAreaIds = [];
+
+  // آخر استعلام اتجدول في الـ debounce ولسه مستني نشغّله (المطبّع واللي
+  // المستخدم كتبه). بنحتاجهم في applyFilters عشان لو غيّر الفلاتر وهو لسه
+  // منتظر، نشغّل البحث ده بالفلاتر الجديدة.
+  String _pendingNormalized = '';
+  String _pendingDisplay = '';
+
+  // الفلاتر المفعّلة — عايشة طول عمر الـ Cubit (الشاشة) من غير أي حفظ
+  // محلي. الكتابة في الـ search field أو مسحه ما بيلمسش الفلاتر خالص.
+  PlaceFilters _filters = const PlaceFilters();
+  PlaceFilters get filters => _filters;
 
   // Incremented on every keystroke and on close(). A running _search() or
   // loadMore() compares the token it started with after each await and drops
@@ -48,16 +60,55 @@ class SearchCubit extends Cubit<SearchState> {
     _searchToken++;
     final normalized = query.toSearchQuery();
     if (normalized.length < minQueryLength) {
-      emit(const SearchInitial());
+      // مسح الـ field مايلمسش الفلاتر — الحالة بترجع Initial بس والنقط
+      // بتفضل زي ما هي.
+      emit(SearchInitial(filters: _filters));
       return;
     }
     final display = query.trim();
+    // بنحفظ آخر استعلام مستني في الـ debounce عشان لو المستخدم غيّر الفلاتر
+    // في الـ 500ms دول، نشغّل البحث ده بالفلاتر الجديدة بدل ما نعيد بحث
+    // قديم من غير فلاتر.
+    _pendingNormalized = normalized;
+    _pendingDisplay = display;
     _debounce = Timer(debounceDuration, () => _search(normalized, display));
+  }
+
+  /// تطبيق فلاتر جديدة فور مع كل توكيل جوه شيت الفلترة — من غير debounce
+  /// لإن المستخدم مستني النتيجة.
+  void applyFilters(PlaceFilters filters) {
+    if (filters == _filters) return;
+    _filters = filters;
+
+    if (_debounce?.isActive ?? false) {
+      // في بحث منتظر في الـ debounce — نشغّله فورًا بالفلاتر الجديدة بدل ما
+      // نعيد البحث القديم.
+      _debounce!.cancel();
+      _searchToken++;
+      _search(_pendingNormalized, _pendingDisplay);
+      return;
+    }
+
+    final current = state;
+    if (current is SearchInitial || _currentQuery.length < minQueryLength) {
+      // لسه مفيش بحث شغال — مفيش حاجة نعملها غير تحديث الحالة عشان نقطة
+      // زرار الفلترة تتحدث.
+      emit(SearchInitial(filters: _filters));
+      return;
+    }
+
+    // بنزوّد الـ token عشان أي بحث أو loadMore شغال قبل كده يتجاهل نتيجته لما
+    // يخلص (هو بيقارن بالرقم اللي بدأ بيه بعد كل await). بعدين بنعيد نفس
+    // البحث الحالي على طول. _search لوحده بيرجّع _offset للصفر.
+    _searchToken++;
+    _debounce?.cancel();
+    final display = current is SearchLoaded ? current.query : _currentQuery;
+    _search(_currentQuery, display);
   }
 
   Future<void> _search(String normalizedQuery, String displayQuery) async {
     final token = _searchToken;
-    emit(const SearchLoading());
+    emit(SearchLoading(filters: _filters));
     _currentQuery = normalizedQuery;
     _offset = 0;
 
@@ -78,7 +129,7 @@ class SearchCubit extends Cubit<SearchState> {
         final failure =
             categoriesEither.fold((f) => f, (_) => null) ??
             areasEither.fold((f) => f, (_) => null);
-        emit(SearchError(failure as Failure));
+        emit(SearchError(failure as Failure, filters: _filters));
         return;
       }
 
@@ -103,12 +154,14 @@ class SearchCubit extends Cubit<SearchState> {
       repository.searchPlaces(
         query: normalizedQuery,
         areaIds: _currentAreaIds,
+        filters: _filters,
         limit: pageSize,
         offset: 0,
       ),
       repository.getSearchResultsCount(
         query: normalizedQuery,
         areaIds: _currentAreaIds,
+        filters: _filters,
       ),
     ]);
     if (token != _searchToken) return;
@@ -120,7 +173,7 @@ class SearchCubit extends Cubit<SearchState> {
       final failure =
           placesEither.fold((f) => f, (_) => null) ??
           countEither.fold((f) => f, (_) => null);
-      emit(SearchError(failure as Failure));
+      emit(SearchError(failure as Failure, filters: _filters));
       return;
     }
 
@@ -138,6 +191,7 @@ class SearchCubit extends Cubit<SearchState> {
         totalCount: count,
         hasMore: places.length == pageSize,
         isLoadingMore: false,
+        filters: _filters,
       ),
     );
   }
@@ -145,31 +199,39 @@ class SearchCubit extends Cubit<SearchState> {
   Future<void> loadMore() async {
     final current = state;
     if (current is! SearchLoaded) return;
+    // القايمة فاضية: يا إما بحث شغال دلوقتي يا إما مفيش حاجة نكمّل بيها.
+    if (current.places.isEmpty) return;
     if (!current.hasMore || current.isLoadingMore) return;
 
+    // loadMore مش بيبدأ بحث جديد، فبياخد الـ token الحالي وخلاص. لو حصل بحث
+    // جديد أو تغيير فلاتر وإحنا مستنيين، النتيجة دي بتتجاهل.
     final token = _searchToken;
-    emit(current.copyWith(isLoadingMore: true));
+    emit(current.copyWith(isLoadingMore: true, filters: _filters));
 
     final result = await repository.searchPlaces(
       query: _currentQuery,
       areaIds: _currentAreaIds,
+      filters: _filters,
       limit: pageSize,
       offset: _offset,
     );
     if (token != _searchToken) return;
 
-    result.fold((failure) => emit(current.copyWith(isLoadingMore: false)), (
-      newPlaces,
-    ) {
-      _offset += newPlaces.length;
-      emit(
-        current.copyWith(
-          places: [...current.places, ...newPlaces],
-          isLoadingMore: false,
-          hasMore: newPlaces.length == pageSize,
-        ),
-      );
-    });
+    result.fold(
+      (failure) =>
+          emit(current.copyWith(isLoadingMore: false, filters: _filters)),
+      (newPlaces) {
+        _offset += newPlaces.length;
+        emit(
+          current.copyWith(
+            places: [...current.places, ...newPlaces],
+            isLoadingMore: false,
+            hasMore: newPlaces.length == pageSize,
+            filters: _filters,
+          ),
+        );
+      },
+    );
   }
 
   @override

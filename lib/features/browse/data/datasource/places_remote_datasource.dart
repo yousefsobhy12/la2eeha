@@ -15,6 +15,7 @@ import '../models/menu_item_model.dart';
 import '../models/place_model.dart';
 import '../models/promotion_model.dart';
 import '../models/sports_pricing_model.dart';
+import '../../domain/entities/place_filters.dart';
 
 class PlacesRemoteDataSource {
   Future<List<CategoryModel>> getCategories() async {
@@ -65,6 +66,7 @@ class PlacesRemoteDataSource {
   Future<List<PlaceModel>> getCategoryPlaces({
     int? categoryId,
     String? subCategory,
+    PlaceFilters filters = const PlaceFilters(),
     required int limit,
     required int offset,
   }) async {
@@ -74,6 +76,14 @@ class PlacesRemoteDataSource {
     }
     if (subCategory != null) {
       query = query.eq('sub_category', subCategory);
+    }
+    // الفلاتر بتتعمل قبل الـ order/-range — نفس الترتيب في الـ count
+    // عشان الـ totalCount يطلع مطابق للقايمة.
+    if (filters.openNow) {
+      query = query.eq('is_open_now', true);
+    }
+    if (filters.delivery) {
+      query = query.eq('is_delivery', true);
     }
     final response = await query
         .order('created_at', ascending: false)
@@ -98,6 +108,7 @@ class PlacesRemoteDataSource {
   Future<int> getCategoryPlacesCount({
     int? categoryId,
     String? subCategory,
+    PlaceFilters filters = const PlaceFilters(),
   }) async {
     var query = supabase.from('places').select();
     if (categoryId != null) {
@@ -105,6 +116,14 @@ class PlacesRemoteDataSource {
     }
     if (subCategory != null) {
       query = query.eq('sub_category', subCategory);
+    }
+    // نفس شروط الفلترة بتاعة getCategoryPlaces بالظبط — غير كده الـ count
+    // هيبقى عدد تاني غير عدد الصفوف اللي المستخدم شايفها.
+    if (filters.openNow) {
+      query = query.eq('is_open_now', true);
+    }
+    if (filters.delivery) {
+      query = query.eq('is_delivery', true);
     }
     final response = await query.count(CountOption.exact);
     return response.count;
@@ -181,6 +200,7 @@ class PlacesRemoteDataSource {
   Future<List<PlaceModel>> searchPlaces({
     required String query,
     List<int> areaIds = const [],
+    PlaceFilters filters = const PlaceFilters(),
     required int limit,
     required int offset,
   }) async {
@@ -188,10 +208,17 @@ class PlacesRemoteDataSource {
     if (words.isEmpty) return [];
     final filter = _buildSearchFilter(words, areaIds);
 
-    final response = await supabase
-        .from('places')
-        .select()
-        .or(filter)
+    // بنفصل الـ .or() في متغير عشان نضيف شروط الفلاتر بعده — الـ .eq() بتاعة
+    // الفلاتر بتتعمل AND مع شرط البحث نفسه.
+    var searchQuery = supabase.from('places').select().or(filter);
+    if (filters.openNow) {
+      searchQuery = searchQuery.eq('is_open_now', true);
+    }
+    if (filters.delivery) {
+      searchQuery = searchQuery.eq('is_delivery', true);
+    }
+
+    final response = await searchQuery
         .order('created_at', ascending: false)
         .range(offset, offset + limit - 1);
 
@@ -201,16 +228,23 @@ class PlacesRemoteDataSource {
   Future<int> getSearchResultsCount({
     required String query,
     List<int> areaIds = const [],
+    PlaceFilters filters = const PlaceFilters(),
   }) async {
     final words = query.toSearchWords();
     if (words.isEmpty) return 0;
     final filter = _buildSearchFilter(words, areaIds);
 
-    final response = await supabase
-        .from('places')
-        .select()
-        .or(filter)
-        .count(CountOption.exact);
+    // نفس شروط searchPlaces بالظبط عشان الـ count يبقى عدد نتائج البحث
+    // بعد تطبيق الفلاتر.
+    var searchQuery = supabase.from('places').select().or(filter);
+    if (filters.openNow) {
+      searchQuery = searchQuery.eq('is_open_now', true);
+    }
+    if (filters.delivery) {
+      searchQuery = searchQuery.eq('is_delivery', true);
+    }
+
+    final response = await searchQuery.count(CountOption.exact);
     return response.count;
   }
 

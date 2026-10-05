@@ -6,6 +6,7 @@ import '../entities/category.dart';
 import '../entities/menu_item.dart';
 import '../entities/place.dart';
 import '../entities/place_event.dart';
+import '../entities/place_filters.dart';
 import '../entities/promotion.dart';
 import '../entities/sports_pricing.dart';
 
@@ -21,6 +22,7 @@ abstract class PlacesRepository {
   Future<Either<Failure, List<Place>>> getCategoryPlaces({
     int? categoryId,
     String? subCategory,
+    PlaceFilters filters = const PlaceFilters(),
     required int limit,
     required int offset,
   });
@@ -28,6 +30,7 @@ abstract class PlacesRepository {
   Future<Either<Failure, int>> getCategoryPlacesCount({
     int? categoryId,
     String? subCategory,
+    PlaceFilters filters = const PlaceFilters(),
   });
   Future<Either<Failure, Place>> getPlaceDetails(int placeId);
   Future<Either<Failure, List<MenuItem>>> getMenuItems(int placeId);
@@ -45,6 +48,7 @@ abstract class PlacesRepository {
   Future<Either<Failure, List<Place>>> searchPlaces({
     required String query,
     List<int> areaIds,
+    PlaceFilters filters = const PlaceFilters(),
     required int limit,
     required int offset,
   });
@@ -52,6 +56,7 @@ abstract class PlacesRepository {
   Future<Either<Failure, int>> getSearchResultsCount({
     required String query,
     List<int> areaIds,
+    PlaceFilters filters = const PlaceFilters(),
   });
 
   /// تسجيل حدث على المكان (مشاهدة/اتصال/واتساب) عن طريق RPC في الداتابيز.

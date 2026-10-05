@@ -24,6 +24,9 @@ class PlaceDraft {
   /// الـ insert (شوف MerchantRemoteDataSource.addPlace).
   final bool is24Hours;
 
+  /// لو المكان بيقدّم توصيل — بيتخزّن في عمود is_delivery.
+  final bool isDelivery;
+
   const PlaceDraft({
     required this.name,
     required this.categoryId,
@@ -39,5 +42,6 @@ class PlaceDraft {
     this.closeTime,
     this.closedDays = const [],
     this.is24Hours = false,
+    this.isDelivery = false,
   });
 }
