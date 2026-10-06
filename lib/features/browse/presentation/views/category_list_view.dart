@@ -1,13 +1,7 @@
-// lib/features/browse/presentation/views/category_list_view.dart
-//
-// شاشة عرض الأماكن حسب الكاتيجوري (أو كل الأماكن لما categoryId = null).
-// بتدعم الفلترة بـ sub-categories والـ pagination بـ infinite scroll.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
-
 import '../../../../core/constants/category_visuals.dart';
 import '../../../../core/constants/delivery_categories.dart';
 import '../../../../core/errors/failures.dart';
@@ -100,23 +94,15 @@ class _CategoryListBodyState extends State<_CategoryListBody> {
             headerBgColor = null;
           }
 
-          // زرار الفلترة بيظهر بس لما يكون عندنا قايمة — وقت التحميل أو
-          // الخطأ مفيش نتايج نفلترها أصلاً.
           final Widget? headerTrailing = state is CategoryListLoaded
               ? PlaceFiltersButton(
-                  // الفلاتر من الـ state مش من الـ Cubit عشان النطة
-                  // تتحدث مع كل rebuild.
                   filters: state.filters,
                   color: context.colorScheme.onPrimary,
                   onPressed: () {
-                    // بنمسك الـ Cubit قبل ما نفتح الشيت — جواه الـ context
-                    // بتاع الشيت نفسه.
                     final cubit = context.read<CategoryListCubit>();
                     PlaceFiltersSheet.show(
                       context,
                       initial: cubit.filters,
-                      // فلتر التوصيل معروض بس للأقسام اللي بتقبله؛ صفحة
-                      // "كل الأماكن" بتعرضه دايماً.
                       showDelivery:
                           widget.categoryId == null ||
                           kDeliveryCategoryIds.contains(widget.categoryId),
@@ -166,7 +152,6 @@ class _CategoryListBodyState extends State<_CategoryListBody> {
           parent: AlwaysScrollableScrollPhysics(),
         ),
         slivers: [
-          // ─── Sub-category chips (if available) ───
           if (state.subCategories.isNotEmpty)
             SliverPadding(
               padding: EdgeInsets.only(
@@ -183,11 +168,6 @@ class _CategoryListBodyState extends State<_CategoryListBody> {
                 ),
               ),
             ),
-
-          // ─── Reloading skeleton / places list / empty state ───
-          // أثناء إعادة التحميل (تغيير نوع فرعي أو فلاتر) القايمة بتتفضّى،
-          // فبنعرض skeleton بدل "مفيش نتائج". الـ sub-categories بتفضل فوقه
-          // زي ما هي عشان المستخدم يشوف هو واقف على إيه.
           if (state.isReloading)
             const SliverToBoxAdapter(child: _ReloadSkeletonList())
           else if (state.places.isEmpty)
@@ -203,9 +183,6 @@ class _CategoryListBodyState extends State<_CategoryListBody> {
                       color: context.iconColor,
                     ),
                     context.smallSpacing.vSpace,
-                    // فرق في الرسالة مهم: "مفيش أماكن في القسم ده" تاني
-                    // حاجة غير "مفيش حاجة طالعة من الفلتر" — والتانية
-                    // بتاعتها بتدي زرار يمسح الفلتر ويرجّع كل الأماكن.
                     Text(
                       state.filters.isActive
                           ? 'مفيش أماكن مطابقة للفلاتر دي'
@@ -279,7 +256,6 @@ class _CategoryListBodyState extends State<_CategoryListBody> {
               ),
             ),
 
-            // ─── Loading more indicator ───
             if (state.isLoadingMore)
               SliverToBoxAdapter(
                 child: Padding(
@@ -290,7 +266,6 @@ class _CategoryListBodyState extends State<_CategoryListBody> {
                 ),
               ),
 
-            // ─── Bottom spacing ───
             SliverToBoxAdapter(child: SizedBox(height: context.largeSpacing)),
           ],
         ],
@@ -299,9 +274,6 @@ class _CategoryListBodyState extends State<_CategoryListBody> {
   }
 }
 
-/// بديل الـ _CategoryListSkeleton أثناء إعادة تحميل نفس الشاشة (تغيير نوع
-/// فرعي أو فلاتر): 4 كروت وهمية بنفس الشكل والارتفاع بالظبط، عشان الارتفاع
-/// ميطفيشش والـ scroll bar مايقفزش في إيد المستخدم.
 class _ReloadSkeletonList extends StatelessWidget {
   const _ReloadSkeletonList();
 

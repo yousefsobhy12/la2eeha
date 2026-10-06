@@ -81,7 +81,6 @@ final GoRouter appRouter = GoRouter(
       builder: (context, state) {
         final email = state.extra as String?;
         if (email == null) {
-          // Defensive fallback — shouldn't happen via normal navigation
           return const RegisterView();
         }
         return VerifyEmailView(email: email);
@@ -96,7 +95,6 @@ final GoRouter appRouter = GoRouter(
       builder: (context, state) {
         final email = state.extra as String?;
         if (email == null) {
-          // Defensive fallback — shouldn't happen via normal navigation
           return const ForgotPasswordView();
         }
         return ResetOtpView(email: email);
@@ -111,8 +109,6 @@ final GoRouter appRouter = GoRouter(
       builder: (context, state) {
         final id = int.parse(state.pathParameters['id']!);
         final args = state.extra;
-        // Defensive fallback — الخلان بيتوصّل من AddPlaceView وهو دايما
-        // بيبعت extra، بس لو ضاع لأي سبب ننزّل على الـ detail screen.
         if (args is PricingArgs) return MenuPricingView(args: args);
         return PlaceDetailView(placeId: id);
       },
@@ -131,7 +127,6 @@ final GoRouter appRouter = GoRouter(
       builder: (context, state) {
         final id = int.parse(state.pathParameters['id']!);
         final args = state.extra;
-        // شاشة الحالة مالية شاشة تسعير (صيدليات) — بندخلها بـ PricingArgs.
         if (args is PricingArgs) return PlaceStatusView(args: args);
         return PlaceDetailView(placeId: id);
       },

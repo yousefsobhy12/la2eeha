@@ -1,8 +1,3 @@
-// lib/features/merchant/presentation/widgets/approval_banner.dart
-//
-// بانر حالب (مستمر وغير قابل للغلق) بيتعرض على شاشات إدارة
-// المنيو/الأسعار لما المكان لسه في مرحلة المراجعة (isApproved == false).
-
 import 'package:flutter/material.dart';
 
 import '../../../../core/extensions/extensions.dart';

@@ -20,9 +20,8 @@ class ResetOtpCubit extends Cubit<ResetOtpState> {
       token: code,
     );
     result.fold(
-      (failure) => emit(
-        state.copyWith(status: ResetOtpStatus.error, failure: failure),
-      ),
+      (failure) =>
+          emit(state.copyWith(status: ResetOtpStatus.error, failure: failure)),
       (_) => emit(state.copyWith(status: ResetOtpStatus.success)),
     );
   }
@@ -30,9 +29,8 @@ class ResetOtpCubit extends Cubit<ResetOtpState> {
   Future<void> resend(String email) async {
     final result = await repository.sendPasswordResetOtp(email: email);
     result.fold(
-      (failure) => emit(
-        state.copyWith(status: ResetOtpStatus.error, failure: failure),
-      ),
+      (failure) =>
+          emit(state.copyWith(status: ResetOtpStatus.error, failure: failure)),
       (_) => _startCountdown(),
     );
   }
@@ -57,4 +55,3 @@ class ResetOtpCubit extends Cubit<ResetOtpState> {
     return super.close();
   }
 }
-

@@ -13,7 +13,7 @@ class AppTheme {
       onPrimary: AppColors.onPrimary,
       secondary: AppColors.primary,
       onSecondary: AppColors.onPrimary,
-      error: Color(0xFFE34D4D), // ⚠️ placeholder لحد ما نلاقي قيمة حقيقية
+      error: Color(0xFFE34D4D),
       onError: Colors.white,
       surface: AppColors.surface,
       onSurface: AppColors.textPrimary,

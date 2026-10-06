@@ -1,4 +1,3 @@
-/// Arabic weekday labels keyed by [DateTime.weekday].
 const arabicWeekdayNames = <int, String>{
   DateTime.monday: 'الاثنين',
   DateTime.tuesday: 'الثلاثاء',
@@ -9,7 +8,6 @@ const arabicWeekdayNames = <int, String>{
   DateTime.sunday: 'الأحد',
 };
 
-/// Display order used by the weekly-closure picker.
 const arabicWeekdayDisplayOrder = <int>[
   DateTime.saturday,
   DateTime.sunday,

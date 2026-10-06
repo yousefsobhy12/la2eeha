@@ -60,17 +60,13 @@ class _VerifyEmailViewBodyState extends State<_VerifyEmailViewBody> {
       backgroundColor: context.pageBackground,
       body: Column(
         children: [
-          AuthHeader(
-            showSubtitle: false,
-            onBack: () => context.pop(),
-          ),
+          AuthHeader(showSubtitle: false, onBack: () => context.pop()),
           Expanded(
             child: SingleChildScrollView(
               padding: context.pagePadding,
               child: Column(
                 children: [
                   SizedBox(height: context.largeSpacing),
-                  // ── Envelope icon ──
                   Icon(
                     Icons.mark_email_read_outlined,
                     size: 64.r,
@@ -83,7 +79,6 @@ class _VerifyEmailViewBodyState extends State<_VerifyEmailViewBody> {
                     textAlign: TextAlign.center,
                   ),
                   SizedBox(height: context.smallSpacing),
-                  // ── Email subtitle ──
                   Text.rich(
                     TextSpan(
                       children: [
@@ -95,9 +90,7 @@ class _VerifyEmailViewBodyState extends State<_VerifyEmailViewBody> {
                         ),
                         TextSpan(
                           text: widget.email,
-                          style: AppTextStyles.bodyBold14(
-                            context.textPrimary,
-                          ),
+                          style: AppTextStyles.bodyBold14(context.textPrimary),
                         ),
                       ],
                     ),
@@ -105,13 +98,11 @@ class _VerifyEmailViewBodyState extends State<_VerifyEmailViewBody> {
                     textDirection: TextDirection.rtl,
                   ),
                   SizedBox(height: context.largeSpacing),
-                  // ── OTP input boxes ──
                   LayoutBuilder(
                     builder: (context, constraints) {
                       final gapWidth = 8.w;
                       final totalGaps = gapWidth * 5;
-                      final boxWidth =
-                          (constraints.maxWidth - totalGaps) / 6;
+                      final boxWidth = (constraints.maxWidth - totalGaps) / 6;
 
                       final defaultPinTheme = PinTheme(
                         width: boxWidth,
@@ -149,20 +140,16 @@ class _VerifyEmailViewBodyState extends State<_VerifyEmailViewBody> {
                     },
                   ),
                   SizedBox(height: context.largeSpacing),
-                  // ── Verify button ──
                   BlocConsumer<VerifyEmailCubit, VerifyEmailState>(
                     listenWhen: (previous, current) =>
                         previous.status != current.status,
                     listener: (context, state) {
                       if (state.status == VerifyEmailStatus.success) {
                         context.go('/add-place');
-                      } else if (state.status ==
-                          VerifyEmailStatus.error) {
+                      } else if (state.status == VerifyEmailStatus.error) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text(
-                              state.failure?.message ?? 'حصل خطأ',
-                            ),
+                            content: Text(state.failure?.message ?? 'حصل خطأ'),
                           ),
                         );
                       }
@@ -170,12 +157,12 @@ class _VerifyEmailViewBodyState extends State<_VerifyEmailViewBody> {
                     builder: (context, state) {
                       final button = CustomElevatedButton(
                         text: 'تأكيد',
-                        isLoading: state.status ==
-                            VerifyEmailStatus.loading,
+                        isLoading: state.status == VerifyEmailStatus.loading,
                         onPressed: _isComplete
-                            ? () => context
-                                .read<VerifyEmailCubit>()
-                                .verify(widget.email, _otpCode)
+                            ? () => context.read<VerifyEmailCubit>().verify(
+                                widget.email,
+                                _otpCode,
+                              )
                             : () {},
                         backgroundColor: AppColors.primary,
                         textColor: AppColors.onPrimary,
@@ -196,7 +183,6 @@ class _VerifyEmailViewBodyState extends State<_VerifyEmailViewBody> {
                     },
                   ),
                   SizedBox(height: context.mediumSpacing),
-                  // ── Resend section ──
                   BlocBuilder<VerifyEmailCubit, VerifyEmailState>(
                     builder: (context, state) {
                       if (state.secondsRemaining > 0) {
@@ -204,11 +190,11 @@ class _VerifyEmailViewBodyState extends State<_VerifyEmailViewBody> {
                           child:
                               'ممكن تعيد الإرسال بعد 00:${state.secondsRemaining.toString().padLeft(2, '0')}'
                                   .toResponsiveText(
-                            context,
-                            style: AppTextStyles.captionRegular12(
-                              context.textSecondary,
-                            ),
-                          ),
+                                    context,
+                                    style: AppTextStyles.captionRegular12(
+                                      context.textSecondary,
+                                    ),
+                                  ),
                         );
                       }
                       return Row(
@@ -227,8 +213,7 @@ class _VerifyEmailViewBodyState extends State<_VerifyEmailViewBody> {
                             style: TextButton.styleFrom(
                               padding: EdgeInsets.zero,
                               minimumSize: Size.zero,
-                              tapTargetSize:
-                                  MaterialTapTargetSize.shrinkWrap,
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                             ),
                             child: Text(
                               'إعادة الإرسال',
@@ -242,18 +227,17 @@ class _VerifyEmailViewBodyState extends State<_VerifyEmailViewBody> {
                     },
                   ),
                   SizedBox(height: context.extraLargeSpacing),
-                  // ── Bottom note ──
                   Padding(
                     padding: context.cardPadding,
                     child:
                         'الإيميل غلط؟ ارجع للخطوة اللي قبلها وغيّره — بعد التأكيد هتروح على طول لصفحة إضافة مكان جديد.'
                             .toResponsiveText(
-                      context,
-                      style: AppTextStyles.captionRegular12(
-                        context.textSecondary,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
+                              context,
+                              style: AppTextStyles.captionRegular12(
+                                context.textSecondary,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
                   ),
                   SizedBox(height: context.extraLargeSpacing),
                 ],

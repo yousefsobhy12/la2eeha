@@ -1,8 +1,3 @@
-// lib/features/merchant/presentation/cubit/sports_pricing_state.dart
-//
-// حالة شاشة أسعار الساعة (Sports) — نفس شكل MenuPricingState + _unset لمّا
-// نحتاج نمسح TimeOfDay nullable (تحديدات الفترة لما المستخدم يختار "مخصص").
-
 import 'package:flutter/material.dart';
 
 import '../../domain/entities/sports_pricing_draft.dart';
@@ -21,29 +16,20 @@ class SportsPricingState {
   final bool isLoading;
   final bool isSaving;
 
-  /// حالة الموافقة على المكان (null = لسه متجابتش/null-مجهولة). بيبان بانر
-  /// "قيد المراجعة" مستمر في حالة false بس.
   final bool? isApproved;
 
-  /// رسالة خطأ (تحميل/حفظ) — بتتعرض snackbar أو شاشة retry حسب الحالة.
   final String? errorMessage;
 
-  // ── form fields ──
   final TimeOfDay? newStartTime;
   final TimeOfDay? newEndTime;
   final String newPrice;
 
-  /// وصف الفترة (اختياري — أقصى 150 حرف عن طريق maxLength على الحقل نفسه).
   final String newDescription;
 
-  /// واحد من: صباحي / ليلي / ليلي متأخر / مخصص — بيحدد اللي التاجر اختاره
-  /// من الـ dropdown، و null في وضع التعديل-مخصص أو قبل أي اختيار.
   final String? selectedPreset;
 
-  /// null = وضع "إضافة"، قيمة = بيعدّل الفترة اللي عليها الـ localKey ده.
   final String? editingLocalKey;
 
-  /// رسالة نجاح زائلة ("تم حفظ الأسعار").
   final String? successMessage;
 
   const SportsPricingState({

@@ -1,5 +1,3 @@
-// lib/features/auth/presentation/cubit/login_cubit.dart
-
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../domain/repositories/auth_repository.dart';
@@ -26,7 +24,6 @@ class LoginCubit extends Cubit<LoginState> {
       if (completed) {
         emit(const LoginSuccess());
       } else {
-        // User cancelled the Google picker — return to normal state silently.
         emit(const LoginInitial());
       }
     });

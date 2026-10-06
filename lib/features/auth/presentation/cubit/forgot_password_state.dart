@@ -20,4 +20,3 @@ class ForgotPasswordError extends ForgotPasswordState {
   final Failure failure;
   const ForgotPasswordError(this.failure);
 }
-

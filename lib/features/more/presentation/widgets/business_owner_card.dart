@@ -66,7 +66,6 @@ class BusinessOwnerCard extends StatelessWidget {
                 context.push('/login');
               }
             },
-            // ثابتة عن قصد في الوضعين (هوية الزرار الأساسي للبراند)
             backgroundColor: AppColors.primary,
             textColor: AppColors.onPrimary,
             height: context.buttonHeight,

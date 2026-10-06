@@ -1,5 +1,3 @@
-// lib/features/auth/presentation/cubit/register_state.dart
-
 import '../../../../core/errors/failures.dart';
 
 abstract class RegisterState {
@@ -15,7 +13,6 @@ class RegisterLoading extends RegisterState {
 }
 
 class RegisterSuccess extends RegisterState {
-  /// الإيميل بيتمرر للـ VerifyEmailView عشان يبعتله الكود
   final String email;
   const RegisterSuccess(this.email);
 }

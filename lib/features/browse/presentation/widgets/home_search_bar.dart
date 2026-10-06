@@ -1,8 +1,5 @@
-// lib/features/browse/presentation/widgets/home_search_bar.dart
-
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-
 import '../../../../core/extensions/extensions.dart';
 
 class HomeSearchBar extends StatelessWidget {

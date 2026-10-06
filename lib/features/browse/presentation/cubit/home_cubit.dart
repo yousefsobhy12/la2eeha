@@ -1,19 +1,3 @@
-// @lib/features/browse/presentation/cubit/home_cubit.dart
-//
-// 🔧 بعد ما نضيف core/errors/، الـ PlacesRepository methods بترجع
-// Either<Failure, List<T>> بدل Future<List<T>> عادي. Either بيبقى إما:
-//   - Left(failure)   → فشل، وبيبقى معانا نوع الـ Failure بالظبط
-//   - Right(data)      → نجح، وبيبقى معانا الداتا
-// .fold((failure) => ..., (data) => ...) هي الطريقة اللي بنستخرج بيها القيمة
-// من جوه الـ Either، بتاخد دالتين: واحدة لو فشل وواحدة لو نجح.
-//
-// 🔧 لسه مفترض إن getMostVisitedPreview بياخد named parameter اسمه limit —
-// لو مختلف عندك ظبط الاستدعاء بس.
-//
-// 🔧 العروض الترويجية (getLivePromotions) بقت non-fatal: لو الـ query فشل
-// الـ home بيفتح عادي والقايمة بتفضل فاضية (والـ UI بيعرض CTA بدال الـ carousel).
-// غير كده أي فشل في الـ data الأساس بيطلّع HomeError.
-
 import 'package:dartz/dartz.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -47,9 +31,6 @@ class HomeCubit extends Cubit<HomeState> {
     final promotionsEither = results[2] as Either<Failure, List<Promotion>>;
     final areasEither = results[3] as Either<Failure, List<Area>>;
 
-    // لو أي واحدة من التلاتة الأساس فشلت، نوقف ونعرض أول Failure لقيناه —
-    // مفيش داعي نكمل نجهز شاشة بنص بيانات ناقصة.
-    // العروض الترويجية مش هنا عن قصد: شغالة optional (شوف الكومنت فوق).
     for (final either in [categoriesEither, mostVisitedEither, areasEither]) {
       if (either.isLeft()) {
         final failure = either.fold((f) => f, (_) => null) as Failure;

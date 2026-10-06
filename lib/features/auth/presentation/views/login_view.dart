@@ -65,7 +65,6 @@ class _LoginViewBodyState extends State<_LoginViewBody> {
               child: Column(
                 children: [
                   SizedBox(height: context.mediumSpacing),
-                  // ── Main Card ──
                   Container(
                     padding: context.cardPadding,
                     decoration: BoxDecoration(
@@ -150,7 +149,6 @@ class _LoginViewBodyState extends State<_LoginViewBody> {
                                 alignment: AlignmentDirectional.centerStart,
                                 child: TextButton(
                                   onPressed: () =>
-                                      // showComingSoon(context),
                                       context.push('/forgot-password'),
                                   child: Text(
                                     'نسيت كلمة السر؟',
@@ -210,7 +208,6 @@ class _LoginViewBodyState extends State<_LoginViewBody> {
                           ),
                         ),
                         SizedBox(height: context.mediumSpacing),
-                        // ── "أو" Divider ──
                         Row(
                           children: [
                             const Expanded(child: Divider()),
@@ -229,7 +226,6 @@ class _LoginViewBodyState extends State<_LoginViewBody> {
                           ],
                         ),
                         SizedBox(height: context.mediumSpacing),
-                        // ── Google ──
                         BlocBuilder<LoginCubit, LoginState>(
                           builder: (context, state) {
                             return CustomElevatedButton(
@@ -248,7 +244,6 @@ class _LoginViewBodyState extends State<_LoginViewBody> {
                           },
                         ),
                         SizedBox(height: context.smallSpacing),
-                        // ── Apple (disabled) ──
                         CustomElevatedButton(
                           text: 'المتابعة بحساب Apple',
                           isOutlined: true,
@@ -261,7 +256,6 @@ class _LoginViewBodyState extends State<_LoginViewBody> {
                           ),
                         ),
                         SizedBox(height: context.mediumSpacing),
-                        // ── Register link ──
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
@@ -286,7 +280,6 @@ class _LoginViewBodyState extends State<_LoginViewBody> {
                     ),
                   ),
                   SizedBox(height: context.mediumSpacing),
-                  // ── Info box ──
                   Container(
                     padding: context.cardPadding,
                     decoration: BoxDecoration(
@@ -318,7 +311,6 @@ class _LoginViewBodyState extends State<_LoginViewBody> {
                     ),
                   ),
                   SizedBox(height: context.mediumSpacing),
-                  // ── Footer ──
                   Center(
                     child: '🔒 بياناتك محفوظة ومش بنشاركها مع أي طرف تالت'
                         .toResponsiveText(

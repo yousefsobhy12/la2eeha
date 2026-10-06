@@ -1,10 +1,3 @@
-// lib/features/merchant/domain/entities/place_draft.dart
-//
-// الـ PlaceDraft ده كيان write-only للتاجر — بيحمل كل البيانات اللي بيبعتهم
-// التاجر وهو بيضيف بيزنس جديد. متعمدين نخليه class منفصل عن الـ Place
-// بتاع الـ browse عشان الـ read entity يفضل نضيف ومفيش عليه أي حاجة
-// خاصة بالـ merchant.
-
 class PlaceDraft {
   final String name;
   final int categoryId;
@@ -20,11 +13,8 @@ class PlaceDraft {
   final String? closeTime;
   final List<int> closedDays;
 
-  /// لو المكان شغال ٢٤ ساعة — بيخلي الـ open_time/close_time null في
-  /// الـ insert (شوف MerchantRemoteDataSource.addPlace).
   final bool is24Hours;
 
-  /// لو المكان بيقدّم توصيل — بيتخزّن في عمود is_delivery.
   final bool isDelivery;
 
   const PlaceDraft({

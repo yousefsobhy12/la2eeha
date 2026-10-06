@@ -1,13 +1,5 @@
-// lib/features/browse/presentation/widgets/category_grid.dart
-//
-// 🔧 الشبكة بقت SliverGrid — بتستخدم context.categoryGridColumns عشان عدد
-// الأعمدة يتغير حسب حجم الشاشة (3 صغير / 4 موبايل / 5 كبير / 6 تابلت+)
-// و context.categoryGridAspectRatio عشان شكل البلاطة يفضل متناسب.
-// ✅ راوت '/places' و'/category/{id}' متوصلين بـ CategoryListView.
-
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-
 import '../../../../core/constants/category_visuals.dart';
 import '../../../../core/extensions/extensions.dart';
 import '../../domain/entities/category.dart';

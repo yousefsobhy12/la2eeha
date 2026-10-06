@@ -1,12 +1,3 @@
-// lib/features/browse/presentation/widgets/place_pill.dart
-//
-// الشيب/البادج الأساسي اللي بتتبني عليه كل بادجات المكان (حالة الفتح،
-// التوصيل... إلخ). الشكل واحد والاختلاف في النص واللون بس، فبنتعامل معاه
-// كـ widget واحد مش بنكرر الـ Container في كل بادج.
-//
-// اللون بيتمرّر من برّه والـ tint بينحسب جواه (12% من اللون) عشان كل بادج
-// يطلع بنفس الطريقة من غير ما كل واحد يعمل التظليل بتاعه.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 

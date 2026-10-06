@@ -1,5 +1,3 @@
-// lib/features/merchant/domain/repositories/merchant_repository.dart
-
 import 'dart:io';
 
 import 'package:dartz/dartz.dart';
@@ -23,11 +21,8 @@ abstract class MerchantRepository {
     required String imageUrl,
   });
 
-  /// أحدث place (بالأسئلة الأحدث) للتاجر الحالي — null لو مفيش أي place.
   Future<Either<Failure, MyPlaceSummary?>> getMyLatestPlace();
 
-  /// حالة الموافقة الحالية لمكان مملوك للتاجر الحالي — بيستخدم في بانر
-  /// "قيد المراجعة" وشاشة الحالة.
   Future<Either<Failure, bool>> isPlaceApproved({required int placeId});
 
   Future<Either<Failure, void>> replaceMenuItems({

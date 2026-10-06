@@ -38,8 +38,6 @@ class PlaceCard extends StatelessWidget {
     }
   }
 
-  /// البديل اللي بيتعرض لما المكان مفيش له صورة، أو الصورة مفشلتش في التحميل:
-  /// تدرّج لون الكاتيجوري + أيقونته. بيتستخدم كـ placeholder و errorWidget كمان.
   Widget _iconAvatar(BuildContext context, CategoryVisual visual) {
     return Container(
       width: context.mediumAvatarSize,
@@ -105,7 +103,6 @@ class PlaceCard extends StatelessWidget {
             borderRadius: context.mediumRadius.circularRadius,
             child: Row(
               children: [
-                // شريط لوني جانبي يعبّر عن الكاتيجوري (leading edge — RTL-aware)
                 Container(
                   width: 20,
                   decoration: BoxDecoration(
@@ -116,14 +113,12 @@ class PlaceCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                // محتوى الكارت
                 Expanded(
                   child: Padding(
                     padding: context.cardPadding,
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // الأفاتار + بادج الترتيب (اللي بيطلع برّه الكارت)
                         SizedBox(
                           width: context.mediumAvatarSize,
                           height: context.mediumAvatarSize,
@@ -159,7 +154,6 @@ class PlaceCard extends StatelessWidget {
                           ),
                         ),
                         context.hSpacing.hSpace,
-                        // النص + الأزرار
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -216,9 +210,6 @@ class PlaceCard extends StatelessWidget {
                                         maxLines: 1,
                                       ),
                                     ),
-                                    // البادج آخر السطر والنص Expanded (بيتقص
-                                    // بـ ellipsis) — عشان الشيب عمره ما يطلع
-                                    // برّه الكارت على الموبايل الضيق.
                                     if (place.isDelivery) ...[
                                       6.hSpace,
                                       const PlaceDeliveryPill(),
@@ -226,8 +217,6 @@ class PlaceCard extends StatelessWidget {
                                   ],
                                 ),
                               ] else if (place.isDelivery) ...[
-                                // مفيش سطر ساعات للمكان ده — البادج بيتعرض
-                                // لوحده تحت الـ subtitle.
                                 6.vSpace,
                                 const Row(children: [PlaceDeliveryPill()]),
                               ],
@@ -282,18 +271,15 @@ class PlaceCard extends StatelessWidget {
   }
 }
 
-/// بادج الترتيب اللي بيظهر فوق الأفاتار في قسم "الأكثر زيارة".
-/// الأول 3 مراكز بس: ذهب / فضة / نحاس. الحافّة بلون الكارت عشان
-/// يبقى واضح إن البادج برّه الكارت لما الخلفية فاتحة.
 class _RankBadge extends StatelessWidget {
   final int rank;
 
   const _RankBadge({required this.rank});
 
   Color get _medalColor => switch (rank) {
-    1 => const Color(0xFFF5B301), // ذهب
-    2 => const Color(0xFFA8B0B8), // فضة
-    _ => const Color(0xFFCD7F32), // نحاس
+    1 => const Color(0xFFF5B301),
+    2 => const Color(0xFFA8B0B8),
+    _ => const Color(0xFFCD7F32),
   };
 
   @override

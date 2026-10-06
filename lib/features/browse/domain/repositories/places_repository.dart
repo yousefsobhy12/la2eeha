@@ -16,8 +16,6 @@ abstract class PlacesRepository {
   Future<Either<Failure, List<Place>>> getMostVisitedPreview({int limit});
   Future<Either<Failure, List<Place>>> getAllPlacesPreview({int limit});
 
-  // العروض الترويجية الحيّة بس — الفلترة بتاعت التاريخ والحالة
-  // بتتعمل في سياسات الـ RLS على مستوى الداتابيز.
   Future<Either<Failure, List<Promotion>>> getLivePromotions();
   Future<Either<Failure, List<Place>>> getCategoryPlaces({
     int? categoryId,
@@ -43,8 +41,6 @@ abstract class PlacesRepository {
   });
   Future<Either<Failure, List<Place>>> getPlacesByIds(List<int> ids);
 
-  // بحث عن الأماكن بالاسم أو العنوان أو المنطقة، مع pagination.
-  // areaIds بتتحسب في الـ Cubit من الكاش الموجود عنده أصلاً (مفيش query إضافية هنا).
   Future<Either<Failure, List<Place>>> searchPlaces({
     required String query,
     List<int> areaIds,
@@ -59,9 +55,6 @@ abstract class PlacesRepository {
     PlaceFilters filters = const PlaceFilters(),
   });
 
-  /// تسجيل حدث على المكان (مشاهدة/اتصال/واتساب) عن طريق RPC في الداتابيز.
-  /// الاستدعاء بيتبعت fire-and-forget — أي فشل بيتسجّل في اللوج بس ومش
-  /// بيظهر للمستخدم، فالـ UI بيتجاهل الـ result.
   Future<Either<Failure, void>> trackPlaceEvent({
     required int placeId,
     required PlaceEvent event,

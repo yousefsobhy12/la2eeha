@@ -1,9 +1,3 @@
-// lib/features/merchant/presentation/cubit/menu_pricing_cubit.dart
-//
-// Cubit شاشة إدارة المنيو (أو أسعار التوصيل للمصادر). بيجيب الـ items الموجودة
-// من الـ PlacesRepository (نفس reuse اللي AddPlaceCubit بيعمله للـ lookups)،
-// وبيحفظ بالـ MerchantRepository.replaceMenuItems.
-
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../browse/domain/repositories/places_repository.dart';
@@ -57,8 +51,6 @@ class MenuPricingCubit extends Cubit<MenuPricingState> {
       },
     );
 
-    // حالة الموافقة بتتسحب منفصلة — لو فشلت، بانر "قيد المراجعة" وهيختفي
-    // بدل ما نكسر الشاشة كلها.
     final approvalResult = await _merchantRepository.isPlaceApproved(
       placeId: state.placeId,
     );
@@ -67,8 +59,6 @@ class MenuPricingCubit extends Cubit<MenuPricingState> {
       (approved) => emit(state.copyWith(isApproved: approved)),
     );
   }
-
-  // ── form fields ──
 
   void updateNewItemName(String value) {
     emit(state.copyWith(newItemName: value));
@@ -106,9 +96,6 @@ class MenuPricingCubit extends Cubit<MenuPricingState> {
     );
   }
 
-  /// بيضيف صنف جديد (id: null — لسه ماتحفظش في Supabase) أو بيحدّث الصف
-  /// اللي عليه الـ editingLocalKey. Validation بيتم في الـ Form في الـ view
-  /// بنفس الرسائل العربية؛ هنا بنعمل guard دفاعي بس.
   void confirmItem() {
     final name = state.newItemName.trim();
     final price = double.tryParse(state.newItemPrice.trim());
@@ -154,9 +141,6 @@ class MenuPricingCubit extends Cubit<MenuPricingState> {
     );
   }
 
-  /// النقل داخل القائمة. الـ `newIndex` اللي بنستقبله هنا من
-  /// ReorderableListView.onReorderItem يكون متصحّح بالفعل (جوه الـ widget
-  /// حسب Flutter الجديدة) — يعني من غير أي تصحيح -1 إضافي.
   void reorderItem(int oldIndex, int newIndex) {
     final items = [...state.items];
     final item = items.removeAt(oldIndex);
@@ -177,14 +161,10 @@ class MenuPricingCubit extends Cubit<MenuPricingState> {
     );
   }
 
-  // ── save ──
-
   Future<void> save() async {
     if (state.isSaving) return;
     emit(state.copyWith(isSaving: true, errorMessage: null));
 
-    // sortOrder يتاخد من موضع كل عنصر في القائمة الحالية (0, 1, 2...) —
-    // من غير ما يحفظ الـ value المخزّن القديم.
     final orderedItems = [
       for (var i = 0; i < state.items.length; i++)
         MenuItemDraft(
@@ -218,8 +198,6 @@ class MenuPricingCubit extends Cubit<MenuPricingState> {
     );
   }
 
-  /// بيمسح أي رسالة (نجاح/خطأ) بعد ما الـ snackbar عرضها — من غير إزعاج
-  /// بـ emits فاضية كل ما حد يكتب في الفورم.
   void dismissMessages() {
     if (state.errorMessage == null && state.successMessage == null) return;
     emit(state.copyWith(errorMessage: null, successMessage: null));

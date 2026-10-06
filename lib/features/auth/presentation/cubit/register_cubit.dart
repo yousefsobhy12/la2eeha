@@ -1,5 +1,3 @@
-// lib/features/auth/presentation/cubit/register_cubit.dart
-
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../domain/repositories/auth_repository.dart';

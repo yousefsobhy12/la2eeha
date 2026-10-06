@@ -19,11 +19,8 @@ class PlaceDetailCubit extends Cubit<PlaceDetailState> {
   final PlacesRepository repository;
   final int placeId;
 
-  /// بوابة الـ 24 ساعة — عشان المشاهدة متتحسبش مع كل فتح/refresh.
   final DailyEventGate viewGate;
 
-  /// اتسجلت مشاهدة واحدة بس لكل فتح للشاشة — عشان الـ refresh مايعيدش
-  /// Count++ على نفس الزيارة.
   bool _viewTracked = false;
 
   PlaceDetailCubit(
@@ -35,7 +32,6 @@ class PlaceDetailCubit extends Cubit<PlaceDetailState> {
   Future<void> loadPlaceDetails() async {
     emit(const PlaceDetailLoading());
 
-    // 1. جلب تفاصيل المكان أولاً للحصول على categoryId / subCategory / areaId
     final placeEither = await repository.getPlaceDetails(placeId);
     if (placeEither.isLeft()) {
       final failure = placeEither.fold((f) => f, (_) => null)!;
@@ -45,10 +41,8 @@ class PlaceDetailCubit extends Cubit<PlaceDetailState> {
 
     final place = placeEither.getOrElse(() => throw StateError('Unreachable'));
 
-    // تحديد نوع جدول الأسعار مباشرة بناءً على subCategory
     final usesSportsPricing = ['football', 'padel'].contains(place.subCategory);
 
-    // 2. إطلاق باقي الطلبات بالتوازي عبر Future.wait
     final results = await Future.wait([
       repository.getCategories(),
       repository.getAreas(),
@@ -69,7 +63,6 @@ class PlaceDetailCubit extends Cubit<PlaceDetailState> {
     final similarPlacesEither = results[2] as Either<Failure, List<Place>>;
     final pricingEither = results[3];
 
-    // فشل الكاتيجوريز أو المناطق يوقف الشاشة (بيانات أساسية)
     if (categoriesEither.isLeft()) {
       final failure = categoriesEither.fold((f) => f, (_) => null)!;
       emit(PlaceDetailError(failure));
@@ -94,7 +87,6 @@ class PlaceDetailCubit extends Cubit<PlaceDetailState> {
     final matchedArea = areas.where((a) => a.id == place.areaId).firstOrNull;
     final areaName = matchedArea?.nameAr;
 
-    // فشل الأماكن المشابهة أو الأسعار ثانوي ولا يوقف الشاشة
     final similarPlaces = similarPlacesEither.fold((failure) {
       appLogger.w('Failed to load similar places: ${failure.message}');
       return <Place>[];
@@ -134,10 +126,6 @@ class PlaceDetailCubit extends Cubit<PlaceDetailState> {
 
   Future<void> refresh() => loadPlaceDetails();
 
-  // ميثودز التتبع دي كلها fire-and-forget بالتصميم: النتيجة متتجاهلوش
-  // والنجاح/الفشل ميوصلش للـ UI — الـ safeSupabaseCall بيعمل اللوج.
-
-  /// مشاهدة واحدة بس لكل فتح للشاشة، وبعد كده واحدة كل 24 ساعة بالـ gate.
   Future<void> _trackViewOnce() async {
     if (_viewTracked) return;
     _viewTracked = true;

@@ -9,7 +9,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'core/config/env.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
-
 import 'package:la2eeha/core/storage/local_storage_service.dart';
 import 'package:la2eeha/features/favorites/presentation/cubit/favorites_cubit.dart';
 
@@ -26,9 +25,6 @@ Future<void> main() async {
     publishableKey: Env.supabaseAnonKey,
   );
 
-  // EXPERIMENT: liquid_tab_bar
-  // Load the glass shader first so the bar can use the refraction tier, then
-  // arm the frame governor (it only watches while the glass tier is on).
   await LiquidGlass.load();
   LiquidTabBarController.shared.armGovernor();
 

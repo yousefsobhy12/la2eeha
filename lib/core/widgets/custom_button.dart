@@ -108,14 +108,6 @@ class CustomElevatedButton extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Text(
-                  //   text,
-                  //   style: TextStyle(
-                  //     fontSize: fontSize,
-                  //     fontWeight: fontWeight,
-                  //     color: isOutlined ? defaultBorderColor : defaultTextColor,
-                  //   ),
-                  // ),
                   text.toResponsiveText(
                     context,
                     style: TextStyle(

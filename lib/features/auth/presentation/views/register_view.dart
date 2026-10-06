@@ -64,7 +64,6 @@ class _RegisterViewBodyState extends State<_RegisterViewBody> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   SizedBox(height: context.mediumSpacing),
-                  // ── Main Card ──
                   Container(
                     decoration: BoxDecoration(
                       color: context.surfaceColor,
@@ -72,8 +71,9 @@ class _RegisterViewBodyState extends State<_RegisterViewBody> {
                         color: context.borderColor,
                         width: 1.2,
                       ),
-                      borderRadius:
-                          BorderRadius.circular(context.extraLargeRadius),
+                      borderRadius: BorderRadius.circular(
+                        context.extraLargeRadius,
+                      ),
                     ),
                     padding: context.cardPadding,
                     child: Column(
@@ -81,12 +81,10 @@ class _RegisterViewBodyState extends State<_RegisterViewBody> {
                       children: [
                         'حساب تاجر جديد'.toResponsiveText(
                           context,
-                          style:
-                              AppTextStyles.cardTitle(context.textPrimary),
+                          style: AppTextStyles.cardTitle(context.textPrimary),
                         ),
                         SizedBox(height: context.smallSpacing),
-                        'سجّل مكانك عشان أهل المنطقة يلاقوك'
-                            .toResponsiveText(
+                        'سجّل مكانك عشان أهل المنطقة يلاقوك'.toResponsiveText(
                           context,
                           style: AppTextStyles.bodyRegular13(
                             context.textSecondary,
@@ -101,8 +99,7 @@ class _RegisterViewBodyState extends State<_RegisterViewBody> {
                                 labelText: 'اسم صاحب المكان',
                                 controller: _nameController,
                                 validator: (value) {
-                                  if (value == null ||
-                                      value.trim().isEmpty) {
+                                  if (value == null || value.trim().isEmpty) {
                                     return 'الاسم مطلوب';
                                   }
                                   return null;
@@ -112,11 +109,9 @@ class _RegisterViewBodyState extends State<_RegisterViewBody> {
                               CustomTextFormField(
                                 labelText: 'الإيميل',
                                 controller: _emailController,
-                                keyboardType:
-                                    TextInputType.emailAddress,
+                                keyboardType: TextInputType.emailAddress,
                                 validator: (value) {
-                                  if (value == null ||
-                                      value.trim().isEmpty) {
+                                  if (value == null || value.trim().isEmpty) {
                                     return 'الإيميل مطلوب';
                                   }
                                   if (!value.contains('@') ||
@@ -144,12 +139,10 @@ class _RegisterViewBodyState extends State<_RegisterViewBody> {
                               SizedBox(height: context.mediumSpacing),
                               CustomTextFormField(
                                 labelText: 'تأكيد كلمة السر',
-                                controller:
-                                    _confirmPasswordController,
+                                controller: _confirmPasswordController,
                                 obscureText: true,
                                 validator: (value) {
-                                  if (value !=
-                                      _passwordController.text) {
+                                  if (value != _passwordController.text) {
                                     return 'كلمة السر مش متطابقة';
                                   }
                                   return null;
@@ -159,7 +152,6 @@ class _RegisterViewBodyState extends State<_RegisterViewBody> {
                           ),
                         ),
                         SizedBox(height: context.mediumSpacing),
-                        // ── Terms checkbox ──
                         Row(
                           children: [
                             Checkbox(
@@ -169,39 +161,27 @@ class _RegisterViewBodyState extends State<_RegisterViewBody> {
                                   _agreedToTerms = value ?? false;
                                 });
                               },
-                              activeColor:
-                                  context.colorScheme.primary,
+                              activeColor: context.colorScheme.primary,
                             ),
                             Expanded(
-                              child:
-                                  'موافق على شروط الاستخدام وسياسة الخصوصية'
-                                      .toResponsiveText(
-                                context,
-                                style:
-                                    AppTextStyles.captionRegular12(
-                                  context.textSecondary,
-                                ),
-                              ),
+                              child: 'موافق على شروط الاستخدام وسياسة الخصوصية'
+                                  .toResponsiveText(
+                                    context,
+                                    style: AppTextStyles.captionRegular12(
+                                      context.textSecondary,
+                                    ),
+                                  ),
                             ),
                           ],
                         ),
                         SizedBox(height: context.mediumSpacing),
-                        // ── Register button ──
                         BlocConsumer<RegisterCubit, RegisterState>(
                           listener: (context, state) {
                             if (state is RegisterSuccess) {
-                              context.push(
-                                '/verify-email',
-                                extra: state.email,
-                              );
+                              context.push('/verify-email', extra: state.email);
                             } else if (state is RegisterError) {
-                              ScaffoldMessenger.of(context)
-                                  .showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    state.failure.message,
-                                  ),
-                                ),
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text(state.failure.message)),
                               );
                             }
                           },
@@ -215,8 +195,7 @@ class _RegisterViewBodyState extends State<_RegisterViewBody> {
                               borderRadius: context.largeRadius,
                               boxShadow: const [
                                 BoxShadow(
-                                  color:
-                                      AppColors.primaryPressedShadow,
+                                  color: AppColors.primaryPressedShadow,
                                   offset: Offset(0, 3),
                                   blurRadius: 0,
                                 ),
@@ -224,16 +203,12 @@ class _RegisterViewBodyState extends State<_RegisterViewBody> {
                               isLoading: state is RegisterLoading,
                               onPressed: () {
                                 if (_agreedToTerms &&
-                                    _formKey.currentState!
-                                        .validate()) {
-                                  context
-                                      .read<RegisterCubit>()
-                                      .register(
-                                        _nameController.text.trim(),
-                                        _emailController.text
-                                            .trim(),
-                                        _passwordController.text,
-                                      );
+                                    _formKey.currentState!.validate()) {
+                                  context.read<RegisterCubit>().register(
+                                    _nameController.text.trim(),
+                                    _emailController.text.trim(),
+                                    _passwordController.text,
+                                  );
                                 }
                               },
                             );
@@ -245,10 +220,8 @@ class _RegisterViewBodyState extends State<_RegisterViewBody> {
                           },
                         ),
                         SizedBox(height: context.mediumSpacing),
-                        // ── Login link ──
                         Row(
-                          mainAxisAlignment:
-                              MainAxisAlignment.center,
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             'عندك حساب؟ '.toResponsiveText(
                               context,

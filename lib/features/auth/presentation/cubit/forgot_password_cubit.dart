@@ -6,8 +6,7 @@ import 'forgot_password_state.dart';
 class ForgotPasswordCubit extends Cubit<ForgotPasswordState> {
   final AuthRepository repository;
 
-  ForgotPasswordCubit(this.repository)
-      : super(const ForgotPasswordInitial());
+  ForgotPasswordCubit(this.repository) : super(const ForgotPasswordInitial());
 
   Future<void> sendResetCode(String email) async {
     emit(const ForgotPasswordLoading());
@@ -18,4 +17,3 @@ class ForgotPasswordCubit extends Cubit<ForgotPasswordState> {
     );
   }
 }
-

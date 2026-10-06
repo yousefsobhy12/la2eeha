@@ -1,7 +1,3 @@
-// lib/features/browse/data/models/area_model.dart
-//
-// نفس pattern الـ CategoryModel — bilingual name fields (name_ar/name_en).
-
 import '../../domain/entities/area.dart';
 
 class AreaModel extends Area {

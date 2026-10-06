@@ -17,15 +17,10 @@ class Place {
   final String? closeTime;
   final List<int> closedDays;
 
-  /// آخر مرة بيانات المكان اتحدّثت — بيتحسب منها "من امبارح"/"من شهر" إلخ.
   final DateTime? updatedAt;
 
-  /// المكان شغال ٢٤ ساعة — مفيش open_time/close_time وفي الـ status دايماً
-  /// شغال في أوقات الأسبوع غير أيام الإجازة.
   final bool is24Hours;
 
-  /// المكان بيقدّم خدمة توصيل (للأقسام اللي بتسمح بيها بس — Restaurants/
-  /// Shops/Pharmacy مثلاً).
   final bool isDelivery;
 
   const Place({

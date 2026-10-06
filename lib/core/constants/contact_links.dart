@@ -5,7 +5,6 @@ class ContactLinks {
   static const String facebookPageUrl =
       'https://www.facebook.com/yousef.aboesmael';
 
-  // static const String instagramUrl = 'https://instagram.com/PLACEHOLDER';
   static const String email = 'yousefsobhy124@gmail.com';
 
   static String get whatsappUrl => 'https://wa.me/$whatsappNumber';
@@ -19,10 +18,8 @@ class ContactLinks {
   static const String reportWhatsappNumber = '201015170512';
 
   static Uri reportUri({required String placeName, required int placeId}) {
-    return Uri.https(
-      'wa.me',
-      '/$reportWhatsappNumber',
-      {'text': 'بلّغ عن مشكلة في: $placeName (رقم $placeId)'},
-    );
+    return Uri.https('wa.me', '/$reportWhatsappNumber', {
+      'text': 'بلّغ عن مشكلة في: $placeName (رقم $placeId)',
+    });
   }
 }

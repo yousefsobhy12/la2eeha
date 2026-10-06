@@ -1,17 +1,3 @@
-// lib/features/browse/presentation/widgets/most_visited_section.dart
-//
-// 🔧 القسم بقى sliver (SliverMainAxisGroup) بدل Column يتلف في
-// SliverToBoxAdapter — عشان HomeView يحطّه مباشرة في قايمة الـ slivers من غير
-// كلفة SliverToBoxAdapter. كل عنصر = PlaceCard (نفس الكارت المستخدم في
-// "كل الأماكن") مع بادج الترتيب للأول 3.
-//
-// 🔧 أول 5 أماكن بس بتظهر في البداية، وزرار "عرض الكل" بيوسّع الباقي
-// على طول. الـ stagger بيحسب على الـ index الحقيقي (مش المعروض)، عشان
-// الترتيب يفضل متدرّج.
-//
-// 👌 الترجمة (PlaceCard + زر المفضّلة + animation) زي ما هي في
-// AllPlacesSection — هنا بقى vertical/list مش horizontal carousel.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -57,7 +43,6 @@ class _MostVisitedSectionState extends State<MostVisitedSection> {
 
     return SliverMainAxisGroup(
       slivers: [
-        // 1) عنوان القسم
         SliverToBoxAdapter(
           child: 'الأكثر زيارة'.toTitle(
             context,
@@ -66,7 +51,6 @@ class _MostVisitedSectionState extends State<MostVisitedSection> {
           ),
         ),
 
-        // 2) الكروت — كل واحد PlaceCard مع بادج للأول 3
         SliverList(
           delegate: SliverChildBuilderDelegate((context, index) {
             final place = widget.places[index];
@@ -87,7 +71,6 @@ class _MostVisitedSectionState extends State<MostVisitedSection> {
                     onFavoriteToggle: () =>
                         context.read<FavoritesCubit>().toggleFavorite(place.id),
                     onTap: () => context.push('/place/${place.id}'),
-                    // البادج للأول 3 بس — الباقي null.
                     rank: index + 1,
                   ).fadeSlideIn(
                     delay: AppAnimations.stagger(
@@ -99,7 +82,6 @@ class _MostVisitedSectionState extends State<MostVisitedSection> {
           }, childCount: visibleCount),
         ),
 
-        // 3) زرار "عرض الكل" — بيظهر بس لو فيه أماكن مخفية
         if (!_expanded && widget.places.length > _initialCount)
           SliverToBoxAdapter(
             child: Center(
@@ -114,7 +96,6 @@ class _MostVisitedSectionState extends State<MostVisitedSection> {
             ),
           ),
 
-        // 4) مسافة قبل القسم اللي بعده
         SliverToBoxAdapter(child: context.largeSpacing.vSpace),
       ],
     );

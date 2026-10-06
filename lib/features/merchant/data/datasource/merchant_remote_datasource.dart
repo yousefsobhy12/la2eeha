@@ -1,9 +1,3 @@
-// lib/features/merchant/data/datasource/merchant_remote_datasource.dart
-//
-// دي الطبقة الوحيدة اللي فعليًا بتكلم Supabase مباشرة (جداول places + بكت
-// place-images). الـ exceptions (PostgrestException, AuthException...) بتطلع
-// naturally من هنا — الـ safeSupabaseCall في الـ Repository هو اللي بيمسكها.
-
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -16,8 +10,6 @@ import '../../domain/entities/sports_pricing_draft.dart';
 
 class MerchantRemoteDataSource {
   Future<int> addPlace(PlaceDraft draft) async {
-    // لو المكان ٢٤ ساعة، الأوقات بتتضرب null مهما كان الـ state القديم في
-    // الفورم — ساعات العمل بتبقى محسوبة من is_24_hours بس.
     final openTime = draft.is24Hours ? null : draft.openTime;
     final closeTime = draft.is24Hours ? null : draft.closeTime;
 
@@ -48,9 +40,6 @@ class MerchantRemoteDataSource {
     return response['id'] as int;
   }
 
-  /// بترفع الصورة في بكت place-images. الـ path لازم يبدأ بـ auth.uid()
-  /// كأول folder segment عشان RLS storage policy تشيله — أي شكل تاني
-  /// هيترفض. بنرجع الـ public URL النهائي.
   Future<String> uploadPlaceImage({
     required int placeId,
     required File imageFile,
@@ -73,7 +62,6 @@ class MerchantRemoteDataSource {
         .eq('id', placeId);
   }
 
-  /// أحدث place للتاجر الحالي (بالترتيب الزمني) — null لو مفيش أي place.
   Future<MyPlaceSummary?> getMyLatestPlace() async {
     final response = await supabase
         .from('places')
@@ -94,7 +82,6 @@ class MerchantRemoteDataSource {
     );
   }
 
-  /// حالة الموافقة الحالية لمكان مملوك للتاجر الحالي.
   Future<bool> isPlaceApproved(int placeId) async {
     final response = await supabase
         .from('places')
@@ -105,9 +92,6 @@ class MerchantRemoteDataSource {
     return response['is_approved'] as bool;
   }
 
-  /// بيمسح كل عناصر المنيو الموجودة للمكان وبيعمل insert جديد للقائمة الحالية.
-  /// لو القائمة فاضية، بيمسح بس من غير insert. السطر اللي بيحفظ فيه
-  /// sort_order (ترتيب العنصر الحالي في القائمة) عشان ترتيب العرض يتثبّت.
   Future<void> replaceMenuItems(int placeId, List<MenuItemDraft> items) async {
     await supabase.from('menu_items').delete().eq('place_id', placeId);
     if (items.isEmpty) return;
@@ -123,8 +107,6 @@ class MerchantRemoteDataSource {
     ]);
   }
 
-  /// بيمسح كل فترات التسعير الموجودة للمكان وبيعمل insert جديد.
-  /// TimeOfDay بيتحول لـ "HH:mm:00" (نفس format الـ open_time/close_time).
   Future<void> replaceSportsPricing(
     int placeId,
     List<SportsPricingDraft> items,

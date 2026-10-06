@@ -1,14 +1,3 @@
-// lib/features/merchant/presentation/merchant_navigation.dart
-//
-// نقطة الدخول المشتركة للتاجر (من BusinessOwnerCard و LoginView). بتجيب
-// أحدث place للتاجر وبتوجهه للشاشة المناسبة حسب الكاتيجوري:
-//   - منيو/أسعار توصيل → /place/:id/menu
-//   - أسعار ساعة (ملاعب) → /place/:id/pricing
-//   - مفيش أسعار (صيدليات) → /place/:id/status
-// Bentستخدم context.go (مش push) لأن ده entry point — بنستبدل شاشة الدخول
-// بنستخدم context.go (مش push) لأن ده entry point — بنستبدل شاشة الدخول
-// نفسها من غير ما نسيب أي حاجة في الـ back stack.
-
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 

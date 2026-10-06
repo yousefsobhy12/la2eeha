@@ -1,5 +1,3 @@
-// lib/features/auth/presentation/cubit/login_state.dart
-
 import '../../../../core/errors/failures.dart';
 
 abstract class LoginState {

@@ -1,13 +1,3 @@
-// lib/features/browse/presentation/widgets/place_filters_sheet.dart
-//
-// شيت تصفية النتائج — بيتفتح من زرار الفلترة (PlaceFiltersButton).
-// الفلاتر بتتطبق فور مع كل توكيل (مفيش زرار "تطبيق") عشان المستخدم
-// يشوف القايمة اللي ورا الشيت بتتحدّث وهو سايبه مفتوح، والشيت نفسه
-// بيفضل مفتوح لحد ما يقفله.
-//
-// showDelivery بتحدده الشاشة اللي نداءت من هنا، مش الشيت نفسه: صفحة
-// الكاتيجوري اللي مش من أقسام التوصيل متعرضش فلتر التوصيل من الأساس.
-
 import 'package:flutter/material.dart';
 
 import '../../../../core/extensions/extensions.dart';
@@ -57,16 +47,10 @@ class _PlaceFiltersSheetBody extends StatefulWidget {
 }
 
 class _PlaceFiltersSheetBodyState extends State<_PlaceFiltersSheetBody> {
-  // نسخة محلية من الفلاتر — الشيت هو اللي بيعرض والـ Cubit هو اللي
-  // بيخزّن. لو الشاشة مش بتدعم التوصيل، الـ delivery بيتقفل من أول لحظة
-  // عشان قيمة قديمة stale متوصلش لصفحة مش بتعرف تعمل بيها حاجة.
   late PlaceFilters _filters = widget.showDelivery
       ? widget.initial
       : widget.initial.copyWith(delivery: false);
 
-  // كل توكيل بيعدّي نسخة جديدة لفوق ويبلّغ الـ Cubit على طول. بنضبط
-  // الـ delivery قبل الـ setState عشان السويتش ما يعرضش قيمة مختلفة
-  // عن اللي اتبعت للصفحة.
   void _update(PlaceFilters next) {
     final resolved = !widget.showDelivery && next.delivery
         ? next.copyWith(delivery: false)
@@ -77,8 +61,6 @@ class _PlaceFiltersSheetBodyState extends State<_PlaceFiltersSheetBody> {
 
   @override
   Widget build(BuildContext context) {
-    // الـ viewInsets عشان لو الكيبورد فتح (ومفيش حالة غير دلوقتي، بس
-    // بيبقى الاحترام للـ sheet قابل للتوسيع) مفيش زرار بيتخبى ورا الكيبورد.
     final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
 
     return SingleChildScrollView(
@@ -92,7 +74,6 @@ class _PlaceFiltersSheetBodyState extends State<_PlaceFiltersSheetBody> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // مقبض السحب — نفس شكله في شيت التواصل.
                 Center(
                   child: Container(
                     width: context.bottomSheetDragHandleWidth,
@@ -121,8 +102,6 @@ class _PlaceFiltersSheetBodyState extends State<_PlaceFiltersSheetBody> {
                         _update(_filters.copyWith(delivery: value)),
                   ),
                 ],
-                // زرار المسح بيظهر بس لو في فلتر مفعّل — لما مفيش، مفيش
-                // حاجة ينضفها.
                 if (_filters.isActive) ...[
                   context.mediumSpacing.vSpace,
                   CustomElevatedButton(
@@ -145,9 +124,6 @@ class _PlaceFiltersSheetBodyState extends State<_PlaceFiltersSheetBody> {
   }
 }
 
-/// سطر فلتر واحد — نفس شكل سطر السويتش في شاشة إضافة البيزنس بالظبط
-/// (نفس ال container ونفس ألوان السويتش) عشان المستخدم ميحسش إن في
-/// واجهتين مختلفتين في نفس enjeu.
 class _FilterSwitchRow extends StatelessWidget {
   final String label;
   final bool value;

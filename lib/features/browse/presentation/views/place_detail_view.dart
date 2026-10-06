@@ -4,7 +4,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
-
 import '../../../../core/constants/category_visuals.dart';
 import '../../../../core/constants/contact_links.dart';
 import '../../../../core/constants/sub_category_visuals.dart';
@@ -86,17 +85,12 @@ class _PlaceDetailBody extends StatelessWidget {
           parent: AlwaysScrollableScrollPhysics(),
         ),
         slivers: [
-          // ─── Sliver Header: Cover Image + Top Buttons ───
           SliverToBoxAdapter(child: _buildCoverHeader(context, place, visual)),
 
-          // ─── Content Body ───
           SliverPadding(
             padding: context.pagePadding.copyWith(top: context.mediumSpacing),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
-                // 1. Category badge + Open/Closed status pill + delivery pill
-                // Wrap مش Row عشان البادجات لو كتير تنزل سطر تاني بدل ما
-                // تعمل overflow على الموبايل الضيق.
                 Wrap(
                   spacing: 8.w,
                   runSpacing: 6.h,
@@ -136,7 +130,6 @@ class _PlaceDetailBody extends StatelessWidget {
 
                 context.smallSpacing.vSpace,
 
-                // 2. Place name (LTR/RTL text alignment)
                 place.name
                     .toHeadline(
                       context,
@@ -146,7 +139,6 @@ class _PlaceDetailBody extends StatelessWidget {
                     )
                     .fadeSlideIn(delay: AppAnimations.stagger(animIndex++)),
 
-                // 3. Area name & Working hours subtitle (if present)
                 if ((state.areaName != null && state.areaName!.isNotEmpty) ||
                     (place.openTime != null && place.closeTime != null)) ...[
                   6.vSpace,
@@ -193,7 +185,6 @@ class _PlaceDetailBody extends StatelessWidget {
 
                 context.largeSpacing.vSpace,
 
-                // 4. Contact Actions Row (اتصال / الموقع / واتساب)
                 _buildContactActions(
                   context,
                   place,
@@ -201,13 +192,11 @@ class _PlaceDetailBody extends StatelessWidget {
 
                 context.largeSpacing.vSpace,
 
-                // 5. Info List (Phone / Address / Working Hours)
                 _buildInfoList(
                   context,
                   place,
                 ).fadeSlideIn(delay: AppAnimations.stagger(animIndex++)),
 
-                // 6. Description (if present)
                 if (place.description != null &&
                     place.description!.isNotEmpty) ...[
                   context.largeSpacing.vSpace,
@@ -217,7 +206,6 @@ class _PlaceDetailBody extends StatelessWidget {
                   ).fadeSlideIn(delay: AppAnimations.stagger(animIndex++)),
                 ],
 
-                // 7. Pricing Section (if present)
                 if ((state.sportsPricing != null &&
                         state.sportsPricing!.isNotEmpty) ||
                     (state.menuItems != null &&
@@ -229,7 +217,6 @@ class _PlaceDetailBody extends StatelessWidget {
                   ).fadeSlideIn(delay: AppAnimations.stagger(animIndex++)),
                 ],
 
-                // 8. Similar Places (if non-empty)
                 if (state.similarPlaces.isNotEmpty) ...[
                   context.largeSpacing.vSpace,
                   SimilarPlacesSection(
@@ -242,7 +229,6 @@ class _PlaceDetailBody extends StatelessWidget {
 
                 context.largeSpacing.vSpace,
 
-                // 9. Footer Disclaimer Text
                 Center(
                   child:
                       'البيانات مسجّلة من صاحب المكان.\nلو فيه حاجة غلط اضغط علامة التبليغ فوق.'
@@ -257,19 +243,17 @@ class _PlaceDetailBody extends StatelessWidget {
                 if (place.updatedAt != null) ...[
                   context.smallSpacing.vSpace,
                   Center(
-                    child:
-                        'آخر تحديث: ${place.updatedAt!.toRelativeArabic()}'
-                            .toCaption(
-                              context,
-                              color: context.textSecondary,
-                              textAlign: TextAlign.center,
-                            ),
+                    child: 'آخر تحديث: ${place.updatedAt!.toRelativeArabic()}'
+                        .toCaption(
+                          context,
+                          color: context.textSecondary,
+                          textAlign: TextAlign.center,
+                        ),
                   ).fadeSlideIn(delay: AppAnimations.stagger(animIndex++)),
                 ],
 
                 context.smallSpacing.vSpace,
 
-                // 10. Link للتاجر صاحب المكان إنه يوثّق ملكيته
                 Center(
                   child: InkWell(
                     onTap: () => _showClaimSheet(context, place),
@@ -305,7 +289,6 @@ class _PlaceDetailBody extends StatelessWidget {
 
     return Stack(
       children: [
-        // Cover Image or Gradient Fallback
         Container(
           width: double.infinity,
           height: headerHeight,
@@ -334,7 +317,6 @@ class _PlaceDetailBody extends StatelessWidget {
               : null,
         ),
 
-        // Dark gradient overlay for top controls visibility
         Positioned(
           top: 0,
           left: 0,
@@ -354,7 +336,6 @@ class _PlaceDetailBody extends StatelessWidget {
           ),
         ),
 
-        // Top Overlay Buttons: Back & Report
         PositionedDirectional(
           top: MediaQuery.of(context).padding.top + 8.h,
           start: context.hSpacing,
@@ -406,7 +387,6 @@ class _PlaceDetailBody extends StatelessWidget {
 
     return Row(
       children: [
-        // Call button (always available if phone is present)
         Expanded(
           child: _ActionButton(
             icon: Icons.phone_rounded,
@@ -416,7 +396,6 @@ class _PlaceDetailBody extends StatelessWidget {
           ),
         ),
 
-        // Google Maps button (if present)
         if (hasMaps) ...[
           context.smallSpacing.hSpace,
           Expanded(
@@ -429,7 +408,6 @@ class _PlaceDetailBody extends StatelessWidget {
           ),
         ],
 
-        // WhatsApp button (if present)
         if (hasWhatsapp) ...[
           context.smallSpacing.hSpace,
           Expanded(
@@ -473,7 +451,6 @@ class _PlaceDetailBody extends StatelessWidget {
       padding: context.cardPadding,
       child: Column(
         children: [
-          // Phone row
           _InfoRow(
             icon: Icons.phone_outlined,
             label: 'التليفون',
@@ -481,7 +458,6 @@ class _PlaceDetailBody extends StatelessWidget {
             onTap: () => _call(context, place.phone),
           ),
 
-          // Address row (if present)
           if (hasAddress) ...[
             Divider(color: context.borderColor, height: 16.h),
             _InfoRow(
@@ -492,7 +468,6 @@ class _PlaceDetailBody extends StatelessWidget {
             ),
           ],
 
-          // Working hours row (for 24-hour places or when both times are set).
           if (hasWorkingHours) ...[
             Divider(color: context.borderColor, height: 16.h),
             _InfoRow(
@@ -574,7 +549,6 @@ class _PlaceDetailBody extends StatelessWidget {
     }
   }
 
-  // بلّغ عن مشكلة في بيانات المكان — بيفتح واتساب برسالة جاهزة.
   Future<void> _reportPlace(Place place) async {
     final uri = ContactLinks.reportUri(
       placeName: place.name,
@@ -597,7 +571,6 @@ class _PlaceDetailBody extends StatelessWidget {
     SharePlus.instance.share(ShareParams(text: lines.join('\n')));
   }
 
-  // تاجر المكان يفتح شيت التواصل وواتساب بيتعبّى برسالة "أنا صاحب المكان".
   void _showClaimSheet(BuildContext context, Place place) {
     showModalBottomSheet(
       context: context,

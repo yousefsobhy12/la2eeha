@@ -30,8 +30,7 @@ class _ResetPasswordViewBody extends StatefulWidget {
   const _ResetPasswordViewBody();
 
   @override
-  State<_ResetPasswordViewBody> createState() =>
-      _ResetPasswordViewBodyState();
+  State<_ResetPasswordViewBody> createState() => _ResetPasswordViewBodyState();
 }
 
 class _ResetPasswordViewBodyState extends State<_ResetPasswordViewBody> {
@@ -59,23 +58,24 @@ class _ResetPasswordViewBodyState extends State<_ResetPasswordViewBody> {
               child: Column(
                 children: [
                   SizedBox(height: context.mediumSpacing),
-                  // ── Main Card ──
                   Container(
                     padding: context.cardPadding,
                     decoration: BoxDecoration(
                       color: context.surfaceColor,
-                      borderRadius:
-                          BorderRadius.circular(context.extraLargeRadius),
-                      border:
-                          Border.all(color: context.borderColor, width: 1.2),
+                      borderRadius: BorderRadius.circular(
+                        context.extraLargeRadius,
+                      ),
+                      border: Border.all(
+                        color: context.borderColor,
+                        width: 1.2,
+                      ),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         'كلمة سر جديدة'.toResponsiveText(
                           context,
-                          style:
-                              AppTextStyles.cardTitle(context.textPrimary),
+                          style: AppTextStyles.cardTitle(context.textPrimary),
                         ),
                         SizedBox(height: context.smallSpacing),
                         'اختار كلمة سر جديدة لحسابك'.toResponsiveText(
@@ -113,23 +113,22 @@ class _ResetPasswordViewBodyState extends State<_ResetPasswordViewBody> {
                                   if (value == null || value.isEmpty) {
                                     return 'برجاء تأكيد كلمة السر';
                                   }
-                                  if (value !=
-                                      _passwordController.text) {
+                                  if (value != _passwordController.text) {
                                     return 'كلمتا السر مش متطابقتين';
                                   }
                                   return null;
                                 },
                               ),
                               SizedBox(height: context.mediumSpacing),
-                              BlocConsumer<ResetPasswordCubit,
-                                  ResetPasswordState>(
+                              BlocConsumer<
+                                ResetPasswordCubit,
+                                ResetPasswordState
+                              >(
                                 listenWhen: (previous, current) =>
-                                    previous.runtimeType !=
-                                    current.runtimeType,
+                                    previous.runtimeType != current.runtimeType,
                                 listener: (context, state) {
                                   if (state is ResetPasswordSuccess) {
-                                    ScaffoldMessenger.of(context)
-                                        .showSnackBar(
+                                    ScaffoldMessenger.of(context).showSnackBar(
                                       const SnackBar(
                                         content: Text(
                                           'تم تغيير كلمة السر بنجاح',
@@ -137,14 +136,10 @@ class _ResetPasswordViewBodyState extends State<_ResetPasswordViewBody> {
                                       ),
                                     );
                                     context.go('/login');
-                                  } else if (state
-                                      is ResetPasswordError) {
-                                    ScaffoldMessenger.of(context)
-                                        .showSnackBar(
+                                  } else if (state is ResetPasswordError) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
-                                        content: Text(
-                                          state.failure.message,
-                                        ),
+                                        content: Text(state.failure.message),
                                       ),
                                     );
                                   }
@@ -152,11 +147,9 @@ class _ResetPasswordViewBodyState extends State<_ResetPasswordViewBody> {
                                 builder: (context, state) {
                                   return CustomElevatedButton(
                                     text: 'تحديث كلمة السر',
-                                    isLoading:
-                                        state is ResetPasswordLoading,
+                                    isLoading: state is ResetPasswordLoading,
                                     onPressed: () {
-                                      if (_formKey.currentState!
-                                          .validate()) {
+                                      if (_formKey.currentState!.validate()) {
                                         context
                                             .read<ResetPasswordCubit>()
                                             .updatePassword(
@@ -171,8 +164,7 @@ class _ResetPasswordViewBodyState extends State<_ResetPasswordViewBody> {
                                     borderRadius: context.largeRadius,
                                     boxShadow: const [
                                       BoxShadow(
-                                        color:
-                                            AppColors.primaryPressedShadow,
+                                        color: AppColors.primaryPressedShadow,
                                         offset: Offset(0, 3),
                                         blurRadius: 0,
                                       ),
@@ -196,4 +188,3 @@ class _ResetPasswordViewBodyState extends State<_ResetPasswordViewBody> {
     );
   }
 }
-

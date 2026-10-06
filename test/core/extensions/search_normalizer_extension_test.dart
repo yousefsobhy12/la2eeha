@@ -2,8 +2,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:la2eeha/core/extensions/search_normalizer_extension.dart';
 
 void main() {
-  // Expected values come from the real Supabase normalize_arabic() output
-  // (after migration normalize_arabic_digits).
   const vectors = <String, String>{
     'صيدلية': 'صيدليه',
     'صيدليه': 'صيدليه',

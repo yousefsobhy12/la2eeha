@@ -1,13 +1,8 @@
-// lib/features/browse/presentation/widgets/most_visited_card.dart
-
 import 'package:flutter/material.dart';
-
 import 'package:flutter_bloc/flutter_bloc.dart';
-
 import '../../../../core/constants/category_visuals.dart';
 import '../../../../core/constants/sub_category_visuals.dart';
 import '../../../../core/extensions/extensions.dart';
-
 import '../../../../core/widgets/place_card.dart';
 import '../../../favorites/presentation/cubit/favorites_cubit.dart';
 import '../../domain/entities/place.dart';
@@ -29,7 +24,6 @@ class MostVisitedCard extends StatelessWidget {
   });
 
   String _formatCount(int count) {
-    // بدل ما نضيف intl package لحاجة بسيطة زي دي
     final s = count.toString();
     if (s.length <= 3) return s;
     final buffer = StringBuffer();
@@ -74,7 +68,6 @@ class MostVisitedCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              // هيدر ملون فيه أيقونة الكاتيجوري + رقم الترتيب
               Stack(
                 children: [
                   Container(
@@ -136,7 +129,6 @@ class MostVisitedCard extends StatelessWidget {
                       context,
                       fontWeight: FontWeight.w600,
                       overflow: TextOverflow.ellipsis,
-                      // maxLines: 2,
                     ),
                     2.vSpace,
                     subLabel.toCaption(
@@ -169,13 +161,11 @@ class MostVisitedCard extends StatelessWidget {
     );
   }
 
-  /// بادج الترتيب — ميدالية ذهب/فضة/برونز للتلاتة الأوائل، أو الدايرة العادية لباقي الترتيب.
   Widget _buildRankBadge(BuildContext context, CategoryVisual visual) {
-    // ألوان الميداليات للتلاتة الأوائل
     const medalColors = {
-      1: Color(0xFFFFD700), // ذهب
-      2: Color(0xFFC0C0C0), // فضة
-      3: Color(0xFFCD7F32), // برونز
+      1: Color(0xFFFFD700),
+      2: Color(0xFFC0C0C0),
+      3: Color(0xFFCD7F32),
     };
 
     final medalColor = medalColors[rank];

@@ -20,4 +20,3 @@ class ResetPasswordError extends ResetPasswordState {
   final Failure failure;
   const ResetPasswordError(this.failure);
 }
-

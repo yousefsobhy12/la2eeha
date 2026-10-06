@@ -202,8 +202,6 @@ class CategoryListCubit extends Cubit<CategoryListState> {
 
     final current = state;
     if (current is! CategoryListLoaded) {
-      // لسه في loading/error — بنخزّن الفلتر وخلاص، الـ loadInitial الجاي
-      // هيقراه ويبعته مع الـ query.
       _filters = filters;
       return;
     }

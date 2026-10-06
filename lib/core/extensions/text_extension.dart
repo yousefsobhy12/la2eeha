@@ -1,15 +1,8 @@
-// lib/core/extensions/text_extension.dart
-
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'responsive_extension.dart';
 
 extension ResponsiveText on String {
-  // ════════════════════════════════════════════════════════════
-  // AUTO-SIZING TEXT (يصغر لو طويل)
-  // ════════════════════════════════════════════════════════════
-
-  /// نص عادي مع auto-sizing
   Widget toResponsiveText(
     BuildContext context, {
     TextStyle? style,
@@ -29,7 +22,6 @@ extension ResponsiveText on String {
     );
   }
 
-  /// عنوان كبير
   Widget toHeadline(
     BuildContext context, {
     Color? color,
@@ -50,7 +42,6 @@ extension ResponsiveText on String {
     );
   }
 
-  /// عنوان متوسط
   Widget toTitle(
     BuildContext context, {
     Color? color,
@@ -73,7 +64,6 @@ extension ResponsiveText on String {
     );
   }
 
-  /// نص عادي
   Widget toBody(
     BuildContext context, {
     Color? color,
@@ -96,7 +86,6 @@ extension ResponsiveText on String {
     );
   }
 
-  /// نص صغير (caption)
   Widget toCaption(
     BuildContext context, {
     Color? color,
@@ -121,11 +110,6 @@ extension ResponsiveText on String {
     );
   }
 
-  // ════════════════════════════════════════════════════════════
-  // ELLIPSIS CONTROL
-  // ════════════════════════════════════════════════════════════
-
-  /// يقطع النص بـ ... لو طويل
   Widget toEllipsisText(
     BuildContext context, {
     TextStyle? style,
@@ -139,7 +123,6 @@ extension ResponsiveText on String {
     );
   }
 
-  /// يعرض النص كامل مع scrolling لو طويل
   Widget toScrollableText(BuildContext context, {TextStyle? style}) {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
@@ -147,10 +130,6 @@ extension ResponsiveText on String {
     );
   }
 }
-
-// ════════════════════════════════════════════════════════════
-// INTERNAL WIDGET
-// ════════════════════════════════════════════════════════════
 
 class _ResponsiveTextWidget extends StatelessWidget {
   final String text;
@@ -178,7 +157,6 @@ class _ResponsiveTextWidget extends StatelessWidget {
         final baseStyle = style ?? const TextStyle();
         final baseFontSize = baseStyle.fontSize ?? 14.sp;
 
-        // قياس حجم النص
         final textPainter = TextPainter(
           text: TextSpan(text: text, style: baseStyle),
           maxLines: maxLines ?? 1,
@@ -187,7 +165,6 @@ class _ResponsiveTextWidget extends StatelessWidget {
 
         double fontSize = baseFontSize;
 
-        // لو النص أطول من المساحة، صغر الخط
         if (textPainter.didExceedMaxLines ||
             textPainter.width > constraints.maxWidth) {
           final scaleFactor = constraints.maxWidth / (textPainter.width + 10);

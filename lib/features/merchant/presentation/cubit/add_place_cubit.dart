@@ -1,13 +1,3 @@
-// lib/features/merchant/presentation/cubit/add_place_cubit.dart
-//
-// Cubit بتاع شاشة إضافة بيزنس جديد. بيجمع:
-//   - تحميل categories/areas من الـ PlacesRepository اللي موجود (نفس
-//     HomeCubit/SearchCubit — مفيش datasource جديدة للـ lookups).
-//   - حفظ draft كامل (كل الـ fields + مسار الصورة) محليًا في الـ
-//     LocalStorageService بـ debounce، عشان لو التاجر قفل الأبليكيشن
-//     من غير ما يحفظ، البيانات ترجع تاني.
-//   - الـ submit فعلًا: addPlace ثم upload الصورة ثم update المكان.
-
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -36,13 +26,8 @@ class AddPlaceCubit extends Cubit<AddPlaceState> {
   static const Duration saveDebounce = Duration(milliseconds: 800);
   static const _phonePattern = r'^01[0125][0-9]{8}$';
 
-  // الكاتيجوريز اللي ليهم sub-category ثابتة معروفة (Restaurants/Shops/Sports).
-  // الـ IDs دي hardcoded عمدًا — يعني قصدنا نثبتها هنا مباشرة، مش بنسأل
-  // Supabase عنها ولا بنستنتجها من أسماء/ترتيب الكاتيجوريز.
   static const subCategoryCategories = {22, 26, 27};
 
-  // الأقسام اللي بتقدّم خدمة توصيل — مصدر الأرقام كمان هو kDeliveryCategoryIds
-  // (نفس الـ pattern بتاع subCategoryCategories فوق: IDs hardcoded هنا عن قصد).
   static const deliveryCategories = kDeliveryCategoryIds;
 
   Timer? _saveTimer;
@@ -78,8 +63,6 @@ class AddPlaceCubit extends Cubit<AddPlaceState> {
         File? imageFile;
         if (imageFilePath != null) {
           final file = File(imageFilePath);
-          // لو الملف اتمسح (مثلاً بعد ما الأبليكيشن اتقفل)، نسيب الصورة
-          // فاضية في هدوء — دي حالة متوقعة مش error.
           if (file.existsSync()) {
             imageFile = file;
           }
@@ -98,10 +81,7 @@ class AddPlaceCubit extends Cubit<AddPlaceState> {
           googleMapsUrl: json['googleMapsUrl'] as String?,
           description: json['description'] as String?,
           is24Hours: (json['is24Hours'] as bool?) ?? false,
-          // drafts قديمة (من قبل الخاصية دي) مفيش فيها المفتاح — false افتراضيًا.
           isDelivery: (json['isDelivery'] as bool?) ?? false,
-          // لو المكان كان على وضع ٢٤ ساعة، الأوقات القديمة في الـ draft
-          // مش هتتستعاد على كل حال.
           openTime: (json['is24Hours'] as bool?) ?? false
               ? null
               : json['openTime'] as String?,
@@ -113,9 +93,7 @@ class AddPlaceCubit extends Cubit<AddPlaceState> {
               .toList(),
           imageFile: imageFile,
         );
-      } catch (e) {
-        // draft فاسد — نسيب الـ form فاضي، مفيش داعي نعرض error للتاجر.
-      }
+      } catch (_) {}
     }
 
     emit(
@@ -127,16 +105,12 @@ class AddPlaceCubit extends Cubit<AddPlaceState> {
     );
   }
 
-  // ── update methods (كل واحد بيحفظ الـ draft بعدين) ──
-
   void updateName(String value) {
     emit(state.copyWith(name: value));
     _saveDraft();
   }
 
   void updateCategory(int? categoryId) {
-    // تغيّر الكاتيجوري لغير قسم مش بيقبل توصيل — بنمسح الفلاج فورًا
-    // عشان متفضلش معلقة على قسم مش بتعرضه أصلًا.
     final keepsDelivery = deliveryCategories.contains(categoryId);
     emit(
       state.copyWith(
@@ -215,8 +189,6 @@ class AddPlaceCubit extends Cubit<AddPlaceState> {
     emit(
       state.copyWith(
         is24Hours: value,
-        // لو فعّل الـ ٢٤ ساعة، بنمسح أي أوقات قديمة من الـ state فورًا —
-        // مش بنستخدمها خالص، و لو رجع تاني لازم يختار من الأول.
         openTime: value ? null : state.openTime,
         closeTime: value ? null : state.closeTime,
       ),
@@ -239,9 +211,7 @@ class AddPlaceCubit extends Cubit<AddPlaceState> {
       if (xfile == null) return;
       emit(state.copyWith(imageFile: File(xfile.path)));
       _saveDraft();
-    } catch (e) {
-      // التاجر ألغى أو مفيش صلاحية — مفيش صورة، ومفيش error لازم يبان.
-    }
+    } catch (_) {}
   }
 
   void removeImage() {
@@ -299,8 +269,6 @@ class AddPlaceCubit extends Cubit<AddPlaceState> {
 
         final image = state.imageFile;
         if (image != null) {
-          // المكان اتحفظ فعلًا — لو الصورة فشلت، مينفعش نعتبر الـ submit كله
-          // فشل. بنقفل بـ success بس بننبّه إن الصورة لسه محتاجة تترفع.
           final uploadResult = await _merchantRepository.uploadPlaceImage(
             placeId: placeId,
             imageFile: image,
@@ -363,9 +331,6 @@ class AddPlaceCubit extends Cubit<AddPlaceState> {
       return 'رقم الواتساب غير صحيح';
     }
 
-    // لما مفيش ٢٤ ساعة، الفتح والقفل مطلوبين مع بعض (inline errors في الفورم
-    // هي اللي بتظهر فعلًا — ده guard دفاعي بيترمى من الـ snackbar بس لو
-    // السطر الوحيد وصل هنا).
     if (!state.is24Hours &&
         (state.openTime == null || state.closeTime == null)) {
       return 'حدد ميعاد الفتح والقفل مع بعض';
@@ -373,8 +338,6 @@ class AddPlaceCubit extends Cubit<AddPlaceState> {
 
     return null;
   }
-
-  // ── draft persistence ──
 
   void _saveDraft() {
     _saveTimer?.cancel();

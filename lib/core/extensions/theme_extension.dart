@@ -11,21 +11,18 @@ extension ThemeExtension on BuildContext {
 
   Brightness get themeBrightness => Theme.of(this).brightness;
 
-  // Text colors
   Color get textPrimary => colorScheme.onSurface;
 
   Color get textSecondary => colorScheme.onSurfaceVariant;
 
   Color get textOnPrimary => colorScheme.onPrimary;
 
-  // Surface/background colors
   Color get pageBackground => theme.scaffoldBackgroundColor;
 
   Color get surfaceColor => colorScheme.surface;
 
   Color get cardColor => theme.cardColor;
 
-  // Utility colors
   Color get borderColor => colorScheme.outlineVariant;
 
   Color get dividerColor => theme.dividerColor;

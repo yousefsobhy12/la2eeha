@@ -49,7 +49,9 @@ class MoreView extends StatelessWidget {
                 SizedBox(height: context.extraLargeSpacing),
                 const Footer(),
                 SizedBox(height: context.largeSpacing),
-                context.isTablet || context.isMobileOrSmallTablet || context.isSmallPhone
+                context.isTablet ||
+                        context.isMobileOrSmallTablet ||
+                        context.isSmallPhone
                     ? SizedBox(height: context.extraLargeSpacing * 2)
                     : const SizedBox(),
               ],

@@ -1,11 +1,3 @@
-// lib/core/constants/category_visuals.dart
-//
-// مبني على الـ icon key المخزن في عمود categories.icon في الداتابيز.
-// Keys: restaurant, medical, hospital, pharmacy, shop, sports, delivery
-//
-// لو كاتيجوري جديدة اتضافت من الأدمن ومش موجودة هنا، بترجع الـ fallback تلقائي
-// (بدون ما الابلكيشن يكسر) — بس المفروض نضيفها هنا لما تتضاف فعليًا.
-
 import 'package:flutter/material.dart';
 
 class CategoryVisual {
@@ -23,7 +15,6 @@ class CategoryVisuals {
     color: Color(0xFF6E5842),
   );
 
-  /// تايل "الكل" مش كاتيجوري حقيقي من الداتابيز — بيتعامل معاه في الـ CategoryGrid لوحده
   static const CategoryVisual all = CategoryVisual(
     icon: Icons.apps_rounded,
     color: Color(0xFF6E5842),
@@ -63,4 +54,4 @@ class CategoryVisuals {
   static CategoryVisual of(String iconKey) {
     return _byIcon[iconKey] ?? fallback;
   }
-}
+}

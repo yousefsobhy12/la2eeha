@@ -1,51 +1,28 @@
-// lib/core/extensions/widget_extension.dart
-
 import 'package:flutter/material.dart';
 import 'responsive_extension.dart';
 
 extension WidgetExtension on Widget {
-  // ════════════════════════════════════════════════════════════
-  // FLEXIBLE & EXPANDED
-  // ════════════════════════════════════════════════════════════
-
-  /// Flexible widget
   Widget flexible({int flex = 1, FlexFit fit = FlexFit.loose}) {
     return Flexible(flex: flex, fit: fit, child: this);
   }
 
-  /// Expanded widget
   Widget expanded({int flex = 1}) {
     return Expanded(flex: flex, child: this);
   }
 
-  // ════════════════════════════════════════════════════════════
-  // CENTER & ALIGNMENT
-  // ════════════════════════════════════════════════════════════
-
-  /// Center the widget
   Widget centered() => Center(child: this);
 
-  /// Align the widget
   Widget aligned(Alignment alignment) =>
       Align(alignment: alignment, child: this);
 
-  /// Align to top center
   Widget alignedTopCenter() => aligned(Alignment.topCenter);
 
-  /// Align to bottom center
   Widget alignedBottomCenter() => aligned(Alignment.bottomCenter);
 
-  /// Align to center left
   Widget alignedCenterLeft() => aligned(Alignment.centerLeft);
 
-  /// Align to center right
   Widget alignedCenterRight() => aligned(Alignment.centerRight);
 
-  // ════════════════════════════════════════════════════════════
-  // CONTAINERS & DECORATION
-  // ════════════════════════════════════════════════════════════
-
-  /// Wrap in Container with responsive decoration
   Widget containerized(
     BuildContext context, {
     Color? color,
@@ -72,7 +49,6 @@ extension WidgetExtension on Widget {
     );
   }
 
-  /// Wrap in Card
   Widget carded({EdgeInsets? margin, EdgeInsets? padding, double? elevation}) {
     return Card(
       margin: margin,
@@ -81,11 +57,6 @@ extension WidgetExtension on Widget {
     );
   }
 
-  // ════════════════════════════════════════════════════════════
-  // CONSTRAINED BOX (للتحكم في الحجم)
-  // ════════════════════════════════════════════════════════════
-
-  /// حدد حد أقصى للعرض (مهم للتابلت!)
   Widget withMaxWidth(double maxWidth) {
     return ConstrainedBox(
       constraints: BoxConstraints(maxWidth: maxWidth),
@@ -93,7 +64,6 @@ extension WidgetExtension on Widget {
     );
   }
 
-  /// حدد حد أقصى للارتفاع
   Widget withMaxHeight(double maxHeight) {
     return ConstrainedBox(
       constraints: BoxConstraints(maxHeight: maxHeight),
@@ -101,7 +71,6 @@ extension WidgetExtension on Widget {
     );
   }
 
-  /// حدد حد أدنى للعرض
   Widget withMinWidth(double minWidth) {
     return ConstrainedBox(
       constraints: BoxConstraints(minWidth: minWidth),
@@ -109,7 +78,6 @@ extension WidgetExtension on Widget {
     );
   }
 
-  /// حدد حد أدنى للارتفاع
   Widget withMinHeight(double minHeight) {
     return ConstrainedBox(
       constraints: BoxConstraints(minHeight: minHeight),
@@ -117,17 +85,10 @@ extension WidgetExtension on Widget {
     );
   }
 
-  /// عرض كامل الشاشة
   Widget fullWidth() => SizedBox(width: double.infinity, child: this);
 
-  /// ارتفاع كامل الشاشة
   Widget fullHeight() => SizedBox(height: double.infinity, child: this);
 
-  // ════════════════════════════════════════════════════════════
-  // RESPONSIVE SIZE (مهم جداً للـ overflow!)
-  // ════════════════════════════════════════════════════════════
-
-  /// حجم responsive بناءً على نسبة من الشاشة
   Widget withScreenPercentage(
     BuildContext context, {
     double? widthPercent,
@@ -142,11 +103,6 @@ extension WidgetExtension on Widget {
     );
   }
 
-  // ════════════════════════════════════════════════════════════
-  // SCROLLABLE
-  // ════════════════════════════════════════════════════════════
-
-  /// SingleChildScrollView عمودي
   Widget scrollable({ScrollPhysics? physics}) {
     return SingleChildScrollView(
       physics: physics ?? const BouncingScrollPhysics(),
@@ -154,7 +110,6 @@ extension WidgetExtension on Widget {
     );
   }
 
-  /// SingleChildScrollView أفقي
   Widget scrollableHorizontal({ScrollPhysics? physics}) {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
@@ -163,39 +118,22 @@ extension WidgetExtension on Widget {
     );
   }
 
-  // ════════════════════════════════════════════════════════════
-  // VISIBILITY
-  // ════════════════════════════════════════════════════════════
-
-  /// عرض الـ widget بناءً على شرط
   Widget showIf(bool condition) {
     return condition ? this : const SizedBox.shrink();
   }
 
-  /// إخفاء الـ widget بناءً على شرط
   Widget hideIf(bool condition) {
     return !condition ? this : const SizedBox.shrink();
   }
 
-  // ════════════════════════════════════════════════════════════
-  // GESTURES
-  // ════════════════════════════════════════════════════════════
-
-  /// Tap gesture
   Widget onTap(VoidCallback onTap) {
     return GestureDetector(onTap: onTap, child: this);
   }
 
-  /// InkWell with ripple
   Widget inkWell({required VoidCallback onTap, BorderRadius? borderRadius}) {
     return InkWell(onTap: onTap, borderRadius: borderRadius, child: this);
   }
 
-  // ════════════════════════════════════════════════════════════
-  // SAFE AREA
-  // ════════════════════════════════════════════════════════════
-
-  /// Wrap in SafeArea
   Widget safeArea({
     bool top = true,
     bool bottom = true,
@@ -211,15 +149,9 @@ extension WidgetExtension on Widget {
     );
   }
 
-  // ════════════════════════════════════════════════════════════
-  // OPACITY & SHIMMER
-  // ════════════════════════════════════════════════════════════
-
-  /// Set opacity
   Widget withOpacity(double opacity) {
     return Opacity(opacity: opacity, child: this);
   }
 
-  /// Disabled state (opacity 0.5)
   Widget disabled() => withOpacity(0.5);
 }

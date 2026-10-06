@@ -1,19 +1,8 @@
-// lib/features/browse/presentation/widgets/all_places_section.dart
-//
-// 🔧 بقى plain Dart class بدل StatelessWidget — بيرجع List<Widget> من slivers
-// عشان HomeView تنشرهم (spread) في قايمة slivers بتاعت الـ CustomScrollView.
-// لو places فاضية بيرجع قايمة فاضية (مفيش slivers).
-//
-// 🔧 زرار "عرض كل الأماكن" هنا من غير رقم العدد الكلي (زي "(20)" في التصميم) —
-// عشان جيبه محتاج count() query منفصلة، حبيت نسيبها بسيطة دلوقتي (MVP discipline).
-// لو عايزها بالرقم قولّي أضيف الـ query.
-
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:la2eeha/core/theme/app_fonts.dart';
 import 'package:la2eeha/features/favorites/presentation/cubit/favorites_cubit.dart';
-
 import '../../../../core/extensions/extensions.dart';
 import '../../../../core/widgets/place_card.dart';
 import '../../domain/entities/place.dart';
@@ -31,12 +20,10 @@ class AllPlacesSection {
     required this.areaNameOf,
   });
 
-  /// بيرجع قايمة slivers — فاضية لو مفيش أماكن.
   List<Widget> buildSlivers(BuildContext context) {
     if (places.isEmpty) return const [];
 
     return [
-      // 1) عنوان القسم
       SliverToBoxAdapter(
         child: 'كل الأماكن'.toTitle(
           context,
@@ -45,7 +32,6 @@ class AllPlacesSection {
         ),
       ),
 
-      // 2) قايمة الأماكن
       SliverList(
         delegate: SliverChildBuilderDelegate((context, index) {
           final place = places[index];
@@ -76,7 +62,6 @@ class AllPlacesSection {
         }, childCount: places.length),
       ),
 
-      // 3) زرار "عرض كل الأماكن" + النص التحتاني
       SliverToBoxAdapter(
         child: Column(
           children: [

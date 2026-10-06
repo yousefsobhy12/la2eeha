@@ -1,11 +1,3 @@
-// lib/features/merchant/presentation/views/place_status_view.dart
-//
-// شاشة حالة البيزنس للمكان اللي مالهوش شاشة تسعير (صيدليات حاليًا).
-// بتجيب حالة الموافقة بصورتها الحالية من Supabase وبتعرض:
-//   - لسه مش متوافق عليه → "بيزنسك قيد المراجعة"
-//   - متوافق عليه → "بيزنسك متاح دلوقتي"
-// وزر واحد "الرئيسية". (إضافة فرع/تعديل هتيجي في سكشن "حسابي" الجاي.)
-
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
@@ -77,7 +69,6 @@ class _PlaceStatusViewState extends State<PlaceStatusView> {
               leading: IconButton(
                 icon: const Icon(Icons.arrow_back_ios_new_rounded),
                 color: context.colorScheme.onPrimary,
-                // onPressed: () => context.pop(),
                 onPressed: () =>
                     context.canPop() ? context.pop() : context.go('/'),
               ),

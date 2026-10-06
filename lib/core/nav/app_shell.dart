@@ -6,7 +6,7 @@ import 'package:la2eeha/core/theme/app_colors.dart';
 import 'package:liquid_tab_bar/liquid_tab_bar.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import '../extensions/extensions.dart'; // بارل الـ extensions بتاعتك
+import '../extensions/extensions.dart';
 
 // ignore_for_file: unused_element
 
@@ -46,7 +46,7 @@ class AppShell extends StatelessWidget {
               activeIcon: Icons.favorite,
             ),
             LiquidTabItem.icon(
-              label: 'المزيد', // ثابت لحد Phase 6
+              label: 'المزيد',
               icon: Icons.menu_rounded,
               activeIcon: Icons.menu_rounded,
             ),
@@ -67,10 +67,6 @@ class AppShell extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// OLD IMPLEMENTATION (اتسابت للـ revert — غير مستخدمة حالياً)
-// ─────────────────────────────────────────────────────────────────────────────
-
 class _RoundedFloatingNavBar extends StatelessWidget {
   const _RoundedFloatingNavBar({
     required this.currentIndex,
@@ -83,12 +79,11 @@ class _RoundedFloatingNavBar extends StatelessWidget {
   static const _items = [
     _NavItem(icon: Icons.home_rounded, label: 'الرئيسية'),
     _NavItem(icon: Icons.favorite_border_rounded, label: 'المفضلة'),
-    _NavItem(icon: Icons.menu_rounded, label: 'المزيد'), // ثابت لحد Phase 6
+    _NavItem(icon: Icons.menu_rounded, label: 'المزيد'),
   ];
 
   @override
   Widget build(BuildContext context) {
-    // ClipRRect لازم عشان BackdropFilter يقتصر على شكل الكبسولة بس، مش المستطيل كامل
     final bar = ClipRRect(
       borderRadius: 999.circularRadius,
       child: BackdropFilter(
@@ -96,9 +91,7 @@ class _RoundedFloatingNavBar extends StatelessWidget {
         child: Container(
           height: 64.h,
           decoration: BoxDecoration(
-            color: context.surfaceColor.withValues(
-              alpha: 0.55,
-            ), // بتتغيّر مع الثيم
+            color: context.surfaceColor.withValues(alpha: 0.55),
             borderRadius: 999.circularRadius,
             border: Border.all(
               color: context.borderColor.withValues(alpha: 0.6),
@@ -171,7 +164,6 @@ class _NavIconButton extends StatelessWidget {
               children: [
                 Icon(
                   item.icon,
-                  // على الزجاج: نص داكن شفاف شوية (بيتقرا فوق أي خلفية بسبب البلور)
                   color: isSelected
                       ? context.colorScheme.onPrimary
                       : context.textPrimary.withValues(alpha: 0.75),

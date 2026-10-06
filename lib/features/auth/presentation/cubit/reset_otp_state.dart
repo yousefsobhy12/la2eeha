@@ -6,7 +6,6 @@ class ResetOtpState {
   final ResetOtpStatus status;
   final Failure? failure;
 
-  /// 0 = resend button enabled, > 0 = countdown active
   final int secondsRemaining;
 
   const ResetOtpState({
@@ -27,4 +26,3 @@ class ResetOtpState {
     );
   }
 }
-

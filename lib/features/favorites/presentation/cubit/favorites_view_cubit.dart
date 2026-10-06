@@ -42,24 +42,18 @@ class FavoritesViewCubit extends Cubit<FavoritesViewState> {
       final categoryIconOf = <int, String>{};
       final areaNameOf = <int, String>{};
 
-      categoriesEither.fold(
-        (failure) {},
-        (categories) {
-          for (final cat in categories) {
-            categoryNameOf[cat.id] = cat.nameAr;
-            categoryIconOf[cat.id] = cat.icon;
-          }
-        },
-      );
+      categoriesEither.fold((failure) {}, (categories) {
+        for (final cat in categories) {
+          categoryNameOf[cat.id] = cat.nameAr;
+          categoryIconOf[cat.id] = cat.icon;
+        }
+      });
 
-      areasEither.fold(
-        (failure) {},
-        (areas) {
-          for (final area in areas) {
-            areaNameOf[area.id] = area.nameAr;
-          }
-        },
-      );
+      areasEither.fold((failure) {}, (areas) {
+        for (final area in areas) {
+          areaNameOf[area.id] = area.nameAr;
+        }
+      });
 
       emit(
         FavoritesViewLoaded(
@@ -90,10 +84,6 @@ class FavoritesViewCubit extends Cubit<FavoritesViewState> {
     }
   }
 
-  /// Called every time the global FavoritesCubit emits, for as long as
-  /// this cubit is alive (even when the tab is offscreen due to
-  /// StatefulShellRoute). Fetches only newly-added place IDs and drops
-  /// removed ones locally — no full reload, no loading skeleton flash.
   Future<void> syncWithFavoriteIds(Set<int> newIds) async {
     if (setEquals(favoriteIds, newIds)) return;
 

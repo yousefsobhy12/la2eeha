@@ -18,7 +18,6 @@ class PromotionsCarousel extends StatelessWidget {
       return const AspectRatio(aspectRatio: 16 / 9, child: _CtaBanner());
     }
 
-    // لو الـ datasource وصل بحد الـ limit، مفيش مساحة للـ CTA.
     final showCta = promotions.length < 6;
     final items = <Widget>[
       for (final promotion in promotions)
@@ -42,7 +41,6 @@ class PromotionsCarousel extends StatelessWidget {
   }
 }
 
-/// سلايد العرض الترويجي: صورة + ضغطة بتودّي لصفحة المكان.
 class _PromotionBanner extends StatelessWidget {
   final Promotion promotion;
 
@@ -75,7 +73,6 @@ class _PromotionBanner extends StatelessWidget {
   }
 }
 
-/// CTA بتاع أصحاب الأماكن: "عايز إعلانك يظهر هنا؟ كلمنا".
 class _CtaBanner extends StatelessWidget {
   const _CtaBanner();
 

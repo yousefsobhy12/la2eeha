@@ -12,7 +12,6 @@ class PlaceOpenStatusPill extends StatelessWidget {
   Widget build(BuildContext context) {
     if (status == null) return const SizedBox.shrink();
 
-    // الشكل نفسه بقى في PlacePill — هنا بنحسب النص واللون بس.
     final (String label, Color color) = switch (status!) {
       PlaceOpenStatus.openNow => ('مفتوح الآن', const Color(0xFF2F6B3A)),
       PlaceOpenStatus.closedNow => ('مغلق الآن', const Color(0xFF8C2F39)),

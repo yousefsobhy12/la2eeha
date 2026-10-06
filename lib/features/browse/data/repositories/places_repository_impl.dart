@@ -197,10 +197,8 @@ class PlacesRepositoryImpl implements PlacesRepository {
     required PlaceEvent event,
   }) {
     return safeSupabaseCall<void>(
-      () => remoteDataSource.trackPlaceEvent(
-        placeId: placeId,
-        event: event.name,
-      ),
+      () =>
+          remoteDataSource.trackPlaceEvent(placeId: placeId, event: event.name),
       callName: 'trackPlaceEvent',
     );
   }

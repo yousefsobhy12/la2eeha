@@ -1,15 +1,9 @@
-// lib/core/extensions/responsive_values.dart
-
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'responsive_extension.dart';
 
 class ResponsiveValues {
   ResponsiveValues._();
-
-  // ════════════════════════════════════════════════════════════
-  // TYPOGRAPHY SCALE (responsive based on context)
-  // ════════════════════════════════════════════════════════════
 
   static double displayLarge(BuildContext context) =>
       (32.sp * context.fontScale).clamp(28.sp, 36.sp);
@@ -41,10 +35,6 @@ class ResponsiveValues {
   static double labelLarge(BuildContext context) =>
       (11.sp * context.fontScale).clamp(10.sp, 13.sp);
 
-  // ════════════════════════════════════════════════════════════
-  // FIXED SPACING (8pt grid - no context needed)
-  // ════════════════════════════════════════════════════════════
-
   static double get spacing2 => 2.r;
   static double get spacing4 => 4.r;
   static double get spacing8 => 8.r;
@@ -57,10 +47,6 @@ class ResponsiveValues {
   static double get spacing48 => 48.r;
   static double get spacing64 => 64.r;
 
-  // ════════════════════════════════════════════════════════════
-  // BORDER RADIUS
-  // ════════════════════════════════════════════════════════════
-
   static double get radiusNone => 0;
   static double get radiusSmall => 4.r;
   static double get radiusMedium => 8.r;
@@ -69,19 +55,11 @@ class ResponsiveValues {
   static double get radiusXXLarge => 24.r;
   static double get radiusRound => 999.r;
 
-  // ════════════════════════════════════════════════════════════
-  // ELEVATION
-  // ════════════════════════════════════════════════════════════
-
   static double get elevationNone => 0;
   static double get elevationLow => 2;
   static double get elevationMedium => 4;
   static double get elevationHigh => 8;
   static double get elevationVeryHigh => 16;
-
-  // ════════════════════════════════════════════════════════════
-  // ANIMATION DURATIONS
-  // ════════════════════════════════════════════════════════════
 
   static Duration get durationFast => const Duration(milliseconds: 150);
   static Duration get durationNormal => const Duration(milliseconds: 300);

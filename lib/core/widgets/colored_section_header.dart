@@ -1,11 +1,3 @@
-// lib/core/widgets/colored_section_header.dart
-//
-// ✅ الشكل ده مسحوب حرفيًا من _Header بتاعت MoreView (نفس الألوان، الزوايا،
-// والـ AppTextStyles) — مش نسخ لصق، widget واحد مشترك يُستخدم في الاتنين
-// عشان يبقى فيه design system متسق فعليًا، مش مجرد صدفة بصرية.
-//
-// 🔧 لو AppTextStyles.headerTitle/headerSubtitle مختلفين شكلهم عندك، ظبط هنا بس.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
@@ -44,15 +36,12 @@ class ColoredSectionHeader extends StatelessWidget {
         ),
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start, // = يمين في RTL
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(height: context.largeSpacing),
           Row(
             children: [
-              if (leading != null) ...[
-                leading!,
-                context.smallSpacing.hSpace,
-              ],
+              if (leading != null) ...[leading!, context.smallSpacing.hSpace],
               Expanded(
                 child: title.toResponsiveText(
                   context,
@@ -61,10 +50,7 @@ class ColoredSectionHeader extends StatelessWidget {
                   ),
                 ),
               ),
-              if (trailing != null) ...[
-                context.smallSpacing.hSpace,
-                trailing!,
-              ],
+              if (trailing != null) ...[context.smallSpacing.hSpace, trailing!],
             ],
           ),
           SizedBox(height: 4.h),

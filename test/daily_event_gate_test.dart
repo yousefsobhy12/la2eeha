@@ -18,10 +18,7 @@ void main() {
   test('same key 1 hour later is blocked', () async {
     expect(await gate.shouldCount('view:5', now: t0), isTrue);
     expect(
-      await gate.shouldCount(
-        'view:5',
-        now: t0.add(const Duration(hours: 1)),
-      ),
+      await gate.shouldCount('view:5', now: t0.add(const Duration(hours: 1))),
       isFalse,
     );
   });

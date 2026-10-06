@@ -5,8 +5,6 @@ class MenuItem {
   final double price;
   final String? description;
 
-  /// ترتيب العرض — بيفضل مُدار من جانب التاجر (الإضافة/الترتيب بالسحب)
-  /// ومش بيتعدل يدويًا على مستوى الـ item.
   final int sortOrder;
 
   const MenuItem({

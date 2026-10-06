@@ -1,10 +1,3 @@
-// lib/features/merchant/presentation/cubit/add_place_state.dart
-//
-// حالة واحدة فيها كل حاجة — copyWith بنفس شكل AddPlaceCubit المقاصة.
-// الـ _unset sentinel ضروري عشان نقدر نمسح الـ nullable fields (مثلاً
-// removeImage بيمسح imageFile خالص) — لو استخدمنا `??` ببساطة ماكنش
-// ينفع نرجّع أي حاجة لـ null.
-
 import 'dart:io';
 
 import '../../../browse/domain/entities/area.dart';
@@ -28,13 +21,11 @@ enum AddPlaceStatus {
 class AddPlaceState {
   final AddPlaceStatus status;
 
-  /// رسالة الخطأ — متبقاش null وقت الفشل (تحميل الفورم أو الـ submit)
   final String? errorMessage;
 
   final List<Category> categories;
   final List<Area> areas;
 
-  // ── form fields ──
   final String name;
   final int? categoryId;
   final String? subCategory;
@@ -50,19 +41,13 @@ class AddPlaceState {
   final String? closeTime;
   final List<int> closedDays;
 
-  /// لو التاجر فعّل "يعمل ٢٤ ساعة" — الأوقات بتبقى ماسحة (لو كان فيها حاجة)
-  /// والعرض بيخفي حقول الساعات.
   final bool is24Hours;
 
-  /// لو التاجر فعّل "متاح توصيل" — بيظهر بس للأقسام اللي بتسمح بيه
-  /// (AddPlaceCubit.deliveryCategories).
   final bool isDelivery;
 
   final File? imageFile;
   final bool imageUploadFailed;
 
-  /// الـ id اللي رجعه addPlace بعد submit ناجح — بيستخدم في شاشة النجاح
-  /// عشان التاجر يتنقل لشاشة المنيو/الأسعار بتاعة البيزنس الجديد.
   final int? submittedPlaceId;
 
   const AddPlaceState({

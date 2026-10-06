@@ -1,8 +1,3 @@
-// lib/features/merchant/data/repositories/merchant_repository_impl.dart
-//
-// طبقة رفيعة — كل method بيبعت للـ datasource ويلف الاستدعاء في
-// safeSupabaseCall بنفس نمط PlacesRepositoryImpl / AuthRepositoryImpl.
-
 import 'dart:io';
 
 import 'package:dartz/dartz.dart';

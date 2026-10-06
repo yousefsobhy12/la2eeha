@@ -1,10 +1,3 @@
-// lib/features/merchant/presentation/views/menu_pricing_view.dart
-//
-// شاشة إدارة المنيو (أو أسعار التوصيل للمصادر). نفس البنية بتاعة
-// AddPlaceView: هيدر colored + SingleChildScrollView فورم (مش slivers).
-// الـ items بتتقرا من PlacesRepository (RLS-safe للمالك)، الترتيب بيتغيّر
-// بالسحب (ReorderableListView) والتعديلات محلية لحد ما التاجر بحفظ.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -121,7 +114,6 @@ class _MenuPricingViewBodyState extends State<_MenuPricingViewBody> {
         ..hideCurrentSnackBar()
         ..showSnackBar(SnackBar(content: Text(state.successMessage!)));
       cubit.dismissMessages();
-      // بعد حفظ ناجح بنروح الرئيسية (مش بنفضل واقفين على الشاشة).
       context.go('/');
     }
   }

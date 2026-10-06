@@ -1,5 +1,3 @@
-// lib/features/auth/presentation/cubit/verify_email_state.dart
-
 import '../../../../core/errors/failures.dart';
 
 enum VerifyEmailStatus { initial, loading, success, error }
@@ -8,7 +6,6 @@ class VerifyEmailState {
   final VerifyEmailStatus status;
   final Failure? failure;
 
-  /// 0 = resend button enabled, > 0 = countdown active
   final int secondsRemaining;
 
   const VerifyEmailState({

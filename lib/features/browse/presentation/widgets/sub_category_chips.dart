@@ -1,5 +1,3 @@
-// lib/features/browse/presentation/widgets/sub_category_chips.dart
-
 import 'package:flutter/material.dart';
 
 import '../../../../core/constants/sub_category_visuals.dart';

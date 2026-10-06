@@ -13,7 +13,6 @@ Future<void> _launchContactLink(String url) async {
 }
 
 class ContactSheet extends StatelessWidget {
-  /// رسالة جاهزة تتلحق بواتساب — لو null البوتن بيفتح الشات فاضي عادي.
   final String? whatsappMessage;
 
   const ContactSheet({super.key, this.whatsappMessage});
@@ -56,7 +55,7 @@ class ContactSheet extends StatelessWidget {
         _FollowButton(
           icon: AppIcons.facebookIcon,
           label: 'تابعنا على فيسبوك',
-          color: const Color(0xFF1877F2), // Facebook brand blue
+          color: const Color(0xFF1877F2),
           onTap: () => _launchContactLink(ContactLinks.facebookPageUrl),
         ),
       ],
@@ -112,7 +111,11 @@ class _BigActionButton extends StatelessWidget {
                   fontWeight: FontWeight.w700,
                 ),
               ),
-              Icon(Icons.arrow_forward_ios, size: context.tinyIconSize, color: foreground),
+              Icon(
+                Icons.arrow_forward_ios,
+                size: context.tinyIconSize,
+                color: foreground,
+              ),
             ],
           ),
         ),

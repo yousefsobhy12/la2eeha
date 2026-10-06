@@ -1,19 +1,13 @@
-// lib/features/browse/presentation/cubit/search_state.dart
-
 import '../../../../core/errors/failures.dart';
 import '../../domain/entities/place.dart';
 import '../../domain/entities/place_filters.dart';
 
 sealed class SearchState {
-  /// الفلاتر المفعّلة — موجودة على الـ base class عشان كل حالة (الكل مش بس
-  /// الـ loaded) تحملها، فزرار الفلترة في الهيدر يقدر يبني نقطته من أي حالة
-  /// من غير ما يبقى متعلق بـ SearchLoaded.
   final PlaceFilters filters;
 
   const SearchState({this.filters = const PlaceFilters()});
 }
 
-// No query yet, or query is under 2 characters — nothing has been searched.
 class SearchInitial extends SearchState {
   const SearchInitial({super.filters});
 }

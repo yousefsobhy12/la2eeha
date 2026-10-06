@@ -1,10 +1,7 @@
-// lib/features/browse/presentation/views/search_results_view.dart
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
-
 import '../../../../core/errors/failures.dart';
 import '../../../../core/extensions/extensions.dart';
 import '../../../../core/widgets/custom_button.dart';
@@ -74,9 +71,6 @@ class _SearchResultsBodyState extends State<_SearchResultsBody> {
       body: SafeArea(
         child: Column(
           children: [
-            // Custom Header — BlocBuilder حوالينه كله عشان زرار الفلترة يبقى
-            // يبني نقطته في أي حالة (Searching/Loading/Error/Loaded) وميحتاجش
-            // الحالة تكون Loaded.
             BlocBuilder<SearchCubit, SearchState>(
               builder: (context, state) {
                 return Container(
@@ -159,14 +153,10 @@ class _SearchResultsBodyState extends State<_SearchResultsBody> {
                       PlaceFiltersButton(
                         filters: state.filters,
                         onPressed: () {
-                          // بنمسك الـ Cubit قبل ما نفتح الشيت — جواه الـ
-                          // context بتاع الشيت نفسه.
                           final cubit = context.read<SearchCubit>();
                           PlaceFiltersSheet.show(
                             context,
                             initial: cubit.filters,
-                            // شاشة البحث مش قايدة على قسم واحد، ففلتر
-                            // التوصيل معروض دايماً.
                             showDelivery: true,
                             onChanged: cubit.applyFilters,
                           );
@@ -177,7 +167,6 @@ class _SearchResultsBodyState extends State<_SearchResultsBody> {
                 );
               },
             ),
-            // Body
             Expanded(
               child: BlocBuilder<SearchCubit, SearchState>(
                 builder: (context, state) {
@@ -222,8 +211,6 @@ class _SearchResultsBodyState extends State<_SearchResultsBody> {
           children: [
             Icon(Icons.search_off_rounded, size: 48, color: context.iconColor),
             context.smallSpacing.vSpace,
-            // فرق مهم في الرسالة: "مفيش نتايج" غير "مفيش نتايج بالفلاتر دي" —
-            // والتانية محتاجة زرار يمسح الفلتر ويرجّع كل نتايج البحث.
             if (state.filters.isActive)
               'مفيش نتايج لـ "${state.query}" بالفلاتر دي'.toBody(
                 context,

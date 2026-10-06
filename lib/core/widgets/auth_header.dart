@@ -1,8 +1,3 @@
-// lib/core/widgets/auth_header.dart
-//
-// هيدر مخصص لشاشات الـ Auth (Login / Register / Verify Email).
-// مختلف عن ColoredSectionHeader — النص هنا centered والوردمارك أكبر.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
@@ -10,12 +5,8 @@ import '../extensions/extensions.dart';
 import '../theme/app_fonts.dart';
 
 class AuthHeader extends StatelessWidget {
-  /// true → shows "بوابة أصحاب الأماكن" subtitle (Login/Register).
-  /// false → no subtitle (Verify Email).
   final bool showSubtitle;
 
-  /// null → no back button (Login/Register).
-  /// non-null → back chevron at the top-start corner (Verify Email).
   final VoidCallback? onBack;
 
   const AuthHeader({super.key, this.showSubtitle = true, this.onBack});
@@ -37,7 +28,6 @@ class AuthHeader extends StatelessWidget {
       ),
       child: Stack(
         children: [
-          // ── Back chevron (optional) ──
           if (onBack != null)
             PositionedDirectional(
               top: 0,
@@ -45,14 +35,13 @@ class AuthHeader extends StatelessWidget {
               child: IconButton(
                 onPressed: onBack,
                 icon: Icon(
-                  Icons.arrow_back_ios_new_rounded, // RTL-aware — points "back"
+                  Icons.arrow_back_ios_new_rounded,
                   color: context.colorScheme.onPrimary,
                   size: context.largeIconSize,
                 ),
               ),
             ),
 
-          // ── Centered content ──
           Center(
             child: Column(
               mainAxisSize: MainAxisSize.min,

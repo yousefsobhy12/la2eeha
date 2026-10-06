@@ -50,42 +50,40 @@ class _ForgotPasswordViewBodyState extends State<_ForgotPasswordViewBody> {
       backgroundColor: context.pageBackground,
       body: Column(
         children: [
-          AuthHeader(
-            showSubtitle: false,
-            onBack: () => context.pop(),
-          ),
+          AuthHeader(showSubtitle: false, onBack: () => context.pop()),
           Expanded(
             child: SingleChildScrollView(
               padding: context.pagePadding,
               child: Column(
                 children: [
                   SizedBox(height: context.mediumSpacing),
-                  // ── Main Card ──
                   Container(
                     padding: context.cardPadding,
                     decoration: BoxDecoration(
                       color: context.surfaceColor,
-                      borderRadius:
-                          BorderRadius.circular(context.extraLargeRadius),
-                      border:
-                          Border.all(color: context.borderColor, width: 1.2),
+                      borderRadius: BorderRadius.circular(
+                        context.extraLargeRadius,
+                      ),
+                      border: Border.all(
+                        color: context.borderColor,
+                        width: 1.2,
+                      ),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         'استعادة كلمة السر'.toResponsiveText(
                           context,
-                          style:
-                              AppTextStyles.cardTitle(context.textPrimary),
+                          style: AppTextStyles.cardTitle(context.textPrimary),
                         ),
                         SizedBox(height: context.smallSpacing),
                         'اكتب إيميلك وهنبعتلك كود لتغيير كلمة السر'
                             .toResponsiveText(
-                          context,
-                          style: AppTextStyles.bodyRegular13(
-                            context.textSecondary,
-                          ),
-                        ),
+                              context,
+                              style: AppTextStyles.bodyRegular13(
+                                context.textSecondary,
+                              ),
+                            ),
                         SizedBox(height: context.mediumSpacing),
                         Form(
                           key: _formKey,
@@ -97,8 +95,7 @@ class _ForgotPasswordViewBodyState extends State<_ForgotPasswordViewBody> {
                                 labelText: 'الإيميل',
                                 keyboardType: TextInputType.emailAddress,
                                 validator: (value) {
-                                  if (value == null ||
-                                      value.trim().isEmpty) {
+                                  if (value == null || value.trim().isEmpty) {
                                     return 'برجاء إدخال الإيميل';
                                   }
                                   if (!value.contains('@') ||
@@ -109,25 +106,22 @@ class _ForgotPasswordViewBodyState extends State<_ForgotPasswordViewBody> {
                                 },
                               ),
                               SizedBox(height: context.mediumSpacing),
-                              BlocConsumer<ForgotPasswordCubit,
-                                  ForgotPasswordState>(
+                              BlocConsumer<
+                                ForgotPasswordCubit,
+                                ForgotPasswordState
+                              >(
                                 listenWhen: (previous, current) =>
-                                    previous.runtimeType !=
-                                    current.runtimeType,
+                                    previous.runtimeType != current.runtimeType,
                                 listener: (context, state) {
                                   if (state is ForgotPasswordSuccess) {
                                     context.push(
                                       '/reset-otp',
                                       extra: _emailController.text.trim(),
                                     );
-                                  } else if (state
-                                      is ForgotPasswordError) {
-                                    ScaffoldMessenger.of(context)
-                                        .showSnackBar(
+                                  } else if (state is ForgotPasswordError) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
-                                        content: Text(
-                                          state.failure.message,
-                                        ),
+                                        content: Text(state.failure.message),
                                       ),
                                     );
                                   }
@@ -135,16 +129,13 @@ class _ForgotPasswordViewBodyState extends State<_ForgotPasswordViewBody> {
                                 builder: (context, state) {
                                   return CustomElevatedButton(
                                     text: 'إرسال الكود',
-                                    isLoading:
-                                        state is ForgotPasswordLoading,
+                                    isLoading: state is ForgotPasswordLoading,
                                     onPressed: () {
-                                      if (_formKey.currentState!
-                                          .validate()) {
+                                      if (_formKey.currentState!.validate()) {
                                         context
                                             .read<ForgotPasswordCubit>()
                                             .sendResetCode(
-                                              _emailController.text
-                                                  .trim(),
+                                              _emailController.text.trim(),
                                             );
                                       }
                                     },
@@ -155,8 +146,7 @@ class _ForgotPasswordViewBodyState extends State<_ForgotPasswordViewBody> {
                                     borderRadius: context.largeRadius,
                                     boxShadow: const [
                                       BoxShadow(
-                                        color:
-                                            AppColors.primaryPressedShadow,
+                                        color: AppColors.primaryPressedShadow,
                                         offset: Offset(0, 3),
                                         blurRadius: 0,
                                       ),
@@ -180,4 +170,3 @@ class _ForgotPasswordViewBodyState extends State<_ForgotPasswordViewBody> {
     );
   }
 }
-

@@ -1,23 +1,5 @@
-// lib/features/browse/presentation/views/home_view.dart
-//
-// ✅ الهيدر بقى ColoredSectionHeader المشترك (نفس ستايل More View بالظبط)،
-// ثابت برّه الـ BlocBuilder — يعني بيبان فورًا حتى وقت التحميل، ومش بيتغطى
-// بالـ skeleton. الـ SafeArea(top: false) لأن الهيدر نفسه هو اللي بيدّي
-// المساحة اللي فوق الـ status bar (زي More View بالظبط).
-//
-// 🔧 البادي بقى CustomScrollView + Slivers بدل SingleChildScrollView > Column —
-// أحسن في الأداء (lazy building) ومفيش nested scrollables (shrinkWrap).
-// الأقسام بتتبني كـ slivers: HomeSearchBar (SliverToBoxAdapter)،
-// CategoryGrid (SliverGrid)، PromotionsCarousel (SliverToBoxAdapter)،
-// MostVisitedSection (سلفي نفسه SliverMainAxisGroup).
-//
-// ⚠️ AllPlacesSection اتشال من الـ home خالص — بيانات الـ getAllPlacesPreview
-// بقت موجودة في الـ repository بس، مش بتتبعت في loadHome()، وشاشة
-// "كل الأماكن" (/places) هي اللي بتعرضها.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
 import '../../../../core/extensions/extensions.dart';
 import '../../../../core/widgets/colored_section_header.dart';
 import '../../data/datasource/places_remote_datasource.dart';
@@ -99,7 +81,6 @@ class _HomeViewBody extends StatelessWidget {
                         padding: context.pagePadding,
                         sliver: SliverMainAxisGroup(
                           slivers: [
-                            // ─── Search bar ───
                             SliverPadding(
                               padding: EdgeInsets.only(top: context.vSpacing),
                               sliver: SliverToBoxAdapter(
@@ -107,7 +88,6 @@ class _HomeViewBody extends StatelessWidget {
                               ),
                             ),
 
-                            // ─── Categories grid ───
                             SliverPadding(
                               padding: EdgeInsets.only(
                                 top: context.largeSpacing,
@@ -117,7 +97,6 @@ class _HomeViewBody extends StatelessWidget {
                               ),
                             ),
 
-                            // ─── Promotions carousel ───
                             SliverPadding(
                               padding: EdgeInsets.only(
                                 top: context.largeSpacing,
@@ -132,7 +111,6 @@ class _HomeViewBody extends StatelessWidget {
                               ),
                             ),
 
-                            // ─── Most visited (vertical list w/ rank badges) ───
                             SliverPadding(
                               padding: EdgeInsets.only(
                                 top: context.largeSpacing,
@@ -145,7 +123,6 @@ class _HomeViewBody extends StatelessWidget {
                               ),
                             ),
 
-                            // ─── Bottom padding (floating nav bar) ───
                             SliverToBoxAdapter(
                               child: SizedBox(
                                 height: context.extraLargeSpacing * 2,

@@ -1,10 +1,3 @@
-// lib/features/merchant/presentation/views/sports_pricing_view.dart
-//
-// شاشة أسعار الساعة للملاعب (Sports). نفس البنية بتاعة MenuPricingView:
-// هيدر colored + بانر معلومات + قائمة فترات (ReorderableListView بالعقلة) +
-// فورم (preset + عقارب ساعة + سعر + وصف) وزر حفظ في الآخر. Label الفترة
-// بيتحسب من startTime الفعلي للصف (periodLabel) مش من الـ preset.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -120,7 +113,6 @@ class _SportsPricingViewBodyState extends State<_SportsPricingViewBody> {
         ..hideCurrentSnackBar()
         ..showSnackBar(SnackBar(content: Text(state.successMessage!)));
       cubit.dismissMessages();
-      // بعد حفظ ناجح بنروح الرئيسية (مش بنفضل واقفين على الشاشة).
       context.go('/');
     }
   }
@@ -160,7 +152,6 @@ class _SportsPricingViewBodyState extends State<_SportsPricingViewBody> {
               leading: IconButton(
                 icon: const Icon(Icons.arrow_back_ios_new_rounded),
                 color: context.colorScheme.onPrimary,
-                // onPressed: () => context.pop(),
                 onPressed: () =>
                     context.canPop() ? context.pop() : context.go('/'),
               ),

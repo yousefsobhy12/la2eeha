@@ -1,16 +1,4 @@
-// lib/features/browse/presentation/widgets/home_skeleton.dart
-//
-// ✅ بديل الـ CircularProgressIndicator العادي — شكل هيكلي (skeleton) بيلمع
-// وقت التحميل، بيستخدم shimmerLoop() الجاهزة أصلاً في animation_extension.dart
-// (مفيش package جديد). مبيغطيش الهيدر — الهيدر الملون (ColoredSectionHeader)
-// ثابت برّه الـ BlocBuilder وبيبان فورًا.
-//
-// 🔧 الـ skeleton بيتبع ترتيب الصفحة: search bar، شبكة الكاتيجوريات،
-// placeholder للكاروسيل الترويجي (16:9)، ثم عنوان + 3 كروت أماكن عمودية
-// زي قسم "الأكثر زيارة" الجديد.
-
 import 'package:flutter/material.dart';
-
 import '../../../../core/extensions/extensions.dart';
 
 class HomeSkeleton extends StatelessWidget {
@@ -56,7 +44,6 @@ class HomeSkeleton extends StatelessWidget {
               ),
             ),
           ),
-          // Placeholder للكاروسيل الترويجي — 16:9 زي PromotionsCarousel بالظبط
           AspectRatio(
             aspectRatio: 16 / 9,
             child: _Bone(
@@ -96,11 +83,7 @@ class _Bone extends StatelessWidget {
   final double height;
   final double radius;
 
-  const _Bone({
-    required this.width,
-    required this.height,
-    this.radius = 8,
-  }); // radius default is overridden at call sites
+  const _Bone({required this.width, required this.height, this.radius = 8});
 
   @override
   Widget build(BuildContext context) {

@@ -1,5 +1,3 @@
-/// تحويل تاريخ لعمارة نصية نسبية بالعربي (بأرقام غربية):
-/// "امبارح"، "من 3 أيام"، "من شهرين"، "من سنة"...
 extension RelativeTimeFormat on DateTime {
   String toRelativeArabic({DateTime? now}) {
     final diff = (now ?? DateTime.now()).difference(this);

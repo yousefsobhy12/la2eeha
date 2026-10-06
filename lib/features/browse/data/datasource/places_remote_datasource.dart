@@ -1,10 +1,3 @@
-// lib/features/browse/data/datasource/places_remote_datasource.dart
-//
-// دي الطبقة الوحيدة اللي فعليًا بتكلم Supabase مباشرة.
-// بترجع Models (مش entities) لأنها لسه في الـ data layer.
-// الـ exceptions (PostgrestException, AuthException...) بتطلع naturally
-// من هنا — الـ safeSupabaseCall في الـ Repository هو اللي بيمسكها.
-
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../core/network/supabase_client_provider.dart';
@@ -50,8 +43,6 @@ class PlacesRemoteDataSource {
     return (response as List).map((json) => PlaceModel.fromJson(json)).toList();
   }
 
-  // العروض الترويجية: مفيش فلترة بالتاريخ ولا بـ is_active هنا — سياسات
-  // الـ RLS في Supabase بترجّع الصفوف الحيّة بس، فالـ query بيبقى نضيف.
   Future<List<PromotionModel>> getLivePromotions() async {
     final response = await supabase
         .from('promotions')
@@ -77,8 +68,6 @@ class PlacesRemoteDataSource {
     if (subCategory != null) {
       query = query.eq('sub_category', subCategory);
     }
-    // الفلاتر بتتعمل قبل الـ order/-range — نفس الترتيب في الـ count
-    // عشان الـ totalCount يطلع مطابق للقايمة.
     if (filters.openNow) {
       query = query.eq('is_open_now', true);
     }
@@ -117,8 +106,6 @@ class PlacesRemoteDataSource {
     if (subCategory != null) {
       query = query.eq('sub_category', subCategory);
     }
-    // نفس شروط الفلترة بتاعة getCategoryPlaces بالظبط — غير كده الـ count
-    // هيبقى عدد تاني غير عدد الصفوف اللي المستخدم شايفها.
     if (filters.openNow) {
       query = query.eq('is_open_now', true);
     }
@@ -182,10 +169,6 @@ class PlacesRemoteDataSource {
     return (response as List).map((json) => PlaceModel.fromJson(json)).toList();
   }
 
-  // بيبني شرط الـ or() بتاع البحث على العمود المُطبَّع search_text (اسم + عنوان،
-  // مطبَّع في الـ DB بـ normalize_arabic()). كل كلمة في الـ query لازم تكون
-  // موجودة (AND)، + (لو موجودة) المناطق المطابقة.
-  // areaIds بتتحسب في الـ Cubit من كاش محلي — مفيش أي query إضافية هنا.
   String _buildSearchFilter(List<String> words, List<int> areaIds) {
     final wordFilters = [for (final w in words) 'search_text.ilike.%$w%'];
     var filter = wordFilters.length == 1
@@ -208,8 +191,6 @@ class PlacesRemoteDataSource {
     if (words.isEmpty) return [];
     final filter = _buildSearchFilter(words, areaIds);
 
-    // بنفصل الـ .or() في متغير عشان نضيف شروط الفلاتر بعده — الـ .eq() بتاعة
-    // الفلاتر بتتعمل AND مع شرط البحث نفسه.
     var searchQuery = supabase.from('places').select().or(filter);
     if (filters.openNow) {
       searchQuery = searchQuery.eq('is_open_now', true);
@@ -234,8 +215,6 @@ class PlacesRemoteDataSource {
     if (words.isEmpty) return 0;
     final filter = _buildSearchFilter(words, areaIds);
 
-    // نفس شروط searchPlaces بالظبط عشان الـ count يبقى عدد نتائج البحث
-    // بعد تطبيق الفلاتر.
     var searchQuery = supabase.from('places').select().or(filter);
     if (filters.openNow) {
       searchQuery = searchQuery.eq('is_open_now', true);
@@ -248,8 +227,6 @@ class PlacesRemoteDataSource {
     return response.count;
   }
 
-  // تسجيل حدث على المكان — call خام بيرمي على أي error (زي باقي الميثودز)
-  // والـ safeSupabaseCall في الـ Repository هو اللي بيمسكه ويسجّله.
   Future<void> trackPlaceEvent({
     required int placeId,
     required String event,

@@ -1,9 +1,3 @@
-// lib/features/merchant/presentation/views/add_place_view.dart
-//
-// شاشة إضافة بيزنس جديد — فورم طويل واحدة (SingleChildScrollView، مش slivers)
-// بنفس design system بتاع باقي التطبيق: ColoredSectionHeader فوق +
-// CustomTextFormField/CustomElevatedButton في النص.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -53,17 +47,11 @@ class _AddPlaceViewBodyState extends State<_AddPlaceViewBody> {
   bool _showingSuccessDialog = false;
   final _formKey = GlobalKey<FormState>();
 
-  // القيم الثابتة بتاعة الـ sub-categories للكاتيجوريز المعروفة.
-  // Hardcoded عمدًا — مش بندور عليها في Supabase ولا بنستنتجها من الأسماء.
-  // الـ 22/26 قيمهم عربية مقصودة (free text زي ما بيتخزن في Supabase فعلًا).
-  // الـ Sports (27) مخزّنة بمفاتيح إنجليزية عشان SubCategoryVisuals/
-  // PlaceDetailCubit بيتعاملوا بيها — العربية للعرض بس.
   static const Map<int, List<String>> _subCategoryOptions = {
     22: ['مطعم', 'كافيه', 'حلواني'],
     26: ['بقالة', 'فراخ', 'جزارة'],
   };
 
-  /// Sports: الـ key (المخزّن في sub_category) ← الـ label العربي المعروض.
   static const Map<String, String> _sportsSubCategories = {
     'football': 'ملاعب كورة',
     'padel': 'ملاعب بادل',
@@ -125,7 +113,6 @@ class _AddPlaceViewBodyState extends State<_AddPlaceViewBody> {
         ? 'تمت الإضافة! بيزنسك دلوقتي قيد المراجعة ⚠️ الصورة مقدرناش نرفعها — هتقدر تضيفها بعدين من صفحة أعمالي'
         : 'تمت الإضافة! بيزنسك دلوقتي قيد المراجعة';
 
-    // حسب الكاتيجوري، ممكن نقفل الدايلوج وندخل الشاشة المناسبة للمنيو/الأسعار.
     final categoryId = state.categoryId;
     final screenType = categoryId == null
         ? PlacePricingScreenType.none
@@ -155,9 +142,6 @@ class _AddPlaceViewBodyState extends State<_AddPlaceViewBody> {
       barrierDismissible: false,
       builder: (dialogContext) {
         return AlertDialog(
-          // ResponsiveText (.toHeadline) مبني على LayoutBuilder اللي
-          // مش بيتحسب داخل AlertDialog's intrinsic sizing — فباقي
-          // الـ dialog كله بـ Text عادي.
           title: Text(
             'تمام!',
             style: TextStyle(
@@ -182,8 +166,6 @@ class _AddPlaceViewBodyState extends State<_AddPlaceViewBody> {
                 onPressed: () {
                   _showingSuccessDialog = false;
                   Navigator.of(dialogContext).pop();
-                  // pushReplacement بدل push — عشان زر الرجوع على شاشة
-                  // المنيو/الأسعار ميرجعش تاني على شاشة إضافة البيزنس.
                   context.pushReplacement(
                     nextAction.path,
                     extra: PricingArgs(
@@ -214,10 +196,6 @@ class _AddPlaceViewBodyState extends State<_AddPlaceViewBody> {
           case AddPlaceStatus.success:
             _showSuccessDialog(context, state);
           case AddPlaceStatus.error:
-            // لو الحالة error والـ form لسه عندها داتا (categories/areas)،
-            // يبقى ده validation أو فشل submit → رسالة snackbar.
-            // لو مفيش داتا، ده فشل في تحميل الـ form → شاشة الـ retry هي
-            // اللي بتعرض الرسالة من غير snackbar.
             if (state.errorMessage != null &&
                 (state.categories.isNotEmpty || state.areas.isNotEmpty)) {
               ScaffoldMessenger.of(context)
@@ -326,8 +304,9 @@ class _AddPlaceViewBodyState extends State<_AddPlaceViewBody> {
             _buildTimesSection(context, state),
             context.mediumSpacing.vSpace,
             _buildClosedDaysSection(context, state),
-            // التوصيل بيظهر للأقسام اللي بتقبله بس (deliveryCategories).
-            if (AddPlaceCubit.deliveryCategories.contains(state.categoryId)) ...[
+            if (AddPlaceCubit.deliveryCategories.contains(
+              state.categoryId,
+            )) ...[
               context.mediumSpacing.vSpace,
               _buildDeliverySection(context, state),
             ],
@@ -374,7 +353,6 @@ class _AddPlaceViewBodyState extends State<_AddPlaceViewBody> {
     );
   }
 
-  // ── 1. Name ──
   Widget _buildNameField(BuildContext context, AddPlaceState state) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -392,7 +370,6 @@ class _AddPlaceViewBodyState extends State<_AddPlaceViewBody> {
     );
   }
 
-  // ── 2. Category ──
   Widget _buildCategoryField(BuildContext context, AddPlaceState state) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -401,10 +378,7 @@ class _AddPlaceViewBodyState extends State<_AddPlaceViewBody> {
         DropdownButtonFormField<int>(
           initialValue: state.categoryId,
           isExpanded: true,
-          decoration: _dropdownDecoration(
-            'اختار الكاتيجوري',
-            // hint: 'اختار الكاتيجوري',
-          ),
+          decoration: _dropdownDecoration('اختار الكاتيجوري'),
           items: [
             for (final category in state.categories)
               DropdownMenuItem(
@@ -439,7 +413,6 @@ class _AddPlaceViewBodyState extends State<_AddPlaceViewBody> {
     );
   }
 
-  // ── 3. Sub-category (فقط للكاتيجوريز المعروفة) ──
   Widget _buildSubCategorySection(BuildContext context, AddPlaceState state) {
     final categoryId = state.categoryId!;
     final isSports = categoryId == 27;
@@ -458,10 +431,7 @@ class _AddPlaceViewBodyState extends State<_AddPlaceViewBody> {
               ? _otherSubCategoryMarker
               : state.subCategory,
           isExpanded: true,
-          decoration: _dropdownDecoration(
-            'اختار النوع',
-            // hint: 'اختار النوع'
-          ),
+          decoration: _dropdownDecoration('اختار النوع'),
           items: [
             for (final option in fixedOptions)
               DropdownMenuItem(
@@ -476,16 +446,11 @@ class _AddPlaceViewBodyState extends State<_AddPlaceViewBody> {
           onChanged: (value) {
             final cubit = context.read<AddPlaceCubit>();
             if (value == _otherSubCategoryMarker) {
-              // التاجر اختار "أخرى" — السباب-كاتيجوري هيتكتب في الحقل اللي
-              // بيظهر. بنحط قيمة فاضية عشان الـ validator يتعامل مع الـ text
-              // field (وليس الـ dropdown).
               cubit.updateSubCategory('');
             } else {
               cubit.updateSubCategory(value);
             }
           },
-          // لو التاجر شغال بوضع "أخرى" (الـ text field شغال)، الـ validator
-          // بتاع الـ dropdown بيحيّد نفسه — السؤال بيبقى على النسخة المكتوبة.
           validator: (_) {
             if (isOtherSelected) return null;
             if (state.subCategory == null ||
@@ -510,7 +475,6 @@ class _AddPlaceViewBodyState extends State<_AddPlaceViewBody> {
     );
   }
 
-  // ── 4. Area ──
   Widget _buildAreaField(BuildContext context, AddPlaceState state) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -521,10 +485,7 @@ class _AddPlaceViewBodyState extends State<_AddPlaceViewBody> {
               ? _otherAreaMarker
               : state.areaId,
           isExpanded: true,
-          decoration: _dropdownDecoration(
-            'اختار المنطقة',
-            // hint: 'اختار المنطقة',
-          ),
+          decoration: _dropdownDecoration('اختار المنطقة'),
           items: [
             for (final area in state.areas)
               DropdownMenuItem(value: area.id, child: Text(area.nameAr)),
@@ -564,7 +525,6 @@ class _AddPlaceViewBodyState extends State<_AddPlaceViewBody> {
     );
   }
 
-  // ── 5. Address ──
   Widget _buildAddressField(BuildContext context, AddPlaceState state) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -583,7 +543,6 @@ class _AddPlaceViewBodyState extends State<_AddPlaceViewBody> {
     );
   }
 
-  // ── 6. Phone ──
   Widget _buildPhoneField(BuildContext context, AddPlaceState state) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -608,7 +567,6 @@ class _AddPlaceViewBodyState extends State<_AddPlaceViewBody> {
     );
   }
 
-  // ── 7. WhatsApp ──
   Widget _buildWhatsappField(BuildContext context, AddPlaceState state) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -633,7 +591,6 @@ class _AddPlaceViewBodyState extends State<_AddPlaceViewBody> {
     );
   }
 
-  // ── 8. Google Maps ──
   Widget _buildGoogleMapsField(BuildContext context, AddPlaceState state) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -650,7 +607,6 @@ class _AddPlaceViewBodyState extends State<_AddPlaceViewBody> {
     );
   }
 
-  // ── 9. Description ──
   Widget _buildDescriptionField(BuildContext context, AddPlaceState state) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -668,7 +624,6 @@ class _AddPlaceViewBodyState extends State<_AddPlaceViewBody> {
     );
   }
 
-  // ── 10. Open/Close times ──
   Widget _buildTimesSection(BuildContext context, AddPlaceState state) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -702,7 +657,6 @@ class _AddPlaceViewBodyState extends State<_AddPlaceViewBody> {
             ],
           ),
         ),
-        // في وضع ٢٤ ساعة بنخفي حقول الساعات خالص — الأوقات مش مطلوبة.
         if (!state.is24Hours) ...[
           context.smallSpacing.vSpace,
           Row(
@@ -749,7 +703,6 @@ class _AddPlaceViewBodyState extends State<_AddPlaceViewBody> {
     );
   }
 
-  // ── 11. Closed days ──
   Widget _buildClosedDaysSection(BuildContext context, AddPlaceState state) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -793,7 +746,6 @@ class _AddPlaceViewBodyState extends State<_AddPlaceViewBody> {
     );
   }
 
-  // ── 12. Delivery (فقط للأقسام اللي بتقبله) ──
   Widget _buildDeliverySection(BuildContext context, AddPlaceState state) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -828,7 +780,6 @@ class _AddPlaceViewBodyState extends State<_AddPlaceViewBody> {
     );
   }
 
-  // ── 13. Cover photo ──
   Widget _buildCoverPhoto(BuildContext context, AddPlaceState state) {
     final image = state.imageFile;
     return Column(
@@ -901,7 +852,6 @@ class _AddPlaceViewBodyState extends State<_AddPlaceViewBody> {
     );
   }
 
-  // ── 14. Submit ──
   Widget _buildSubmitButton(BuildContext context) {
     return BlocBuilder<AddPlaceCubit, AddPlaceState>(
       builder: (context, state) {
@@ -909,8 +859,6 @@ class _AddPlaceViewBodyState extends State<_AddPlaceViewBody> {
           text: 'احفظ البيزنس',
           isLoading: state.status == AddPlaceStatus.submitting,
           onPressed: () {
-            // لو فيه حقول غلط، نوقف هنا ونخلي الأخطاء تبان تحت الحقول —
-            // من غير ما نبعت submit أصلاً.
             if (!(_formKey.currentState?.validate() ?? false)) return;
             context.read<AddPlaceCubit>().submit();
           },

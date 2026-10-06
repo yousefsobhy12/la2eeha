@@ -1,16 +1,8 @@
-// lib/features/auth/data/datasource/auth_remote_datasource.dart
-//
-// دي الطبقة الوحيدة اللي بتكلم Supabase Auth مباشرة.
-// الـ methods هنا بترمي exceptions عادي — الـ safeSupabaseCall في الـ
-// Repository هو اللي بيمسكها ويحولها لـ AuthFailure.
-
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../core/network/supabase_client_provider.dart';
 
-/// Guard flag so `GoogleSignIn.instance.initialize()` is called only once
-/// per app session, as required by the package docs.
 bool _googleSignInInitialized = false;
 
 class AuthRemoteDataSource {
@@ -25,10 +17,6 @@ class AuthRemoteDataSource {
       data: {'name': name},
     );
 
-    // Supabase's email-enumeration protection: signUp() succeeds silently
-    // (no exception, fake metadata, no email sent) when the email already
-    // exists and is confirmed. An empty `identities` list is the documented
-    // way to detect this case and treat it as "already registered".
     if (response.user != null &&
         (response.user!.identities?.isEmpty ?? false)) {
       throw const AuthException('User already registered');
@@ -86,7 +74,6 @@ class AuthRemoteDataSource {
       googleUser = await googleSignIn.authenticate();
     } on GoogleSignInException catch (e) {
       if (e.code == GoogleSignInExceptionCode.canceled) {
-        // User cancelled the Google account picker — not an error.
         return false;
       }
       rethrow;

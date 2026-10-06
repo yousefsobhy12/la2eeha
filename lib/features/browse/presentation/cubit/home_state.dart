@@ -1,5 +1,3 @@
-// lib/features/browse/presentation/cubit/home_state.dart
-
 import '../../../../core/errors/failures.dart';
 import '../../domain/entities/category.dart';
 import '../../domain/entities/place.dart';
@@ -21,8 +19,6 @@ class HomeLoaded extends HomeState {
   final List<Category> categories;
   final List<Place> mostVisited;
 
-  /// العروض الترويجية الحيّة. فاضي معناها إن مفيش عروض شغالة دلوقتي —
-  /// الـ UI بيعرض CTA بدال الـ carousel. مش معناها error.
   final List<Promotion> promotions;
   final Map<int, String> categoryNameById;
   final Map<int, String> categoryIconById;
