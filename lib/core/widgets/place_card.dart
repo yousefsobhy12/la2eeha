@@ -106,7 +106,7 @@ class PlaceCard extends StatelessWidget {
                 Container(
                   width: 20,
                   decoration: BoxDecoration(
-                    color: Colors.pink,
+                    color: visual.color,
                     borderRadius: BorderRadiusDirectional.only(
                       topStart: Radius.circular(context.mediumRadius),
                       bottomStart: Radius.circular(context.mediumRadius),

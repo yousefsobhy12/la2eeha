@@ -205,8 +205,8 @@ class AddPlaceCubit extends Cubit<AddPlaceState> {
     try {
       final xfile = await ImagePicker().pickImage(
         source: ImageSource.gallery,
-        maxWidth: 1080,
-        imageQuality: 75,
+        maxWidth: 720,
+        imageQuality: 70,
       );
       if (xfile == null) return;
       emit(state.copyWith(imageFile: File(xfile.path)));

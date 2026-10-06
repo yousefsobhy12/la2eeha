@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -286,35 +287,42 @@ class _PlaceDetailBody extends StatelessWidget {
     CategoryVisual visual,
   ) {
     final double headerHeight = 220.h;
+    final bool hasImage = place.imageUrl != null && place.imageUrl!.isNotEmpty;
+
+    final Widget fallback = Container(
+      width: double.infinity,
+      height: headerHeight,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            visual.color.withValues(alpha: 0.35),
+            visual.color.withValues(alpha: 0.12),
+          ],
+          begin: AlignmentDirectional.topStart,
+          end: AlignmentDirectional.bottomEnd,
+        ),
+      ),
+      child: Center(
+        child: Icon(visual.icon, size: 64.r, color: visual.color),
+      ),
+    );
 
     return Stack(
       children: [
         Container(
           width: double.infinity,
           height: headerHeight,
-          decoration: BoxDecoration(
-            gradient: place.imageUrl != null && place.imageUrl!.isNotEmpty
-                ? null
-                : LinearGradient(
-                    colors: [
-                      visual.color.withValues(alpha: 0.35),
-                      visual.color.withValues(alpha: 0.12),
-                    ],
-                    begin: AlignmentDirectional.topStart,
-                    end: AlignmentDirectional.bottomEnd,
-                  ),
-            image: place.imageUrl != null && place.imageUrl!.isNotEmpty
-                ? DecorationImage(
-                    image: NetworkImage(place.imageUrl!),
-                    fit: BoxFit.cover,
-                  )
-                : null,
-          ),
-          child: place.imageUrl == null || place.imageUrl!.isEmpty
-              ? Center(
-                  child: Icon(visual.icon, size: 64.r, color: visual.color),
+          child: hasImage
+              ? CachedNetworkImage(
+                  imageUrl: place.imageUrl!,
+                  width: double.infinity,
+                  height: headerHeight,
+                  fit: BoxFit.cover,
+                  memCacheWidth: 800,
+                  placeholder: (_, _) => fallback,
+                  errorWidget: (_, _, _) => fallback,
                 )
-              : null,
+              : fallback,
         ),
 
         Positioned(

@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -84,6 +85,34 @@ class _SimilarPlaceCard extends StatelessWidget {
       place.subCategory,
       fallback: categoryName,
     );
+    final bool hasImage = place.imageUrl != null && place.imageUrl!.isNotEmpty;
+    final BorderRadius headerRadius = BorderRadius.only(
+      topLeft: Radius.circular(context.mediumRadius),
+      topRight: Radius.circular(context.mediumRadius),
+    );
+
+    final Widget fallback = Container(
+      height: context.mostVisitedHeaderHeight,
+      width: double.infinity,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            visual.color.withValues(alpha: 0.22),
+            visual.color.withValues(alpha: 0.10),
+          ],
+          begin: AlignmentDirectional.topStart,
+          end: AlignmentDirectional.bottomEnd,
+        ),
+        borderRadius: headerRadius,
+      ),
+      child: Center(
+        child: Icon(
+          visual.icon,
+          color: visual.color,
+          size: context.largeIconSize,
+        ),
+      ),
+    );
 
     return Material(
       color: context.cardColor,
@@ -112,42 +141,20 @@ class _SimilarPlaceCard extends StatelessWidget {
             children: [
               Stack(
                 children: [
-                  Container(
-                    height: context.mostVisitedHeaderHeight,
-                    decoration: BoxDecoration(
-                      gradient:
-                          place.imageUrl != null && place.imageUrl!.isNotEmpty
-                          ? null
-                          : LinearGradient(
-                              colors: [
-                                visual.color.withValues(alpha: 0.22),
-                                visual.color.withValues(alpha: 0.10),
-                              ],
-                              begin: AlignmentDirectional.topStart,
-                              end: AlignmentDirectional.bottomEnd,
-                            ),
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(context.mediumRadius),
-                        topRight: Radius.circular(context.mediumRadius),
-                      ),
-                      image:
-                          place.imageUrl != null && place.imageUrl!.isNotEmpty
-                          ? DecorationImage(
-                              image: NetworkImage(place.imageUrl!),
-                              fit: BoxFit.cover,
-                            )
-                          : null,
-                    ),
-                    child: place.imageUrl == null || place.imageUrl!.isEmpty
-                        ? Center(
-                            child: Icon(
-                              visual.icon,
-                              color: visual.color,
-                              size: context.largeIconSize,
-                            ),
-                          )
-                        : null,
-                  ),
+                  hasImage
+                      ? ClipRRect(
+                          borderRadius: headerRadius,
+                          child: CachedNetworkImage(
+                            imageUrl: place.imageUrl!,
+                            width: double.infinity,
+                            height: context.mostVisitedHeaderHeight,
+                            fit: BoxFit.cover,
+                            memCacheWidth: 300,
+                            placeholder: (_, _) => fallback,
+                            errorWidget: (_, _, _) => fallback,
+                          ),
+                        )
+                      : fallback,
                   PositionedDirectional(
                     top: ResponsiveValues.spacing4,
                     end: ResponsiveValues.spacing4,
