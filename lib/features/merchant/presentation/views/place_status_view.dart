@@ -60,22 +60,20 @@ class _PlaceStatusViewState extends State<PlaceStatusView> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: context.pageBackground,
-      body: SafeArea(
-        child: Column(
-          children: [
-            ColoredSectionHeader(
-              title: 'حالة البيزنس',
-              subtitle: widget.args.placeName,
-              leading: IconButton(
-                icon: const Icon(Icons.arrow_back_ios_new_rounded),
-                color: context.colorScheme.onPrimary,
-                onPressed: () =>
-                    context.canPop() ? context.pop() : context.go('/'),
-              ),
+      body: Column(
+        children: [
+          ColoredSectionHeader(
+            title: 'حالة البيزنس',
+            subtitle: widget.args.placeName,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back_ios_new_rounded),
+              color: context.colorScheme.onPrimary,
+              onPressed: () =>
+                  context.canPop() ? context.pop() : context.go('/'),
             ),
-            Expanded(child: _buildBody(context)),
-          ],
-        ),
+          ),
+          Expanded(child: _buildBody(context)),
+        ],
       ),
     );
   }

@@ -16,6 +16,8 @@ import '../../domain/entities/menu_item_draft.dart';
 import '../cubit/menu_pricing_cubit.dart';
 import '../cubit/menu_pricing_state.dart';
 import '../widgets/approval_banner.dart';
+import '../widgets/pending_changes_banner.dart';
+import '../widgets/unsaved_changes_bar.dart';
 import 'pricing_args.dart';
 
 class MenuPricingView extends StatelessWidget {
@@ -25,6 +27,10 @@ class MenuPricingView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final labels = pricingLabelsFor(
+      categoryId: args.categoryId,
+      subCategory: args.subCategory,
+    );
     return BlocProvider(
       create: (_) => MenuPricingCubit(
         MerchantRepositoryImpl(remoteDataSource: MerchantRemoteDataSource()),
@@ -32,22 +38,20 @@ class MenuPricingView extends StatelessWidget {
         placeId: args.placeId,
         placeName: args.placeName,
         isDelivery: isDeliveryPricing(args.categoryId),
+        saveSuccessMessage: labels.saveSuccess,
       )..loadMenuItems(),
-      child: _MenuPricingViewBody(
-        placeName: args.placeName,
-        isDelivery: isDeliveryPricing(args.categoryId),
-      ),
+      child: _MenuPricingViewBody(placeName: args.placeName, labels: labels),
     );
   }
 }
 
 class _MenuPricingViewBody extends StatefulWidget {
   final String placeName;
-  final bool isDelivery;
+  final PricingLabels labels;
 
   const _MenuPricingViewBody({
     required this.placeName,
-    required this.isDelivery,
+    required this.labels,
   });
 
   @override
@@ -90,8 +94,23 @@ class _MenuPricingViewBodyState extends State<_MenuPricingViewBody> {
   void _startEditing(BuildContext context, MenuItemDraft item) {
     context.read<MenuPricingCubit>().startEditing(item.localKey);
     _nameController.text = item.name;
-    _priceController.text = item.price.toString();
+    _priceController.text = item.price.toPriceString();
     _descriptionController.text = item.description ?? '';
+    _scrollToForm();
+  }
+
+  void _scrollToForm() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final formContext = _formKey.currentContext;
+      if (formContext == null) return;
+      Scrollable.ensureVisible(
+        formContext,
+        duration: const Duration(milliseconds: 400),
+        curve: Curves.easeOutCubic,
+        alignment: 0.05,
+      );
+    });
   }
 
   void _cancelEditing(BuildContext context) {
@@ -101,10 +120,46 @@ class _MenuPricingViewBodyState extends State<_MenuPricingViewBody> {
     _descriptionController.clear();
   }
 
+  Future<bool> _askLeave() async {
+    final leave = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('لحظة!'),
+        content: const Text('عندك تغييرات ما اتحفظتش — تخرج ونسيبهم؟'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('كمّل تعديل'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('اخرج', style: TextStyle(color: Colors.redAccent)),
+          ),
+        ],
+      ),
+    );
+    return leave ?? false;
+  }
+
+  Future<void> _handleBack() async {
+    final hasChanges = context.read<MenuPricingCubit>().state.hasUnsavedChanges;
+    if (hasChanges) {
+      final leave = await _askLeave();
+      if (!mounted) return;
+      if (leave) context.go('/');
+      return;
+    }
+    if (context.canPop()) {
+      context.pop();
+    } else {
+      context.go('/');
+    }
+  }
+
   void _onMessage(BuildContext context, MenuPricingState state) {
     final cubit = context.read<MenuPricingCubit>();
     final messenger = ScaffoldMessenger.of(context);
-    if (state.errorMessage != null && state.items.isNotEmpty) {
+    if (state.errorMessage != null && !state.loadFailed) {
       messenger
         ..hideCurrentSnackBar()
         ..showSnackBar(SnackBar(content: Text(state.errorMessage!)));
@@ -120,38 +175,70 @@ class _MenuPricingViewBodyState extends State<_MenuPricingViewBody> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: context.pageBackground,
-      body: Column(
-        children: [
-          ColoredSectionHeader(
-            title: widget.isDelivery ? 'أسعار التوصيل' : 'المنيو والأسعار',
-            subtitle: widget.placeName,
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back_ios_new_rounded),
-              color: context.colorScheme.onPrimary,
-              onPressed: () =>
-                  context.canPop() ? context.pop() : context.go('/'),
-            ),
+    return BlocBuilder<MenuPricingCubit, MenuPricingState>(
+      buildWhen: (previous, current) =>
+          previous.hasUnsavedChanges != current.hasUnsavedChanges,
+      builder: (context, flagState) => PopScope(
+        canPop: !flagState.hasUnsavedChanges,
+        onPopInvokedWithResult: (didPop, result) async {
+          if (didPop) return;
+          final leave = await _askLeave();
+          if (!mounted) return;
+          if (leave) this.context.go('/');
+        },
+        child: Scaffold(
+          backgroundColor: context.pageBackground,
+          body: Column(
+            children: [
+              ColoredSectionHeader(
+                title: widget.labels.screenTitle,
+                subtitle: widget.placeName,
+                leading: IconButton(
+                  icon: const Icon(Icons.arrow_back_ios_new_rounded),
+                  color: context.colorScheme.onPrimary,
+                  onPressed: _handleBack,
+                ),
+              ),
+              Expanded(
+                child: BlocConsumer<MenuPricingCubit, MenuPricingState>(
+                  listenWhen: (previous, current) =>
+                      previous.errorMessage != current.errorMessage ||
+                      previous.successMessage != current.successMessage,
+                  listener: _onMessage,
+                  builder: (context, state) {
+                    if (state.isLoading) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    if (state.loadFailed) {
+                      return _buildErrorView(
+                        context,
+                        state.errorMessage ?? 'حصل خطأ، حاول تاني',
+                      );
+                    }
+                    return _buildForm(context, state);
+                  },
+                ),
+              ),
+              BlocBuilder<MenuPricingCubit, MenuPricingState>(
+                builder: (context, state) {
+                  final reviewMode = state.isApproved != false;
+                  return UnsavedChangesBar(
+                    visible: state.hasUnsavedChanges &&
+                        !state.isLoading &&
+                        !state.loadFailed &&
+                        !context.isKeyboardOpen,
+                    message: reviewMode
+                        ? 'تعديلاتك لسه معانا بس… ابعتها للمراجعة 👀'
+                        : 'عملت تغييرات… بس لسه ما اتحفظتش 👀',
+                    buttonText: reviewMode ? 'ابعت' : 'احفظ',
+                    isLoading: state.isSaving,
+                    onPressed: () => context.read<MenuPricingCubit>().save(),
+                  );
+                },
+              ),
+            ],
           ),
-          Expanded(
-            child: BlocConsumer<MenuPricingCubit, MenuPricingState>(
-              listenWhen: (previous, current) =>
-                  previous.errorMessage != current.errorMessage ||
-                  previous.successMessage != current.successMessage,
-              listener: _onMessage,
-              builder: (context, state) {
-                if (state.isLoading) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                if (state.errorMessage != null && state.items.isEmpty) {
-                  return _buildErrorView(context, state.errorMessage!);
-                }
-                return _buildForm(context, state);
-              },
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -185,6 +272,7 @@ class _MenuPricingViewBodyState extends State<_MenuPricingViewBody> {
   }
 
   Widget _buildForm(BuildContext context, MenuPricingState state) {
+    final reviewMode = state.isApproved != false;
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
       padding: context.pagePadding.copyWith(top: context.mediumSpacing),
@@ -195,8 +283,12 @@ class _MenuPricingViewBodyState extends State<_MenuPricingViewBody> {
             const ApprovalBanner(),
             context.mediumSpacing.vSpace,
           ],
+          if (state.hasPending) ...[
+            const PendingChangesBanner(),
+            context.mediumSpacing.vSpace,
+          ],
           if (state.items.isNotEmpty) ...[
-            '${_arabicCount(state.items.length)} ${state.isDelivery ? 'منطقة' : 'صنف'}'
+            '${_arabicCount(state.items.length)} ${widget.labels.itemNoun}'
                 .toBody(
                   context,
                   fontWeight: FontWeight.w600,
@@ -220,16 +312,23 @@ class _MenuPricingViewBodyState extends State<_MenuPricingViewBody> {
           ] else ...[
             Padding(
               padding: EdgeInsets.symmetric(vertical: context.largeSpacing),
-              child: (state.isDelivery ? 'مفيش مناطق لسه' : 'مفيش أصناف لسه')
-                  .toBody(
-                    context,
-                    color: context.textSecondary,
-                    textAlign: TextAlign.center,
-                  ),
+              child: widget.labels.emptyText.toBody(
+                context,
+                color: context.textSecondary,
+                textAlign: TextAlign.center,
+              ),
             ),
           ],
           _buildAddEditForm(context, state),
           context.largeSpacing.vSpace,
+          if (reviewMode) ...[
+            'التعديلات هتتراجع قبل ما تظهر للناس.'.toCaption(
+              context,
+              color: context.textSecondary,
+              textAlign: TextAlign.center,
+            ),
+            context.smallSpacing.vSpace,
+          ],
           _buildSaveButton(context, state),
           context.extraLargeSpacing.vSpace,
         ],
@@ -266,7 +365,7 @@ class _MenuPricingViewBodyState extends State<_MenuPricingViewBody> {
               children: [
                 item.name.toBody(context, fontWeight: FontWeight.w600),
                 4.vSpace,
-                '${item.price.toStringAsFixed(0)} ج.م'.toCaption(
+                '${item.price.toPriceString()} ج.م'.toCaption(
                   context,
                   color: context.textSecondary,
                 ),
@@ -306,7 +405,10 @@ class _MenuPricingViewBodyState extends State<_MenuPricingViewBody> {
       decoration: BoxDecoration(
         color: context.surfaceColor,
         borderRadius: context.mediumRadius.circularRadius,
-        border: Border.all(color: context.borderColor),
+        border: Border.all(
+          color: isEditing ? context.colorScheme.primary : context.borderColor,
+          width: isEditing ? 2 : 1,
+        ),
       ),
       child: Form(
         key: _formKey,
@@ -316,10 +418,10 @@ class _MenuPricingViewBodyState extends State<_MenuPricingViewBody> {
             Row(
               children: [
                 Expanded(
-                  child: (isEditing ? 'تعديل صنف' : 'إضافة صنف').toTitle(
-                    context,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  child: (isEditing
+                          ? widget.labels.editTitle
+                          : widget.labels.addTitle)
+                      .toTitle(context, fontWeight: FontWeight.bold),
                 ),
                 if (isEditing)
                   TextButton(
@@ -337,11 +439,12 @@ class _MenuPricingViewBodyState extends State<_MenuPricingViewBody> {
             context.mediumSpacing.vSpace,
             CustomTextFormField(
               controller: _nameController,
-              labelText: 'اسم الصنف',
+              labelText: widget.labels.nameLabel,
+              hintText: widget.labels.nameHint,
               onChanged: (value) =>
                   context.read<MenuPricingCubit>().updateNewItemName(value),
               validator: (value) => (value == null || value.trim().isEmpty)
-                  ? 'اكتب اسم الصنف'
+                  ? widget.labels.nameRequiredError
                   : null,
             ),
             context.smallSpacing.vSpace,
@@ -352,7 +455,7 @@ class _MenuPricingViewBodyState extends State<_MenuPricingViewBody> {
               onChanged: (value) =>
                   context.read<MenuPricingCubit>().updateNewItemPrice(value),
               validator: (value) {
-                final price = double.tryParse(value ?? '');
+                final price = double.tryParse((value ?? '').trim().toWesternDigits());
                 return (price == null || price <= 0)
                     ? 'السعر لازم يكون رقم أكبر من صفر'
                     : null;
@@ -361,7 +464,7 @@ class _MenuPricingViewBodyState extends State<_MenuPricingViewBody> {
             context.smallSpacing.vSpace,
             CustomTextFormField(
               controller: _descriptionController,
-              labelText: 'وصف الصنف (اختياري)',
+              labelText: 'وصف (اختياري)',
               maxLines: 3,
               maxLength: 150,
               onChanged: (value) => context
@@ -370,7 +473,9 @@ class _MenuPricingViewBodyState extends State<_MenuPricingViewBody> {
             ),
             context.mediumSpacing.vSpace,
             CustomElevatedButton(
-              text: isEditing ? 'تحديث الصنف' : 'إضافة للمنيو',
+              text: isEditing
+                  ? widget.labels.updateButton
+                  : widget.labels.addButton,
               onPressed: () => _confirmItem(context),
               backgroundColor: AppColors.primary,
               textColor: AppColors.onPrimary,
@@ -392,8 +497,9 @@ class _MenuPricingViewBodyState extends State<_MenuPricingViewBody> {
   }
 
   Widget _buildSaveButton(BuildContext context, MenuPricingState state) {
+    final reviewMode = state.isApproved != false;
     return CustomElevatedButton(
-      text: state.isDelivery ? 'حفظ الأسعار' : 'حفظ المنيو',
+      text: reviewMode ? 'ابعت التعديلات للمراجعة' : widget.labels.saveButton,
       isLoading: state.isSaving,
       onPressed: () => context.read<MenuPricingCubit>().save(),
       backgroundColor: AppColors.primary,

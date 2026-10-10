@@ -34,4 +34,22 @@ abstract class MerchantRepository {
     required int placeId,
     required List<SportsPricingDraft> items,
   });
+
+  Future<Either<Failure, void>> submitPendingMenuItems({
+    required int placeId,
+    required List<MenuItemDraft> items,
+  });
+
+  Future<Either<Failure, void>> submitPendingSportsPricing({
+    required int placeId,
+    required List<SportsPricingDraft> items,
+  });
+
+  Future<Either<Failure, List<MenuItemDraft>?>> getPendingMenuItems({
+    required int placeId,
+  });
+
+  Future<Either<Failure, List<SportsPricingDraft>?>> getPendingSportsPricing({
+    required int placeId,
+  });
 }

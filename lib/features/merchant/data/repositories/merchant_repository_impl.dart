@@ -94,4 +94,45 @@ class MerchantRepositoryImpl implements MerchantRepository {
       callName: 'MerchantRepository.replaceSportsPricing',
     );
   }
+
+  @override
+  Future<Either<Failure, void>> submitPendingMenuItems({
+    required int placeId,
+    required List<MenuItemDraft> items,
+  }) {
+    return safeSupabaseCall<void>(
+      () => remoteDataSource.submitPendingMenuItems(placeId, items),
+      callName: 'MerchantRepository.submitPendingMenuItems',
+    );
+  }
+
+  @override
+  Future<Either<Failure, void>> submitPendingSportsPricing({
+    required int placeId,
+    required List<SportsPricingDraft> items,
+  }) {
+    return safeSupabaseCall<void>(
+      () => remoteDataSource.submitPendingSportsPricing(placeId, items),
+      callName: 'MerchantRepository.submitPendingSportsPricing',
+    );
+  }
+
+  @override
+  Future<Either<Failure, List<MenuItemDraft>?>> getPendingMenuItems({
+    required int placeId,
+  }) {
+    return safeSupabaseCall<List<MenuItemDraft>?>(
+      () => remoteDataSource.getPendingMenuItems(placeId),
+      callName: 'MerchantRepository.getPendingMenuItems',
+    );
+  }
+
+  @override
+  Future<Either<Failure, List<SportsPricingDraft>?>>
+  getPendingSportsPricing({required int placeId}) {
+    return safeSupabaseCall<List<SportsPricingDraft>?>(
+      () => remoteDataSource.getPendingSportsPricing(placeId),
+      callName: 'MerchantRepository.getPendingSportsPricing',
+    );
+  }
 }

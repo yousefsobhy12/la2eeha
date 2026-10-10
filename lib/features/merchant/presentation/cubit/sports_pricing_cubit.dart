@@ -18,43 +18,75 @@ class SportsPricingCubit extends Cubit<SportsPricingState> {
   final MerchantRepository _merchantRepository;
   final PlacesRepository _placesRepository;
 
+  static const String _pendingSuccessMessage =
+      'اتبعتت تعديلاتك للمراجعة — الأسعار الحالية هتفضل ظاهرة لحد الموافقة';
+
   static const List<String> presets = ['صباحي', 'ليلي', 'ليلي متأخر', 'مخصص'];
 
   Future<void> loadSportsPricing() async {
-    emit(state.copyWith(isLoading: true, errorMessage: null));
-
-    final result = await _placesRepository.getSportsPricing(state.placeId);
-    result.fold(
-      (failure) {
-        emit(state.copyWith(isLoading: false, errorMessage: failure.message));
-      },
-      (items) {
-        emit(
-          state.copyWith(
-            isLoading: false,
-            periods: [
-              for (final item in items)
-                SportsPricingDraft(
-                  localKey: item.id.toString(),
-                  id: item.id,
-                  startTime: _parseHhMmSs(item.startTime),
-                  endTime: _parseHhMmSs(item.endTime),
-                  price: item.price,
-                  description: item.description,
-                  sortOrder: item.sortOrder,
-                ),
-            ],
-          ),
-        );
-      },
+    emit(
+      state.copyWith(isLoading: true, loadFailed: false, errorMessage: null),
     );
 
     final approvalResult = await _merchantRepository.isPlaceApproved(
       placeId: state.placeId,
     );
-    approvalResult.fold(
-      (_) => emit(state.copyWith(isApproved: null)),
-      (approved) => emit(state.copyWith(isApproved: approved)),
+    final bool? isApproved = approvalResult.fold((_) => null, (value) => value);
+
+    final result = await _placesRepository.getSportsPricing(state.placeId);
+    final String? failureMessage = result.fold(
+      (failure) => failure.message,
+      (_) => null,
+    );
+    if (failureMessage != null) {
+      emit(
+        state.copyWith(
+          isLoading: false,
+          loadFailed: true,
+          errorMessage: failureMessage,
+          isApproved: isApproved,
+        ),
+      );
+      return;
+    }
+
+    var drafts = <SportsPricingDraft>[
+      for (final item in result.getOrElse(() => const []))
+        SportsPricingDraft(
+          localKey: item.id.toString(),
+          id: item.id,
+          startTime: _parseHhMmSs(item.startTime),
+          endTime: _parseHhMmSs(item.endTime),
+          price: item.price,
+          description: item.description,
+          sortOrder: item.sortOrder,
+        ),
+    ];
+
+    var hasPending = false;
+    if (isApproved != false) {
+      final pendingResult = await _merchantRepository.getPendingSportsPricing(
+        placeId: state.placeId,
+      );
+      final List<SportsPricingDraft>? pending = pendingResult.fold(
+        (_) => null,
+        (value) => value,
+      );
+      if (pending != null) {
+        drafts = pending;
+        hasPending = true;
+      }
+    }
+
+    emit(
+      state.copyWith(
+        isLoading: false,
+        loadFailed: false,
+        periods: drafts,
+        isApproved: isApproved,
+        hasPending: hasPending,
+        hasUnsavedChanges: false,
+      ),
     );
   }
 
@@ -121,7 +153,7 @@ class SportsPricingCubit extends Cubit<SportsPricingState> {
         editingLocalKey: localKey,
         newStartTime: period.startTime,
         newEndTime: period.endTime,
-        newPrice: period.price.toString(),
+        newPrice: period.price.toPriceString(),
         newDescription: period.description ?? '',
         selectedPreset: period.startTime.periodLabel.label,
       ),
@@ -144,7 +176,7 @@ class SportsPricingCubit extends Cubit<SportsPricingState> {
   void confirmPeriod() {
     final start = state.newStartTime;
     final end = state.newEndTime;
-    final price = double.tryParse(state.newPrice.trim());
+    final price = double.tryParse(state.newPrice.trim().toWesternDigits());
     if (start == null || end == null || price == null || price <= 0) return;
 
     final description = _normalizeDescription(state.newDescription);
@@ -187,15 +219,17 @@ class SportsPricingCubit extends Cubit<SportsPricingState> {
         newPrice: '',
         newDescription: '',
         selectedPreset: null,
+        hasUnsavedChanges: true,
       ),
     );
   }
 
   void reorderPeriod(int oldIndex, int newIndex) {
+    if (oldIndex == newIndex) return;
     final periods = [...state.periods];
     final period = periods.removeAt(oldIndex);
     periods.insert(newIndex, period);
-    emit(state.copyWith(periods: periods));
+    emit(state.copyWith(periods: periods, hasUnsavedChanges: true));
   }
 
   void removePeriod(String localKey) {
@@ -209,12 +243,30 @@ class SportsPricingCubit extends Cubit<SportsPricingState> {
         newPrice: removesEditedPeriod ? '' : state.newPrice,
         newDescription: removesEditedPeriod ? '' : state.newDescription,
         selectedPreset: removesEditedPeriod ? null : state.selectedPreset,
+        hasUnsavedChanges: true,
       ),
     );
   }
 
   Future<void> save() async {
     if (state.isSaving) return;
+    if (state.editingLocalKey != null) {
+      emit(state.copyWith(
+        errorMessage: 'لسه بتعدّل عنصر — دوس «تحديث» أو «إلغاء التعديل» الأول',
+      ));
+      return;
+    }
+    final formHasText = state.newStartTime != null ||
+        state.newEndTime != null ||
+        state.newPrice.trim().isNotEmpty ||
+        state.newDescription.trim().isNotEmpty ||
+        state.selectedPreset != null;
+    if (formHasText) {
+      emit(state.copyWith(
+        errorMessage: 'لسه فيه بيانات مكتوبة في الفورم ومضافتش — دوس زرار الإضافة الأول',
+      ));
+      return;
+    }
     emit(state.copyWith(isSaving: true, errorMessage: null));
 
     final orderedPeriods = [
@@ -230,16 +282,31 @@ class SportsPricingCubit extends Cubit<SportsPricingState> {
         ),
     ];
 
-    final result = await _merchantRepository.replaceSportsPricing(
-      placeId: state.placeId,
-      items: orderedPeriods,
-    );
+    final direct = state.isApproved == false;
+    final result = direct
+        ? await _merchantRepository.replaceSportsPricing(
+            placeId: state.placeId,
+            items: orderedPeriods,
+          )
+        : await _merchantRepository.submitPendingSportsPricing(
+            placeId: state.placeId,
+            items: orderedPeriods,
+          );
     result.fold(
       (failure) {
         emit(state.copyWith(isSaving: false, errorMessage: failure.message));
       },
       (_) {
-        emit(state.copyWith(isSaving: false, successMessage: 'تم حفظ الأسعار'));
+        emit(
+          state.copyWith(
+            isSaving: false,
+            hasPending: !direct,
+            hasUnsavedChanges: false,
+            successMessage: direct
+                ? 'تم حفظ الأسعار'
+                : _pendingSuccessMessage,
+          ),
+        );
       },
     );
   }

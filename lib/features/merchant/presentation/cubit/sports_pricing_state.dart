@@ -14,6 +14,9 @@ class SportsPricingState {
 
   final List<SportsPricingDraft> periods;
   final bool isLoading;
+  final bool loadFailed;
+  final bool hasPending;
+  final bool hasUnsavedChanges;
   final bool isSaving;
 
   final bool? isApproved;
@@ -37,6 +40,9 @@ class SportsPricingState {
     required this.placeName,
     this.periods = const [],
     this.isLoading = false,
+    this.loadFailed = false,
+    this.hasPending = false,
+    this.hasUnsavedChanges = false,
     this.isSaving = false,
     this.isApproved,
     this.errorMessage,
@@ -54,6 +60,9 @@ class SportsPricingState {
     String? placeName,
     List<SportsPricingDraft>? periods,
     bool? isLoading,
+    bool? loadFailed,
+    bool? hasPending,
+    bool? hasUnsavedChanges,
     bool? isSaving,
     Object? isApproved = _unset,
     Object? errorMessage = _unset,
@@ -70,6 +79,9 @@ class SportsPricingState {
       placeName: placeName ?? this.placeName,
       periods: periods ?? this.periods,
       isLoading: isLoading ?? this.isLoading,
+      loadFailed: loadFailed ?? this.loadFailed,
+      hasPending: hasPending ?? this.hasPending,
+      hasUnsavedChanges: hasUnsavedChanges ?? this.hasUnsavedChanges,
       isSaving: isSaving ?? this.isSaving,
       isApproved: isApproved == _unset ? this.isApproved : isApproved as bool?,
       errorMessage: errorMessage == _unset

@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../core/extensions/extensions.dart';
 import '../../../browse/domain/repositories/places_repository.dart';
 import '../../domain/entities/menu_item_draft.dart';
 import '../../domain/repositories/merchant_repository.dart';
@@ -12,7 +13,9 @@ class MenuPricingCubit extends Cubit<MenuPricingState> {
     required int placeId,
     required String placeName,
     required bool isDelivery,
-  }) : super(
+    required String saveSuccessMessage,
+  }) : _saveSuccessMessage = saveSuccessMessage, // ignore: prefer_initializing_formals
+       super(
          MenuPricingState(
            placeId: placeId,
            placeName: placeName,
@@ -22,41 +25,74 @@ class MenuPricingCubit extends Cubit<MenuPricingState> {
 
   final MerchantRepository _merchantRepository;
   final PlacesRepository _placesRepository;
+  final String _saveSuccessMessage;
+
+  static const String _pendingSuccessMessage =
+      'اتبعتت تعديلاتك للمراجعة — الأسعار الحالية هتفضل ظاهرة لحد الموافقة';
 
   Future<void> loadMenuItems() async {
-    emit(state.copyWith(isLoading: true, errorMessage: null));
-
-    final result = await _placesRepository.getMenuItems(state.placeId);
-    result.fold(
-      (failure) {
-        emit(state.copyWith(isLoading: false, errorMessage: failure.message));
-      },
-      (items) {
-        emit(
-          state.copyWith(
-            isLoading: false,
-            items: [
-              for (final item in items)
-                MenuItemDraft(
-                  localKey: item.id.toString(),
-                  id: item.id,
-                  name: item.name,
-                  price: item.price,
-                  description: item.description,
-                  sortOrder: item.sortOrder,
-                ),
-            ],
-          ),
-        );
-      },
+    emit(
+      state.copyWith(isLoading: true, loadFailed: false, errorMessage: null),
     );
 
     final approvalResult = await _merchantRepository.isPlaceApproved(
       placeId: state.placeId,
     );
-    approvalResult.fold(
-      (_) => emit(state.copyWith(isApproved: null)),
-      (approved) => emit(state.copyWith(isApproved: approved)),
+    final bool? isApproved = approvalResult.fold((_) => null, (value) => value);
+
+    final result = await _placesRepository.getMenuItems(state.placeId);
+    final String? failureMessage = result.fold(
+      (failure) => failure.message,
+      (_) => null,
+    );
+    if (failureMessage != null) {
+      emit(
+        state.copyWith(
+          isLoading: false,
+          loadFailed: true,
+          errorMessage: failureMessage,
+          isApproved: isApproved,
+        ),
+      );
+      return;
+    }
+
+    var drafts = <MenuItemDraft>[
+      for (final item in result.getOrElse(() => const []))
+        MenuItemDraft(
+          localKey: item.id.toString(),
+          id: item.id,
+          name: item.name,
+          price: item.price,
+          description: item.description,
+          sortOrder: item.sortOrder,
+        ),
+    ];
+
+    var hasPending = false;
+    if (isApproved != false) {
+      final pendingResult = await _merchantRepository.getPendingMenuItems(
+        placeId: state.placeId,
+      );
+      final List<MenuItemDraft>? pending = pendingResult.fold(
+        (_) => null,
+        (value) => value,
+      );
+      if (pending != null) {
+        drafts = pending;
+        hasPending = true;
+      }
+    }
+
+    emit(
+      state.copyWith(
+        isLoading: false,
+        loadFailed: false,
+        items: drafts,
+        isApproved: isApproved,
+        hasPending: hasPending,
+        hasUnsavedChanges: false,
+      ),
     );
   }
 
@@ -79,7 +115,7 @@ class MenuPricingCubit extends Cubit<MenuPricingState> {
       state.copyWith(
         editingLocalKey: localKey,
         newItemName: item.name,
-        newItemPrice: item.price.toString(),
+        newItemPrice: item.price.toPriceString(),
         newItemDescription: item.description ?? '',
       ),
     );
@@ -98,7 +134,7 @@ class MenuPricingCubit extends Cubit<MenuPricingState> {
 
   void confirmItem() {
     final name = state.newItemName.trim();
-    final price = double.tryParse(state.newItemPrice.trim());
+    final price = double.tryParse(state.newItemPrice.trim().toWesternDigits());
     if (name.isEmpty || price == null || price <= 0) return;
 
     final description = _normalizeDescription(state.newItemDescription);
@@ -137,15 +173,17 @@ class MenuPricingCubit extends Cubit<MenuPricingState> {
         newItemName: '',
         newItemPrice: '',
         newItemDescription: '',
+        hasUnsavedChanges: true,
       ),
     );
   }
 
   void reorderItem(int oldIndex, int newIndex) {
+    if (oldIndex == newIndex) return;
     final items = [...state.items];
     final item = items.removeAt(oldIndex);
     items.insert(newIndex, item);
-    emit(state.copyWith(items: items));
+    emit(state.copyWith(items: items, hasUnsavedChanges: true));
   }
 
   void removeItem(String localKey) {
@@ -157,12 +195,28 @@ class MenuPricingCubit extends Cubit<MenuPricingState> {
         newItemName: removesEditedItem ? '' : state.newItemName,
         newItemPrice: removesEditedItem ? '' : state.newItemPrice,
         newItemDescription: removesEditedItem ? '' : state.newItemDescription,
+        hasUnsavedChanges: true,
       ),
     );
   }
 
   Future<void> save() async {
     if (state.isSaving) return;
+    if (state.editingLocalKey != null) {
+      emit(state.copyWith(
+        errorMessage: 'لسه بتعدّل عنصر — دوس «تحديث» أو «إلغاء التعديل» الأول',
+      ));
+      return;
+    }
+    final formHasText = state.newItemName.trim().isNotEmpty ||
+        state.newItemPrice.trim().isNotEmpty ||
+        state.newItemDescription.trim().isNotEmpty;
+    if (formHasText) {
+      emit(state.copyWith(
+        errorMessage: 'لسه فيه بيانات مكتوبة في الفورم ومضافتش — دوس زرار الإضافة الأول',
+      ));
+      return;
+    }
     emit(state.copyWith(isSaving: true, errorMessage: null));
 
     final orderedItems = [
@@ -177,10 +231,16 @@ class MenuPricingCubit extends Cubit<MenuPricingState> {
         ),
     ];
 
-    final result = await _merchantRepository.replaceMenuItems(
-      placeId: state.placeId,
-      items: orderedItems,
-    );
+    final direct = state.isApproved == false;
+    final result = direct
+        ? await _merchantRepository.replaceMenuItems(
+            placeId: state.placeId,
+            items: orderedItems,
+          )
+        : await _merchantRepository.submitPendingMenuItems(
+            placeId: state.placeId,
+            items: orderedItems,
+          );
     result.fold(
       (failure) {
         emit(state.copyWith(isSaving: false, errorMessage: failure.message));
@@ -189,9 +249,11 @@ class MenuPricingCubit extends Cubit<MenuPricingState> {
         emit(
           state.copyWith(
             isSaving: false,
-            successMessage: state.isDelivery
-                ? 'تم حفظ الأسعار'
-                : 'تم حفظ المنيو',
+            hasPending: !direct,
+            hasUnsavedChanges: false,
+            successMessage: direct
+                ? _saveSuccessMessage
+                : _pendingSuccessMessage,
           ),
         );
       },

@@ -14,6 +14,9 @@ class MenuPricingState {
 
   final List<MenuItemDraft> items;
   final bool isLoading;
+  final bool loadFailed;
+  final bool hasPending;
+  final bool hasUnsavedChanges;
   final bool isSaving;
 
   final bool? isApproved;
@@ -35,6 +38,9 @@ class MenuPricingState {
     this.isDelivery = false,
     this.items = const [],
     this.isLoading = false,
+    this.loadFailed = false,
+    this.hasPending = false,
+    this.hasUnsavedChanges = false,
     this.isSaving = false,
     this.isApproved,
     this.errorMessage,
@@ -51,6 +57,9 @@ class MenuPricingState {
     bool? isDelivery,
     List<MenuItemDraft>? items,
     bool? isLoading,
+    bool? loadFailed,
+    bool? hasPending,
+    bool? hasUnsavedChanges,
     bool? isSaving,
     Object? isApproved = _unset,
     Object? errorMessage = _unset,
@@ -66,6 +75,9 @@ class MenuPricingState {
       isDelivery: isDelivery ?? this.isDelivery,
       items: items ?? this.items,
       isLoading: isLoading ?? this.isLoading,
+      loadFailed: loadFailed ?? this.loadFailed,
+      hasPending: hasPending ?? this.hasPending,
+      hasUnsavedChanges: hasUnsavedChanges ?? this.hasUnsavedChanges,
       isSaving: isSaving ?? this.isSaving,
       isApproved: isApproved == _unset ? this.isApproved : isApproved as bool?,
       errorMessage: errorMessage == _unset

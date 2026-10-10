@@ -16,6 +16,8 @@ import '../../domain/entities/sports_pricing_draft.dart';
 import '../cubit/sports_pricing_cubit.dart';
 import '../cubit/sports_pricing_state.dart';
 import '../widgets/approval_banner.dart';
+import '../widgets/pending_changes_banner.dart';
+import '../widgets/unsaved_changes_bar.dart';
 import 'pricing_args.dart';
 
 class SportsPricingView extends StatelessWidget {
@@ -90,8 +92,23 @@ class _SportsPricingViewBodyState extends State<_SportsPricingViewBody> {
 
   void _startEditing(BuildContext context, SportsPricingDraft period) {
     context.read<SportsPricingCubit>().startEditing(period.localKey);
-    _priceController.text = period.price.toString();
+    _priceController.text = period.price.toPriceString();
     _descriptionController.text = period.description ?? '';
+    _scrollToForm();
+  }
+
+  void _scrollToForm() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final formContext = _formKey.currentContext;
+      if (formContext == null) return;
+      Scrollable.ensureVisible(
+        formContext,
+        duration: const Duration(milliseconds: 400),
+        curve: Curves.easeOutCubic,
+        alignment: 0.05,
+      );
+    });
   }
 
   void _cancelEditing(BuildContext context) {
@@ -100,10 +117,47 @@ class _SportsPricingViewBodyState extends State<_SportsPricingViewBody> {
     _descriptionController.clear();
   }
 
+  Future<bool> _askLeave() async {
+    final leave = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('لحظة!'),
+        content: const Text('عندك تغييرات ما اتحفظتش — تخرج ونسيبهم؟'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('كمّل تعديل'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('اخرج', style: TextStyle(color: Colors.redAccent)),
+          ),
+        ],
+      ),
+    );
+    return leave ?? false;
+  }
+
+  Future<void> _handleBack() async {
+    final hasChanges =
+        context.read<SportsPricingCubit>().state.hasUnsavedChanges;
+    if (hasChanges) {
+      final leave = await _askLeave();
+      if (!mounted) return;
+      if (leave) context.go('/');
+      return;
+    }
+    if (context.canPop()) {
+      context.pop();
+    } else {
+      context.go('/');
+    }
+  }
+
   void _onMessage(BuildContext context, SportsPricingState state) {
     final cubit = context.read<SportsPricingCubit>();
     final messenger = ScaffoldMessenger.of(context);
-    if (state.errorMessage != null && state.periods.isNotEmpty) {
+    if (state.errorMessage != null && !state.loadFailed) {
       messenger
         ..hideCurrentSnackBar()
         ..showSnackBar(SnackBar(content: Text(state.errorMessage!)));
@@ -141,39 +195,69 @@ class _SportsPricingViewBodyState extends State<_SportsPricingViewBody> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: context.pageBackground,
-      body: SafeArea(
-        child: Column(
-          children: [
-            ColoredSectionHeader(
-              title: 'أسعار الساعة',
-              subtitle: widget.placeName,
-              leading: IconButton(
-                icon: const Icon(Icons.arrow_back_ios_new_rounded),
-                color: context.colorScheme.onPrimary,
-                onPressed: () =>
-                    context.canPop() ? context.pop() : context.go('/'),
+    return BlocBuilder<SportsPricingCubit, SportsPricingState>(
+      buildWhen: (previous, current) =>
+          previous.hasUnsavedChanges != current.hasUnsavedChanges,
+      builder: (context, flagState) => PopScope(
+        canPop: !flagState.hasUnsavedChanges,
+        onPopInvokedWithResult: (didPop, result) async {
+          if (didPop) return;
+          final leave = await _askLeave();
+          if (!mounted) return;
+          if (leave) this.context.go('/');
+        },
+        child: Scaffold(
+          backgroundColor: context.pageBackground,
+          body: Column(
+            children: [
+              ColoredSectionHeader(
+                title: 'أسعار الساعة',
+                subtitle: widget.placeName,
+                leading: IconButton(
+                  icon: const Icon(Icons.arrow_back_ios_new_rounded),
+                  color: context.colorScheme.onPrimary,
+                  onPressed: _handleBack,
+                ),
               ),
-            ),
-            Expanded(
-              child: BlocConsumer<SportsPricingCubit, SportsPricingState>(
-                listenWhen: (previous, current) =>
-                    previous.errorMessage != current.errorMessage ||
-                    previous.successMessage != current.successMessage,
-                listener: _onMessage,
+              Expanded(
+                child: BlocConsumer<SportsPricingCubit, SportsPricingState>(
+                  listenWhen: (previous, current) =>
+                      previous.errorMessage != current.errorMessage ||
+                      previous.successMessage != current.successMessage,
+                  listener: _onMessage,
+                  builder: (context, state) {
+                    if (state.isLoading) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    if (state.loadFailed) {
+                      return _buildErrorView(
+                        context,
+                        state.errorMessage ?? 'حصل خطأ، حاول تاني',
+                      );
+                    }
+                    return _buildForm(context, state);
+                  },
+                ),
+              ),
+              BlocBuilder<SportsPricingCubit, SportsPricingState>(
                 builder: (context, state) {
-                  if (state.isLoading) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-                  if (state.errorMessage != null && state.periods.isEmpty) {
-                    return _buildErrorView(context, state.errorMessage!);
-                  }
-                  return _buildForm(context, state);
+                  final reviewMode = state.isApproved != false;
+                  return UnsavedChangesBar(
+                    visible: state.hasUnsavedChanges &&
+                        !state.isLoading &&
+                        !state.loadFailed &&
+                        !context.isKeyboardOpen,
+                    message: reviewMode
+                        ? 'تعديلاتك لسه معانا بس… ابعتها للمراجعة 👀'
+                        : 'عملت تغييرات… بس لسه ما اتحفظتش 👀',
+                    buttonText: reviewMode ? 'ابعت' : 'احفظ',
+                    isLoading: state.isSaving,
+                    onPressed: () => context.read<SportsPricingCubit>().save(),
+                  );
                 },
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -209,6 +293,7 @@ class _SportsPricingViewBodyState extends State<_SportsPricingViewBody> {
   }
 
   Widget _buildForm(BuildContext context, SportsPricingState state) {
+    final reviewMode = state.isApproved != false;
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
       padding: context.pagePadding.copyWith(top: context.mediumSpacing),
@@ -217,6 +302,10 @@ class _SportsPricingViewBodyState extends State<_SportsPricingViewBody> {
         children: [
           if (state.isApproved == false) ...[
             const ApprovalBanner(),
+            context.mediumSpacing.vSpace,
+          ],
+          if (state.hasPending) ...[
+            const PendingChangesBanner(),
             context.mediumSpacing.vSpace,
           ],
           _buildInfoBanner(context),
@@ -246,6 +335,14 @@ class _SportsPricingViewBodyState extends State<_SportsPricingViewBody> {
             ),
           _buildAddEditForm(context, state),
           context.largeSpacing.vSpace,
+          if (reviewMode) ...[
+            'التعديلات هتتراجع قبل ما تظهر للناس.'.toCaption(
+              context,
+              color: context.textSecondary,
+              textAlign: TextAlign.center,
+            ),
+            context.smallSpacing.vSpace,
+          ],
           _buildSaveButton(context, state),
           context.extraLargeSpacing.vSpace,
         ],
@@ -327,7 +424,7 @@ class _SportsPricingViewBodyState extends State<_SportsPricingViewBody> {
                 '${_hhMmSs(period.startTime).toArabicTime()} – ${_hhMmSs(period.endTime).toArabicTime()}'
                     .toCaption(context, color: context.textSecondary),
                 4.vSpace,
-                '${period.price.toStringAsFixed(0)} ج.م / ساعة'.toBody(
+                '${period.price.toPriceString()} ج.م / ساعة'.toBody(
                   context,
                   fontWeight: FontWeight.bold,
                   color: context.colorScheme.primary,
@@ -369,7 +466,10 @@ class _SportsPricingViewBodyState extends State<_SportsPricingViewBody> {
       decoration: BoxDecoration(
         color: context.surfaceColor,
         borderRadius: context.mediumRadius.circularRadius,
-        border: Border.all(color: context.borderColor),
+        border: Border.all(
+          color: isEditing ? context.colorScheme.primary : context.borderColor,
+          width: isEditing ? 2 : 1,
+        ),
       ),
       child: Form(
         key: _formKey,
@@ -461,7 +561,7 @@ class _SportsPricingViewBodyState extends State<_SportsPricingViewBody> {
               onChanged: (value) =>
                   context.read<SportsPricingCubit>().updatePrice(value),
               validator: (value) {
-                final price = double.tryParse(value ?? '');
+                final price = double.tryParse((value ?? '').trim().toWesternDigits());
                 return (price == null || price <= 0)
                     ? 'السعر لازم يكون رقم أكبر من صفر'
                     : null;
@@ -502,7 +602,9 @@ class _SportsPricingViewBodyState extends State<_SportsPricingViewBody> {
 
   Widget _buildSaveButton(BuildContext context, SportsPricingState state) {
     return CustomElevatedButton(
-      text: 'حفظ الأسعار',
+      text: state.isApproved != false
+          ? 'ابعت التعديلات للمراجعة'
+          : 'حفظ الأسعار',
       isLoading: state.isSaving,
       onPressed: () => context.read<SportsPricingCubit>().save(),
       backgroundColor: AppColors.primary,

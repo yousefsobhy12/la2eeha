@@ -93,40 +93,174 @@ class MerchantRemoteDataSource {
   }
 
   Future<void> replaceMenuItems(int placeId, List<MenuItemDraft> items) async {
-    await supabase.from('menu_items').delete().eq('place_id', placeId);
-    if (items.isEmpty) return;
-    await supabase.from('menu_items').insert([
-      for (final item in items)
-        {
-          'place_id': placeId,
-          'name': item.name,
-          'price': item.price,
-          'description': item.description,
-          'sort_order': item.sortOrder,
-        },
-    ]);
+    final old = await supabase
+        .from('menu_items')
+        .select('id')
+        .eq('place_id', placeId);
+    if (items.isNotEmpty) {
+      await supabase.from('menu_items').insert([
+        for (final item in items)
+          {
+            'place_id': placeId,
+            'name': item.name,
+            'price': item.price,
+            'description': item.description,
+            'sort_order': item.sortOrder,
+          },
+      ]);
+    }
+    if (old.isNotEmpty) {
+      await supabase
+          .from('menu_items')
+          .delete()
+          .inFilter('id', old.map((r) => r['id']).toList());
+    }
   }
 
   Future<void> replaceSportsPricing(
     int placeId,
     List<SportsPricingDraft> items,
   ) async {
-    await supabase.from('sports_pricing').delete().eq('place_id', placeId);
-    if (items.isEmpty) return;
-    await supabase.from('sports_pricing').insert([
-      for (final item in items)
-        {
-          'place_id': placeId,
-          'start_time': _timeToHhMmSs(item.startTime),
-          'end_time': _timeToHhMmSs(item.endTime),
-          'price': item.price,
-          'description': item.description,
-          'sort_order': item.sortOrder,
-        },
-    ]);
+    final old = await supabase
+        .from('sports_pricing')
+        .select('id')
+        .eq('place_id', placeId);
+    if (items.isNotEmpty) {
+      await supabase.from('sports_pricing').insert([
+        for (final item in items)
+          {
+            'place_id': placeId,
+            'start_time': _timeToHhMmSs(item.startTime),
+            'end_time': _timeToHhMmSs(item.endTime),
+            'price': item.price,
+            'description': item.description,
+            'sort_order': item.sortOrder,
+          },
+      ]);
+    }
+    if (old.isNotEmpty) {
+      await supabase
+          .from('sports_pricing')
+          .delete()
+          .inFilter('id', old.map((r) => r['id']).toList());
+    }
+  }
+
+  Future<void> submitPendingMenuItems(
+    int placeId,
+    List<MenuItemDraft> items,
+  ) async {
+    await supabase.from('pending_pricing_changes').upsert(
+      {
+        'place_id': placeId,
+        'kind': 'menu',
+        'payload': [
+          for (final item in items)
+            {
+              'name': item.name,
+              'price': item.price,
+              'description': item.description,
+              'sort_order': item.sortOrder,
+            },
+        ],
+        'created_at': DateTime.now().toUtc().toIso8601String(),
+      },
+      onConflict: 'place_id,kind',
+    );
+  }
+
+  Future<void> submitPendingSportsPricing(
+    int placeId,
+    List<SportsPricingDraft> items,
+  ) async {
+    await supabase.from('pending_pricing_changes').upsert(
+      {
+        'place_id': placeId,
+        'kind': 'sports',
+        'payload': [
+          for (final item in items)
+            {
+              'start_time': _timeToHhMmSs(item.startTime),
+              'end_time': _timeToHhMmSs(item.endTime),
+              'price': item.price,
+              'description': item.description,
+              'sort_order': item.sortOrder,
+            },
+        ],
+        'created_at': DateTime.now().toUtc().toIso8601String(),
+      },
+      onConflict: 'place_id,kind',
+    );
+  }
+
+  Future<List<MenuItemDraft>?> getPendingMenuItems(int placeId) async {
+    final response = await supabase
+        .from('pending_pricing_changes')
+        .select('payload')
+        .eq('place_id', placeId)
+        .eq('kind', 'menu')
+        .maybeSingle();
+
+    if (response == null) return null;
+
+    final payload = response['payload'] as List<dynamic>? ?? const [];
+    return [
+      for (var index = 0; index < payload.length; index++)
+        _menuItemFromPayload(payload[index] as Map<String, dynamic>, index),
+    ];
+  }
+
+  Future<List<SportsPricingDraft>?> getPendingSportsPricing(
+    int placeId,
+  ) async {
+    final response = await supabase
+        .from('pending_pricing_changes')
+        .select('payload')
+        .eq('place_id', placeId)
+        .eq('kind', 'sports')
+        .maybeSingle();
+
+    if (response == null) return null;
+
+    final payload = response['payload'] as List<dynamic>? ?? const [];
+    return [
+      for (var index = 0; index < payload.length; index++)
+        _sportsDraftFromPayload(payload[index] as Map<String, dynamic>, index),
+    ];
+  }
+
+  MenuItemDraft _menuItemFromPayload(Map<String, dynamic> raw, int index) {
+    return MenuItemDraft(
+      localKey: 'p$index',
+      name: raw['name'] as String,
+      price: (raw['price'] as num).toDouble(),
+      description: raw['description'] as String?,
+      sortOrder: (raw['sort_order'] as num?)?.toInt() ?? index,
+    );
+  }
+
+  SportsPricingDraft _sportsDraftFromPayload(
+    Map<String, dynamic> raw,
+    int index,
+  ) {
+    return SportsPricingDraft(
+      localKey: 'p$index',
+      startTime: _parseHhMmSs(raw['start_time'] as String),
+      endTime: _parseHhMmSs(raw['end_time'] as String),
+      price: (raw['price'] as num).toDouble(),
+      description: raw['description'] as String?,
+      sortOrder: (raw['sort_order'] as num?)?.toInt() ?? index,
+    );
   }
 
   String _timeToHhMmSs(TimeOfDay time) {
     return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}:00';
+  }
+
+  TimeOfDay _parseHhMmSs(String value) {
+    final parts = value.split(':');
+    final hour = int.tryParse(parts.isNotEmpty ? parts[0] : '') ?? 0;
+    final minute = int.tryParse(parts.length > 1 ? parts[1] : '') ?? 0;
+    return TimeOfDay(hour: hour, minute: minute);
   }
 }

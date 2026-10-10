@@ -9,3 +9,5 @@ export 'text_direction_extension.dart';
 export 'time_format_extension.dart';
 export 'relative_time_extension.dart';
 export 'search_normalizer_extension.dart';
+export 'digits_extension.dart';
+export 'price_format_extension.dart';

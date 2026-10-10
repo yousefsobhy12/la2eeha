@@ -130,9 +130,10 @@ class _AddPlaceViewBodyState extends State<_AddPlaceViewBody> {
                   path: '/place/$placeId/pricing',
                 )
               : (
-                  label: isDeliveryPricing(categoryId!)
-                      ? 'أضف أسعار التوصيل دلوقتي'
-                      : 'أضف المنيو دلوقتي',
+                  label: pricingLabelsFor(
+                    categoryId: categoryId!,
+                    subCategory: state.subCategory,
+                  ).dialogButton,
                   path: '/place/$placeId/menu',
                 )
         : null;
@@ -172,6 +173,7 @@ class _AddPlaceViewBodyState extends State<_AddPlaceViewBody> {
                       placeId: placeId!,
                       placeName: state.name.trim(),
                       categoryId: state.categoryId!,
+                      subCategory: state.subCategory,
                     ),
                   );
                 },

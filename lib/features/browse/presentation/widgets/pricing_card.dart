@@ -86,7 +86,7 @@ class PricingCard extends StatelessWidget {
   Widget _buildSportsRow(BuildContext context, SportsPricing pricing) {
     final timeRange =
         '${pricing.startTime.toArabicTime()} – ${pricing.endTime.toArabicTime()}';
-    final priceLabel = '${pricing.price.toStringAsFixed(0)} ج.م / ساعة';
+    final priceLabel = '${pricing.price.toPriceString()} ج.م / ساعة';
     final description = pricing.description;
 
     return Padding(
@@ -152,7 +152,7 @@ class PricingCard extends StatelessWidget {
   }
 
   Widget _buildMenuItemRow(BuildContext context, MenuItem item) {
-    final priceLabel = '${item.price.toStringAsFixed(0)} ج.م';
+    final priceLabel = '${item.price.toPriceString()} ج.م';
     final description = item.description;
 
     return Padding(
