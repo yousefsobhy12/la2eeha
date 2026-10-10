@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/network/supabase_client_provider.dart';
 import '../../domain/entities/menu_item_draft.dart';
+import '../../domain/entities/my_place_item.dart';
 import '../../domain/entities/my_place_summary.dart';
 import '../../domain/entities/place_draft.dart';
 import '../../domain/entities/sports_pricing_draft.dart';
@@ -80,6 +81,33 @@ class MerchantRemoteDataSource {
       subCategory: response['sub_category'] as String?,
       isApproved: response['is_approved'] as bool,
     );
+  }
+
+  Future<List<MyPlaceItem>> getMyPlaces() async {
+    final rows = await supabase
+        .from('places')
+        .select('id,name,category_id,sub_category,is_approved,rejection_reason')
+        .eq('owner_id', supabase.auth.currentUser!.id)
+        .order('created_at', ascending: false);
+    if (rows.isEmpty) return [];
+    final ids = [for (final r in rows) r['id'] as int];
+    final pending = await supabase
+        .from('pending_pricing_changes')
+        .select('place_id')
+        .inFilter('place_id', ids);
+    final pendingIds = {for (final r in pending) r['place_id'] as int};
+    return [
+      for (final r in rows)
+        MyPlaceItem(
+          id: r['id'] as int,
+          name: r['name'] as String,
+          categoryId: r['category_id'] as int,
+          subCategory: r['sub_category'] as String?,
+          isApproved: r['is_approved'] == true,
+          rejectionReason: r['rejection_reason'] as String?,
+          hasPendingPricing: pendingIds.contains(r['id'] as int),
+        ),
+    ];
   }
 
   Future<bool> isPlaceApproved(int placeId) async {

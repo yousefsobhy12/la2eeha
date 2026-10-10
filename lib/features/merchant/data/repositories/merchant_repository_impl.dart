@@ -5,6 +5,7 @@ import 'package:dartz/dartz.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/network/safe_supabase_call.dart';
 import '../../domain/entities/menu_item_draft.dart';
+import '../../domain/entities/my_place_item.dart';
 import '../../domain/entities/my_place_summary.dart';
 import '../../domain/entities/place_draft.dart';
 import '../../domain/entities/sports_pricing_draft.dart';
@@ -60,6 +61,15 @@ class MerchantRepositoryImpl implements MerchantRepository {
     return safeSupabaseCall<MyPlaceSummary?>(
       () => remoteDataSource.getMyLatestPlace(),
       callName: 'MerchantRepository.getMyLatestPlace',
+      onAuthException: (e) => AuthFailure.fromAuthException(e.message),
+    );
+  }
+
+  @override
+  Future<Either<Failure, List<MyPlaceItem>>> getMyPlaces() {
+    return safeSupabaseCall<List<MyPlaceItem>>(
+      () => remoteDataSource.getMyPlaces(),
+      callName: 'MerchantRepository.getMyPlaces',
       onAuthException: (e) => AuthFailure.fromAuthException(e.message),
     );
   }

@@ -4,6 +4,7 @@ import 'package:dartz/dartz.dart';
 
 import '../../../../core/errors/failures.dart';
 import '../entities/menu_item_draft.dart';
+import '../entities/my_place_item.dart';
 import '../entities/my_place_summary.dart';
 import '../entities/place_draft.dart';
 import '../entities/sports_pricing_draft.dart';
@@ -22,6 +23,8 @@ abstract class MerchantRepository {
   });
 
   Future<Either<Failure, MyPlaceSummary?>> getMyLatestPlace();
+
+  Future<Either<Failure, List<MyPlaceItem>>> getMyPlaces();
 
   Future<Either<Failure, bool>> isPlaceApproved({required int placeId});
 
