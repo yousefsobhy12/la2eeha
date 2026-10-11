@@ -13,7 +13,7 @@ import '../../features/browse/presentation/views/search_results_view.dart';
 import '../../features/favorites/presentation/views/favorites_view.dart';
 import '../../features/merchant/presentation/views/add_place_view.dart';
 import '../../features/merchant/presentation/views/menu_pricing_view.dart';
-import '../../features/merchant/presentation/views/place_status_view.dart';
+import '../../features/merchant/presentation/views/my_places_view.dart';
 import '../../features/merchant/presentation/views/pricing_args.dart';
 import '../../features/merchant/presentation/views/sports_pricing_view.dart';
 import '../../features/more/presentation/views/more_view.dart';
@@ -123,17 +123,12 @@ final GoRouter appRouter = GoRouter(
       },
     ),
     GoRoute(
-      path: '/place/:id/status',
-      builder: (context, state) {
-        final id = int.parse(state.pathParameters['id']!);
-        final args = state.extra;
-        if (args is PricingArgs) return PlaceStatusView(args: args);
-        return PlaceDetailView(placeId: id);
-      },
-    ),
-    GoRoute(
       path: '/add-place',
       builder: (context, state) => const AddPlaceView(),
+    ),
+    GoRoute(
+      path: '/my-places',
+      builder: (context, state) => const MyPlacesView(),
     ),
   ],
 );

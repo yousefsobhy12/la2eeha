@@ -157,8 +157,7 @@ class _AddPlaceViewBodyState extends State<_AddPlaceViewBody> {
               onPressed: () {
                 _showingSuccessDialog = false;
                 Navigator.of(dialogContext).pop();
-                // TODO(Session 6): navigate to My Businesses screen instead once it exists
-                context.go('/');
+                context.go('/my-places');
               },
               child: const Text('تمام'),
             ),
@@ -333,12 +332,11 @@ class _AddPlaceViewBodyState extends State<_AddPlaceViewBody> {
     );
   }
 
-  InputDecoration _dropdownDecoration(String label, {String? hint}) {
+  InputDecoration _dropdownDecoration({String? hint}) {
     return InputDecoration(
       hintText: hint,
-      labelText: label,
       filled: true,
-      fillColor: Colors.grey[100],
+      fillColor: context.isDarkMode ? AppColors.textPrimary : Colors.grey[100],
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
@@ -350,7 +348,7 @@ class _AddPlaceViewBodyState extends State<_AddPlaceViewBody> {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
-        borderSide: const BorderSide(width: 2),
+        borderSide: BorderSide.none,
       ),
     );
   }
@@ -380,7 +378,7 @@ class _AddPlaceViewBodyState extends State<_AddPlaceViewBody> {
         DropdownButtonFormField<int>(
           initialValue: state.categoryId,
           isExpanded: true,
-          decoration: _dropdownDecoration('اختار الكاتيجوري'),
+          decoration: _dropdownDecoration(hint: 'مثال: مطعم'),
           items: [
             for (final category in state.categories)
               DropdownMenuItem(
@@ -433,7 +431,7 @@ class _AddPlaceViewBodyState extends State<_AddPlaceViewBody> {
               ? _otherSubCategoryMarker
               : state.subCategory,
           isExpanded: true,
-          decoration: _dropdownDecoration('اختار النوع'),
+          decoration: _dropdownDecoration(hint: 'حدد النوع الفرعي'),
           items: [
             for (final option in fixedOptions)
               DropdownMenuItem(
@@ -487,7 +485,7 @@ class _AddPlaceViewBodyState extends State<_AddPlaceViewBody> {
               ? _otherAreaMarker
               : state.areaId,
           isExpanded: true,
-          decoration: _dropdownDecoration('اختار المنطقة'),
+          decoration: _dropdownDecoration(hint: 'اختار المنطقة'),
           items: [
             for (final area in state.areas)
               DropdownMenuItem(value: area.id, child: Text(area.nameAr)),

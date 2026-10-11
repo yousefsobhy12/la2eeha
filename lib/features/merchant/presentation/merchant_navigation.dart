@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../core/constants/place_pricing_helpers.dart';
 import '../domain/repositories/merchant_repository.dart';
-import 'views/pricing_args.dart';
 
 Future<void> navigateToMerchantEntry(
   BuildContext context,
@@ -24,23 +22,6 @@ Future<void> navigateToMerchantEntry(
       context.go('/add-place');
       return;
     }
-    final type = pricingScreenTypeFor(
-      categoryId: summary.categoryId,
-      subCategory: summary.subCategory,
-    );
-    final args = PricingArgs(
-      placeId: summary.id,
-      placeName: summary.name,
-      categoryId: summary.categoryId,
-      subCategory: summary.subCategory,
-    );
-    switch (type) {
-      case PlacePricingScreenType.menuItems:
-        context.go('/place/${summary.id}/menu', extra: args);
-      case PlacePricingScreenType.sportsPricing:
-        context.go('/place/${summary.id}/pricing', extra: args);
-      case PlacePricingScreenType.none:
-        context.go('/place/${summary.id}/status', extra: args);
-    }
+    context.push('/my-places');
   });
 }

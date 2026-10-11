@@ -130,7 +130,10 @@ class _SportsPricingViewBodyState extends State<_SportsPricingViewBody> {
           ),
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('اخرج', style: TextStyle(color: Colors.redAccent)),
+            child: const Text(
+              'اخرج',
+              style: TextStyle(color: Colors.redAccent),
+            ),
           ),
         ],
       ),
@@ -139,19 +142,19 @@ class _SportsPricingViewBodyState extends State<_SportsPricingViewBody> {
   }
 
   Future<void> _handleBack() async {
-    final hasChanges =
-        context.read<SportsPricingCubit>().state.hasUnsavedChanges;
+    final hasChanges = context
+        .read<SportsPricingCubit>()
+        .state
+        .hasUnsavedChanges;
     if (hasChanges) {
       final leave = await _askLeave();
       if (!mounted) return;
-      if (leave) context.go('/');
+      if (leave) {
+        context.canPop() ? context.pop() : context.go('/my-places');
+      }
       return;
     }
-    if (context.canPop()) {
-      context.pop();
-    } else {
-      context.go('/');
-    }
+    context.canPop() ? context.pop() : context.go('/my-places');
   }
 
   void _onMessage(BuildContext context, SportsPricingState state) {
@@ -167,16 +170,15 @@ class _SportsPricingViewBodyState extends State<_SportsPricingViewBody> {
         ..hideCurrentSnackBar()
         ..showSnackBar(SnackBar(content: Text(state.successMessage!)));
       cubit.dismissMessages();
-      context.go('/');
+      context.canPop() ? context.pop() : context.go('/my-places');
     }
   }
 
-  InputDecoration _dropdownDecoration(String label, {String? hint}) {
+  InputDecoration _dropdownDecoration({String? hint}) {
     return InputDecoration(
       hintText: hint,
-      labelText: label,
       filled: true,
-      fillColor: Colors.grey[100],
+      fillColor: context.isDarkMode ? AppColors.textPrimary : Colors.grey[100],
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
@@ -188,7 +190,7 @@ class _SportsPricingViewBodyState extends State<_SportsPricingViewBody> {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
-        borderSide: const BorderSide(width: 2),
+        borderSide: BorderSide.none,
       ),
     );
   }
@@ -204,7 +206,11 @@ class _SportsPricingViewBodyState extends State<_SportsPricingViewBody> {
           if (didPop) return;
           final leave = await _askLeave();
           if (!mounted) return;
-          if (leave) this.context.go('/');
+          if (leave) {
+            this.context.canPop()
+                ? this.context.pop()
+                : this.context.go('/my-places');
+          }
         },
         child: Scaffold(
           backgroundColor: context.pageBackground,
@@ -243,7 +249,8 @@ class _SportsPricingViewBodyState extends State<_SportsPricingViewBody> {
                 builder: (context, state) {
                   final reviewMode = state.isApproved != false;
                   return UnsavedChangesBar(
-                    visible: state.hasUnsavedChanges &&
+                    visible:
+                        state.hasUnsavedChanges &&
                         !state.isLoading &&
                         !state.loadFailed &&
                         !context.isKeyboardOpen,
@@ -502,7 +509,7 @@ class _SportsPricingViewBodyState extends State<_SportsPricingViewBody> {
               key: ValueKey(state.selectedPreset),
               initialValue: state.selectedPreset,
               isExpanded: true,
-              decoration: _dropdownDecoration('نوع الفترة', hint: 'نوع الفترة'),
+              decoration: _dropdownDecoration(hint: 'نوع الفترة'),
               items: [
                 for (final preset in SportsPricingCubit.presets)
                   DropdownMenuItem(value: preset, child: Text(preset)),
@@ -561,7 +568,9 @@ class _SportsPricingViewBodyState extends State<_SportsPricingViewBody> {
               onChanged: (value) =>
                   context.read<SportsPricingCubit>().updatePrice(value),
               validator: (value) {
-                final price = double.tryParse((value ?? '').trim().toWesternDigits());
+                final price = double.tryParse(
+                  (value ?? '').trim().toWesternDigits(),
+                );
                 return (price == null || price <= 0)
                     ? 'السعر لازم يكون رقم أكبر من صفر'
                     : null;
