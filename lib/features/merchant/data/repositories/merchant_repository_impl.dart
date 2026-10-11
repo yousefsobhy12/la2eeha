@@ -4,9 +4,11 @@ import 'package:dartz/dartz.dart';
 
 import '../../../../core/errors/failures.dart';
 import '../../../../core/network/safe_supabase_call.dart';
+import '../../domain/entities/editable_place.dart';
 import '../../domain/entities/menu_item_draft.dart';
 import '../../domain/entities/my_place_item.dart';
 import '../../domain/entities/my_place_summary.dart';
+import '../../domain/entities/place_change_item.dart';
 import '../../domain/entities/place_draft.dart';
 import '../../domain/entities/sports_pricing_draft.dart';
 import '../../domain/repositories/merchant_repository.dart';
@@ -143,6 +145,56 @@ class MerchantRepositoryImpl implements MerchantRepository {
     return safeSupabaseCall<List<SportsPricingDraft>?>(
       () => remoteDataSource.getPendingSportsPricing(placeId),
       callName: 'MerchantRepository.getPendingSportsPricing',
+    );
+  }
+
+  @override
+  Future<Either<Failure, EditablePlace>> getEditablePlace({
+    required int placeId,
+  }) {
+    return safeSupabaseCall<EditablePlace>(
+      () => remoteDataSource.getEditablePlace(placeId),
+      callName: 'MerchantRepository.getEditablePlace',
+      onAuthException: (e) => AuthFailure.fromAuthException(e.message),
+    );
+  }
+
+  @override
+  Future<Either<Failure, Map<String, Map<String, dynamic>>>>
+  getPendingPlaceChanges({required int placeId}) {
+    return safeSupabaseCall<Map<String, Map<String, dynamic>>>(
+      () => remoteDataSource.getPendingPlaceChanges(placeId),
+      callName: 'MerchantRepository.getPendingPlaceChanges',
+      onAuthException: (e) => AuthFailure.fromAuthException(e.message),
+    );
+  }
+
+  @override
+  Future<Either<Failure, void>> submitPlaceChangeBatch({
+    required int placeId,
+    required List<PlaceChangeItem> items,
+    List<String> itemsToCancel = const [],
+  }) {
+    return safeSupabaseCall<void>(
+      () => remoteDataSource.submitPlaceChangeBatch(
+        placeId,
+        items,
+        itemsToCancel,
+      ),
+      callName: 'MerchantRepository.submitPlaceChangeBatch',
+      onAuthException: (e) => AuthFailure.fromAuthException(e.message),
+    );
+  }
+
+  @override
+  Future<Either<Failure, void>> updateUnapprovedPlace({
+    required int placeId,
+    required PlaceDraft draft,
+  }) {
+    return safeSupabaseCall<void>(
+      () => remoteDataSource.updateUnapprovedPlace(placeId, draft),
+      callName: 'MerchantRepository.updateUnapprovedPlace',
+      onAuthException: (e) => AuthFailure.fromAuthException(e.message),
     );
   }
 }

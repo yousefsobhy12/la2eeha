@@ -5,7 +5,7 @@ class MyPlaceItem {
   final String? subCategory;
   final bool isApproved;
   final String? rejectionReason;
-  final bool hasPendingPricing;
+  final bool hasPendingChanges;
 
   const MyPlaceItem({
     required this.id,
@@ -14,6 +14,6 @@ class MyPlaceItem {
     this.subCategory,
     required this.isApproved,
     this.rejectionReason,
-    required this.hasPendingPricing,
+    required this.hasPendingChanges,
   });
 }

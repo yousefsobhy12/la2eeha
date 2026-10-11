@@ -127,6 +127,11 @@ final GoRouter appRouter = GoRouter(
       builder: (context, state) => const AddPlaceView(),
     ),
     GoRoute(
+      path: '/place/:id/edit',
+      builder: (context, state) =>
+          AddPlaceView(placeId: int.parse(state.pathParameters['id']!)),
+    ),
+    GoRoute(
       path: '/my-places',
       builder: (context, state) => const MyPlacesView(),
     ),

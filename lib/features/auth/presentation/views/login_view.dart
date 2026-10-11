@@ -168,6 +168,7 @@ class _LoginViewBodyState extends State<_LoginViewBody> {
                                         remoteDataSource:
                                             MerchantRemoteDataSource(),
                                       ),
+                                      replaceCurrent: true,
                                     );
                                   } else if (state is LoginError) {
                                     ScaffoldMessenger.of(context).showSnackBar(

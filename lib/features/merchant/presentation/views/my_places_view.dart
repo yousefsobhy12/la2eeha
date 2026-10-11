@@ -268,7 +268,7 @@ class _MyPlaceCard extends StatelessWidget {
               ),
             ),
           ],
-          if (item.hasPendingPricing) ...[
+          if (item.hasPendingChanges) ...[
             context.smallSpacing.vSpace,
             Container(
               padding: EdgeInsets.symmetric(
@@ -287,7 +287,7 @@ class _MyPlaceCard extends StatelessWidget {
                     color: context.colorScheme.primary,
                   ),
                   6.hSpace,
-                  'فيه تعديلات أسعار قيد المراجعة'.toCaption(
+                  'فيه تعديلات قيد المراجعة'.toCaption(
                     context,
                     color: context.colorScheme.primary,
                     fontWeight: FontWeight.w600,
@@ -296,12 +296,29 @@ class _MyPlaceCard extends StatelessWidget {
               ),
             ),
           ],
+          8.vSpace,
+          _buildEditButton(context),
           if (showPricing) ...[
             8.vSpace,
             _buildPricingButton(context, screenType),
           ],
         ],
       ),
+    );
+  }
+
+  Widget _buildEditButton(BuildContext context) {
+    return CustomElevatedButton(
+      text: 'تعديل البيانات',
+      isOutlined: true,
+      backgroundColor: context.colorScheme.primary,
+      height: context.buttonHeight,
+      borderRadius: context.largeRadius,
+      onPressed: () async {
+        final cubit = context.read<MyPlacesCubit>();
+        await context.push('/place/${item.id}/edit');
+        if (!cubit.isClosed) cubit.load(silent: true);
+      },
     );
   }
 

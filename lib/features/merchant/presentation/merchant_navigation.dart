@@ -5,8 +5,9 @@ import '../domain/repositories/merchant_repository.dart';
 
 Future<void> navigateToMerchantEntry(
   BuildContext context,
-  MerchantRepository repo,
-) async {
+  MerchantRepository repo, {
+  bool replaceCurrent = false,
+}) async {
   final result = await repo.getMyLatestPlace();
   if (!context.mounted) return;
 
@@ -19,9 +20,13 @@ Future<void> navigateToMerchantEntry(
     return;
   }, (summary) {
     if (summary == null) {
-      context.go('/add-place');
+      replaceCurrent
+          ? context.pushReplacement('/add-place')
+          : context.go('/add-place');
       return;
     }
-    context.push('/my-places');
+    replaceCurrent
+        ? context.pushReplacement('/my-places')
+        : context.push('/my-places');
   });
 }

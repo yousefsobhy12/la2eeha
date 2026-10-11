@@ -1,11 +1,14 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../../../core/network/supabase_client_provider.dart';
+import '../../domain/entities/editable_place.dart';
 import '../../domain/entities/menu_item_draft.dart';
 import '../../domain/entities/my_place_item.dart';
 import '../../domain/entities/my_place_summary.dart';
+import '../../domain/entities/place_change_item.dart';
 import '../../domain/entities/place_draft.dart';
 import '../../domain/entities/sports_pricing_draft.dart';
 
@@ -92,9 +95,10 @@ class MerchantRemoteDataSource {
     if (rows.isEmpty) return [];
     final ids = [for (final r in rows) r['id'] as int];
     final pending = await supabase
-        .from('pending_pricing_changes')
+        .from('place_change_requests')
         .select('place_id')
-        .inFilter('place_id', ids);
+        .inFilter('place_id', ids)
+        .eq('status', 'pending');
     final pendingIds = {for (final r in pending) r['place_id'] as int};
     return [
       for (final r in rows)
@@ -105,7 +109,7 @@ class MerchantRemoteDataSource {
           subCategory: r['sub_category'] as String?,
           isApproved: r['is_approved'] == true,
           rejectionReason: r['rejection_reason'] as String?,
-          hasPendingPricing: pendingIds.contains(r['id'] as int),
+          hasPendingChanges: pendingIds.contains(r['id'] as int),
         ),
     ];
   }
@@ -178,22 +182,18 @@ class MerchantRemoteDataSource {
     int placeId,
     List<MenuItemDraft> items,
   ) async {
-    await supabase.from('pending_pricing_changes').upsert(
-      {
-        'place_id': placeId,
-        'kind': 'menu',
-        'payload': [
-          for (final item in items)
-            {
-              'name': item.name,
-              'price': item.price,
-              'description': item.description,
-              'sort_order': item.sortOrder,
-            },
-        ],
-        'created_at': DateTime.now().toUtc().toIso8601String(),
-      },
-      onConflict: 'place_id,kind',
+    await _replacePendingRequest(
+      placeId: placeId,
+      item: 'menu',
+      payload: [
+        for (final item in items)
+          {
+            'name': item.name,
+            'price': item.price,
+            'description': item.description,
+            'sort_order': item.sortOrder,
+          },
+      ],
     );
   }
 
@@ -201,37 +201,25 @@ class MerchantRemoteDataSource {
     int placeId,
     List<SportsPricingDraft> items,
   ) async {
-    await supabase.from('pending_pricing_changes').upsert(
-      {
-        'place_id': placeId,
-        'kind': 'sports',
-        'payload': [
-          for (final item in items)
-            {
-              'start_time': _timeToHhMmSs(item.startTime),
-              'end_time': _timeToHhMmSs(item.endTime),
-              'price': item.price,
-              'description': item.description,
-              'sort_order': item.sortOrder,
-            },
-        ],
-        'created_at': DateTime.now().toUtc().toIso8601String(),
-      },
-      onConflict: 'place_id,kind',
+    await _replacePendingRequest(
+      placeId: placeId,
+      item: 'sports',
+      payload: [
+        for (final item in items)
+          {
+            'start_time': _timeToHhMmSs(item.startTime),
+            'end_time': _timeToHhMmSs(item.endTime),
+            'price': item.price,
+            'description': item.description,
+            'sort_order': item.sortOrder,
+          },
+      ],
     );
   }
 
   Future<List<MenuItemDraft>?> getPendingMenuItems(int placeId) async {
-    final response = await supabase
-        .from('pending_pricing_changes')
-        .select('payload')
-        .eq('place_id', placeId)
-        .eq('kind', 'menu')
-        .maybeSingle();
-
-    if (response == null) return null;
-
-    final payload = response['payload'] as List<dynamic>? ?? const [];
+    final payload = await _getPendingPayload(placeId, 'menu');
+    if (payload == null) return null;
     return [
       for (var index = 0; index < payload.length; index++)
         _menuItemFromPayload(payload[index] as Map<String, dynamic>, index),
@@ -241,20 +229,148 @@ class MerchantRemoteDataSource {
   Future<List<SportsPricingDraft>?> getPendingSportsPricing(
     int placeId,
   ) async {
-    final response = await supabase
-        .from('pending_pricing_changes')
-        .select('payload')
-        .eq('place_id', placeId)
-        .eq('kind', 'sports')
-        .maybeSingle();
-
-    if (response == null) return null;
-
-    final payload = response['payload'] as List<dynamic>? ?? const [];
+    final payload = await _getPendingPayload(placeId, 'sports');
+    if (payload == null) return null;
     return [
       for (var index = 0; index < payload.length; index++)
         _sportsDraftFromPayload(payload[index] as Map<String, dynamic>, index),
     ];
+  }
+
+  Future<void> _replacePendingRequest({
+    required int placeId,
+    required String item,
+    required List<Map<String, dynamic>> payload,
+  }) async {
+    await supabase
+        .from('place_change_requests')
+        .delete()
+        .eq('place_id', placeId)
+        .eq('item', item)
+        .eq('status', 'pending');
+    await supabase.from('place_change_requests').insert({
+      'place_id': placeId,
+      'item': item,
+      'payload': payload,
+    });
+  }
+
+  Future<List<dynamic>?> _getPendingPayload(int placeId, String item) async {
+    final response = await supabase
+        .from('place_change_requests')
+        .select('payload')
+        .eq('place_id', placeId)
+        .eq('item', item)
+        .eq('status', 'pending')
+        .maybeSingle();
+    if (response == null) return null;
+    return response['payload'] as List<dynamic>? ?? const [];
+  }
+
+  Future<EditablePlace> getEditablePlace(int placeId) async {
+    final response = await supabase
+        .from('places')
+        .select(
+          'id,name,category_id,sub_category,area_id,pending_area_name,address,phone,whatsapp,google_maps_url,description,open_time,close_time,closed_days,is_24_hours,is_delivery,image_url,is_approved,rejection_reason',
+        )
+        .eq('id', placeId)
+        .eq('owner_id', supabase.auth.currentUser!.id)
+        .single();
+    return EditablePlace(
+      id: response['id'] as int,
+      name: response['name'] as String,
+      categoryId: response['category_id'] as int,
+      subCategory: response['sub_category'] as String?,
+      areaId: response['area_id'] as int?,
+      pendingAreaName: response['pending_area_name'] as String?,
+      address: response['address'] as String,
+      phone: response['phone'] as String,
+      whatsapp: response['whatsapp'] as String?,
+      googleMapsUrl: response['google_maps_url'] as String?,
+      description: response['description'] as String?,
+      openTime: response['open_time'] as String?,
+      closeTime: response['close_time'] as String?,
+      closedDays: [
+        for (final day
+            in (response['closed_days'] as List<dynamic>? ?? const []))
+          day as int,
+      ],
+      is24Hours: response['is_24_hours'] == true,
+      isDelivery: response['is_delivery'] == true,
+      imageUrl: response['image_url'] as String?,
+      isApproved: response['is_approved'] == true,
+      rejectionReason: response['rejection_reason'] as String?,
+    );
+  }
+
+  Future<Map<String, Map<String, dynamic>>> getPendingPlaceChanges(
+    int placeId,
+  ) async {
+    final rows = await supabase
+        .from('place_change_requests')
+        .select('item,payload')
+        .eq('place_id', placeId)
+        .eq('status', 'pending')
+        .inFilter('item', ['info', 'description', 'photo', 'hours']);
+    return {
+      for (final r in rows)
+        r['item'] as String: r['payload'] as Map<String, dynamic>,
+    };
+  }
+
+  Future<void> submitPlaceChangeBatch(
+    int placeId,
+    List<PlaceChangeItem> items,
+    List<String> itemsToCancel,
+  ) async {
+    if (items.isEmpty && itemsToCancel.isEmpty) return;
+    final allItems = [
+      for (final i in items) i.item,
+      ...itemsToCancel,
+    ];
+    await supabase
+        .from('place_change_requests')
+        .delete()
+        .eq('place_id', placeId)
+        .eq('status', 'pending')
+        .inFilter('item', allItems);
+    if (items.isEmpty) return;
+    final batchId = const Uuid().v4();
+    await supabase.from('place_change_requests').insert([
+      for (final i in items)
+        {
+          'place_id': placeId,
+          'batch_id': batchId,
+          'item': i.item,
+          'payload': i.payload,
+        },
+    ]);
+  }
+
+  Future<void> updateUnapprovedPlace(int placeId, PlaceDraft draft) async {
+    final openTime = draft.is24Hours ? null : draft.openTime;
+    final closeTime = draft.is24Hours ? null : draft.closeTime;
+    await supabase
+        .from('places')
+        .update({
+          'category_id': draft.categoryId,
+          'sub_category': draft.subCategory,
+          'area_id': draft.areaId,
+          'pending_area_name': draft.pendingAreaName,
+          'name': draft.name,
+          'address': draft.address,
+          'phone': draft.phone,
+          'whatsapp': draft.whatsapp,
+          'google_maps_url': draft.googleMapsUrl,
+          'description': draft.description,
+          'is_24_hours': draft.is24Hours,
+          'is_delivery': draft.isDelivery,
+          'open_time': openTime,
+          'close_time': closeTime,
+          'closed_days': draft.closedDays,
+          'rejection_reason': null,
+        })
+        .eq('id', placeId);
   }
 
   MenuItemDraft _menuItemFromPayload(Map<String, dynamic> raw, int index) {

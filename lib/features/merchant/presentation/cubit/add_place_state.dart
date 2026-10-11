@@ -2,6 +2,7 @@ import 'dart:io';
 
 import '../../../browse/domain/entities/area.dart';
 import '../../../browse/domain/entities/category.dart';
+import '../../domain/entities/editable_place.dart';
 
 class _Unset {
   const _Unset();
@@ -50,6 +51,12 @@ class AddPlaceState {
 
   final int? submittedPlaceId;
 
+  final int? editingPlaceId;
+  final bool isApprovedPlace;
+  final EditablePlace? originalPlace;
+  final Map<String, Map<String, dynamic>> pendingChanges;
+  final String? existingImageUrl;
+
   const AddPlaceState({
     this.status = AddPlaceStatus.initial,
     this.errorMessage,
@@ -74,10 +81,19 @@ class AddPlaceState {
     this.imageFile,
     this.imageUploadFailed = false,
     this.submittedPlaceId,
+    this.editingPlaceId,
+    this.isApprovedPlace = false,
+    this.originalPlace,
+    this.pendingChanges = const {},
+    this.existingImageUrl,
   });
 
   bool get isFormReady =>
       status == AddPlaceStatus.ready && categories.isNotEmpty;
+
+  bool get isEditing => editingPlaceId != null;
+
+  bool get hasPendingChanges => pendingChanges.isNotEmpty;
 
   AddPlaceState copyWith({
     AddPlaceStatus? status,
@@ -103,6 +119,11 @@ class AddPlaceState {
     Object? imageFile = _unset,
     bool? imageUploadFailed,
     Object? submittedPlaceId = _unset,
+    Object? editingPlaceId = _unset,
+    bool? isApprovedPlace,
+    Object? originalPlace = _unset,
+    Map<String, Map<String, dynamic>>? pendingChanges,
+    Object? existingImageUrl = _unset,
   }) {
     return AddPlaceState(
       status: status ?? this.status,
@@ -138,6 +159,17 @@ class AddPlaceState {
       submittedPlaceId: submittedPlaceId == _unset
           ? this.submittedPlaceId
           : submittedPlaceId as int?,
+      editingPlaceId: editingPlaceId == _unset
+          ? this.editingPlaceId
+          : editingPlaceId as int?,
+      isApprovedPlace: isApprovedPlace ?? this.isApprovedPlace,
+      originalPlace: originalPlace == _unset
+          ? this.originalPlace
+          : originalPlace as EditablePlace?,
+      pendingChanges: pendingChanges ?? this.pendingChanges,
+      existingImageUrl: existingImageUrl == _unset
+          ? this.existingImageUrl
+          : existingImageUrl as String?,
     );
   }
 }
