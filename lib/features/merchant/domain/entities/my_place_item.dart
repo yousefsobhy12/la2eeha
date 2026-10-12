@@ -1,3 +1,5 @@
+import 'place_change_result.dart';
+
 class MyPlaceItem {
   final int id;
   final String name;
@@ -6,6 +8,7 @@ class MyPlaceItem {
   final bool isApproved;
   final String? rejectionReason;
   final bool hasPendingChanges;
+  final List<PlaceChangeResult> reviewResults;
 
   const MyPlaceItem({
     required this.id,
@@ -15,5 +18,6 @@ class MyPlaceItem {
     required this.isApproved,
     this.rejectionReason,
     required this.hasPendingChanges,
+    this.reviewResults = const [],
   });
 }

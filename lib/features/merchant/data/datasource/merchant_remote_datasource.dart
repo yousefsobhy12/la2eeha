@@ -3,12 +3,14 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../../../core/network/app_logger.dart';
 import '../../../../core/network/supabase_client_provider.dart';
 import '../../domain/entities/editable_place.dart';
 import '../../domain/entities/menu_item_draft.dart';
 import '../../domain/entities/my_place_item.dart';
 import '../../domain/entities/my_place_summary.dart';
 import '../../domain/entities/place_change_item.dart';
+import '../../domain/entities/place_change_result.dart';
 import '../../domain/entities/place_draft.dart';
 import '../../domain/entities/sports_pricing_draft.dart';
 
@@ -94,12 +96,72 @@ class MerchantRemoteDataSource {
         .order('created_at', ascending: false);
     if (rows.isEmpty) return [];
     final ids = [for (final r in rows) r['id'] as int];
-    final pending = await supabase
-        .from('place_change_requests')
-        .select('place_id')
-        .inFilter('place_id', ids)
-        .eq('status', 'pending');
-    final pendingIds = {for (final r in pending) r['place_id'] as int};
+
+    List<Map<String, dynamic>> changeRows;
+    try {
+      changeRows = await supabase
+          .from('place_change_requests')
+          .select(
+            'place_id,batch_id,item,status,rejection_reason,created_at',
+          )
+          .inFilter('place_id', ids);
+    } catch (e) {
+      appLogger.w('Failed to load place review results: $e');
+      return [
+        for (final r in rows)
+          MyPlaceItem(
+            id: r['id'] as int,
+            name: r['name'] as String,
+            categoryId: r['category_id'] as int,
+            subCategory: r['sub_category'] as String?,
+            isApproved: r['is_approved'] == true,
+            rejectionReason: r['rejection_reason'] as String?,
+            hasPendingChanges: false,
+          ),
+      ];
+    }
+
+    final pendingPlaceIds = <int>{};
+    final latestBatchIdByPlace = <int, String>{};
+    final latestCreatedAtByPlace = <int, DateTime>{};
+
+    for (final r in changeRows) {
+      final placeId = r['place_id'] as int;
+      if (r['status'] == 'pending') pendingPlaceIds.add(placeId);
+
+      final batchId = r['batch_id'] as String?;
+      final createdAt = DateTime.tryParse('${r['created_at']}');
+      if (batchId == null || createdAt == null) continue;
+
+      final latest = latestCreatedAtByPlace[placeId];
+      if (latest == null || createdAt.isAfter(latest)) {
+        latestCreatedAtByPlace[placeId] = createdAt;
+        latestBatchIdByPlace[placeId] = batchId;
+      }
+    }
+
+    final reviewResultsByPlace = <int, List<PlaceChangeResult>>{};
+    for (final r in changeRows) {
+      final placeId = r['place_id'] as int;
+      if (latestBatchIdByPlace[placeId] != r['batch_id']) continue;
+
+      final status = _placeChangeStatus(r['status'] as String?);
+      final item = r['item'] as String?;
+      if (status == null || item == null || !_knownPlaceChangeItems.contains(item)) {
+        continue;
+      }
+
+      reviewResultsByPlace.putIfAbsent(placeId, () => []).add(
+        PlaceChangeResult(
+          item: item,
+          status: status,
+          rejectionReason: status == PlaceChangeStatus.rejected
+              ? r['rejection_reason'] as String?
+              : null,
+        ),
+      );
+    }
+
     return [
       for (final r in rows)
         MyPlaceItem(
@@ -109,7 +171,8 @@ class MerchantRemoteDataSource {
           subCategory: r['sub_category'] as String?,
           isApproved: r['is_approved'] == true,
           rejectionReason: r['rejection_reason'] as String?,
-          hasPendingChanges: pendingIds.contains(r['id'] as int),
+          hasPendingChanges: pendingPlaceIds.contains(r['id'] as int),
+          reviewResults: reviewResultsByPlace[r['id'] as int] ?? const [],
         ),
     ];
   }
@@ -406,5 +469,27 @@ class MerchantRemoteDataSource {
     final hour = int.tryParse(parts.isNotEmpty ? parts[0] : '') ?? 0;
     final minute = int.tryParse(parts.length > 1 ? parts[1] : '') ?? 0;
     return TimeOfDay(hour: hour, minute: minute);
+  }
+}
+
+const _knownPlaceChangeItems = {
+  'info',
+  'description',
+  'photo',
+  'hours',
+  'menu',
+  'sports',
+};
+
+PlaceChangeStatus? _placeChangeStatus(String? value) {
+  switch (value) {
+    case 'pending':
+      return PlaceChangeStatus.pending;
+    case 'approved':
+      return PlaceChangeStatus.approved;
+    case 'rejected':
+      return PlaceChangeStatus.rejected;
+    default:
+      return null;
   }
 }

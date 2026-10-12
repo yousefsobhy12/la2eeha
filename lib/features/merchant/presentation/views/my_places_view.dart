@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/constants/place_change_labels.dart';
 import '../../../../core/constants/place_pricing_helpers.dart';
 import '../../../../core/extensions/extensions.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -10,6 +11,7 @@ import '../../../../core/widgets/custom_button.dart';
 import '../../data/datasource/merchant_remote_datasource.dart';
 import '../../data/repositories/merchant_repository_impl.dart';
 import '../../domain/entities/my_place_item.dart';
+import '../../domain/entities/place_change_result.dart';
 import '../cubit/my_place_status.dart';
 import '../cubit/my_places_cubit.dart';
 import '../cubit/my_places_state.dart';
@@ -296,6 +298,10 @@ class _MyPlaceCard extends StatelessWidget {
               ),
             ),
           ],
+          if (item.reviewResults.isNotEmpty) ...[
+            context.smallSpacing.vSpace,
+            _ReviewResultsSection(results: item.reviewResults),
+          ],
           8.vSpace,
           _buildEditButton(context),
           if (showPricing) ...[
@@ -398,6 +404,112 @@ class _StatusPill extends StatelessWidget {
           label.toCaption(context, color: color, fontWeight: FontWeight.w600),
         ],
       ),
+    );
+  }
+}
+
+class _ReviewResultsSection extends StatelessWidget {
+  const _ReviewResultsSection({required this.results});
+
+  final List<PlaceChangeResult> results;
+
+  static const List<String> _order = [
+    'info',
+    'description',
+    'photo',
+    'hours',
+    'menu',
+    'sports',
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final sorted = List<PlaceChangeResult>.of(
+      results,
+    )..sort((a, b) => _order.indexOf(a.item).compareTo(_order.indexOf(b.item)));
+
+    return Container(
+      padding: 12.allPadding,
+      decoration: BoxDecoration(
+        color: context.colorScheme.primary.withValues(alpha: 0.06),
+        borderRadius: context.mediumRadius.circularRadius,
+        border: Border.all(color: context.borderColor),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            'نتيجة آخر تعديل',
+            style: TextStyle(
+              fontSize: ResponsiveValues.bodyLarge(context),
+              fontWeight: FontWeight.bold,
+              color: context.textPrimary,
+            ),
+          ),
+          6.vSpace,
+          for (var i = 0; i < sorted.length; i++) ...[
+            if (i > 0) 6.vSpace,
+            _buildResultRow(context, sorted[i]),
+            if (sorted[i].status == PlaceChangeStatus.rejected &&
+                (sorted[i].rejectionReason ?? '').trim().isNotEmpty)
+              Padding(
+                padding: EdgeInsetsDirectional.only(
+                  start: context.smallIconSize + 6,
+                ),
+                child: Text(
+                  'السبب: ${sorted[i].rejectionReason}',
+                  style: TextStyle(
+                    fontSize: ResponsiveValues.bodyLarge(context),
+                    color: context.textSecondary,
+                  ),
+                ),
+              ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildResultRow(BuildContext context, PlaceChangeResult result) {
+    final (color, icon, label) = switch (result.status) {
+      PlaceChangeStatus.pending => (
+        context.colorScheme.primary,
+        Icons.hourglass_empty_rounded,
+        'قيد المراجعة',
+      ),
+      PlaceChangeStatus.approved => (
+        context.isDarkMode ? const Color(0xFF6FCF83) : const Color(0xFF2F6B3A),
+        Icons.check_circle_rounded,
+        'تمت',
+      ),
+      PlaceChangeStatus.rejected => (
+        Colors.redAccent,
+        Icons.cancel_rounded,
+        'مرفوض',
+      ),
+    };
+
+    return Row(
+      children: [
+        Icon(icon, size: context.smallIconSize, color: color),
+        6.hSpace,
+        Expanded(
+          child: Text(
+            placeChangeItemLabel(result.item),
+            style: TextStyle(
+              fontSize: ResponsiveValues.bodyLarge(context),
+              color: context.textPrimary,
+            ),
+          ),
+        ),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: ResponsiveValues.bodyLarge(context),
+            color: color,
+          ),
+        ),
+      ],
     );
   }
 }
