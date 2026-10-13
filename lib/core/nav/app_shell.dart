@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../extensions/extensions.dart';
 
@@ -25,12 +26,20 @@ class AppShell extends StatelessWidget {
     return Scaffold(
       extendBody: true,
       body: navigationShell,
-      bottomNavigationBar: Padding(
-        padding: EdgeInsets.only(bottom: context.bottomSafeArea),
-        child: _RoundedFloatingNavBar(
-          currentIndex: navigationShell.currentIndex,
-          onTap: _onTap,
-        ),
+      bottomNavigationBar: StreamBuilder<AuthState>(
+        stream: Supabase.instance.client.auth.onAuthStateChange,
+        builder: (context, _) {
+          final loggedIn =
+              Supabase.instance.client.auth.currentSession != null;
+          return Padding(
+            padding: EdgeInsets.only(bottom: context.bottomSafeArea),
+            child: _RoundedFloatingNavBar(
+              currentIndex: navigationShell.currentIndex,
+              onTap: _onTap,
+              isLoggedIn: loggedIn,
+            ),
+          );
+        },
       ),
     );
   }
@@ -40,19 +49,23 @@ class _RoundedFloatingNavBar extends StatelessWidget {
   const _RoundedFloatingNavBar({
     required this.currentIndex,
     required this.onTap,
+    required this.isLoggedIn,
   });
 
   final int currentIndex;
   final ValueChanged<int> onTap;
-
-  static const _items = [
-    _NavItem(icon: Icons.home_rounded, label: 'الرئيسية'),
-    _NavItem(icon: Icons.favorite_border_rounded, label: 'المفضلة'),
-    _NavItem(icon: Icons.menu_rounded, label: 'المزيد'),
-  ];
+  final bool isLoggedIn;
 
   @override
   Widget build(BuildContext context) {
+    final items = [
+      const _NavItem(icon: Icons.home_rounded, label: 'الرئيسية'),
+      const _NavItem(icon: Icons.favorite_border_rounded, label: 'المفضلة'),
+      isLoggedIn
+          ? const _NavItem(icon: Icons.person_rounded, label: 'حسابي')
+          : const _NavItem(icon: Icons.menu_rounded, label: 'المزيد'),
+    ];
+
     final bar = ClipRRect(
       borderRadius: 999.circularRadius,
       child: BackdropFilter(
@@ -70,9 +83,9 @@ class _RoundedFloatingNavBar extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              for (int i = 0; i < _items.length; i++)
+              for (int i = 0; i < items.length; i++)
                 _NavIconButton(
-                  item: _items[i],
+                  item: items[i],
                   isSelected: i == currentIndex,
                   onTap: () => onTap(i),
                 ),

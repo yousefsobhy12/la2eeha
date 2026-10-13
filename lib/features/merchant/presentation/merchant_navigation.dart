@@ -25,8 +25,6 @@ Future<void> navigateToMerchantEntry(
           : context.go('/add-place');
       return;
     }
-    replaceCurrent
-        ? context.pushReplacement('/my-places')
-        : context.push('/my-places');
+    context.go('/more');
   });
 }

@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../domain/repositories/merchant_repository.dart';
+import 'my_places_refresh.dart';
 import 'my_places_state.dart';
 
 class MyPlacesCubit extends Cubit<MyPlacesState> {
@@ -8,7 +9,13 @@ class MyPlacesCubit extends Cubit<MyPlacesState> {
 
   MyPlacesCubit(MerchantRepository repository)
     : _repository = repository,
-      super(const MyPlacesInitial());
+      super(const MyPlacesInitial()) {
+    myPlacesRefresh.addListener(_onRefreshRequested);
+  }
+
+  void _onRefreshRequested() {
+    if (!isClosed) load(silent: true);
+  }
 
   Future<void> load({bool silent = false}) async {
     final keepVisible = silent && state is MyPlacesLoaded;
@@ -21,5 +28,11 @@ class MyPlacesCubit extends Cubit<MyPlacesState> {
       },
       (places) => emit(MyPlacesLoaded(places)),
     );
+  }
+
+  @override
+  Future<void> close() {
+    myPlacesRefresh.removeListener(_onRefreshRequested);
+    return super.close();
   }
 }

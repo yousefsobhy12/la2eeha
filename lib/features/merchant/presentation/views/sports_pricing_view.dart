@@ -150,11 +150,11 @@ class _SportsPricingViewBodyState extends State<_SportsPricingViewBody> {
       final leave = await _askLeave();
       if (!mounted) return;
       if (leave) {
-        context.canPop() ? context.pop() : context.go('/my-places');
+        context.canPop() ? context.pop() : context.go('/more');
       }
       return;
     }
-    context.canPop() ? context.pop() : context.go('/my-places');
+    context.canPop() ? context.pop() : context.go('/more');
   }
 
   void _onMessage(BuildContext context, SportsPricingState state) {
@@ -170,7 +170,7 @@ class _SportsPricingViewBodyState extends State<_SportsPricingViewBody> {
         ..hideCurrentSnackBar()
         ..showSnackBar(SnackBar(content: Text(state.successMessage!)));
       cubit.dismissMessages();
-      context.canPop() ? context.pop() : context.go('/my-places');
+      context.canPop() ? context.pop() : context.go('/more');
     }
   }
 
@@ -209,7 +209,7 @@ class _SportsPricingViewBodyState extends State<_SportsPricingViewBody> {
           if (leave) {
             this.context.canPop()
                 ? this.context.pop()
-                : this.context.go('/my-places');
+                : this.context.go('/more');
           }
         },
         child: Scaffold(

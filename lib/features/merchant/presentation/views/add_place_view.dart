@@ -19,6 +19,7 @@ import '../../data/datasource/merchant_remote_datasource.dart';
 import '../../data/repositories/merchant_repository_impl.dart';
 import '../cubit/add_place_cubit.dart';
 import '../cubit/add_place_state.dart';
+import '../cubit/my_places_refresh.dart';
 import 'pricing_args.dart';
 
 class AddPlaceView extends StatelessWidget {
@@ -151,7 +152,7 @@ class _AddPlaceViewBodyState extends State<_AddPlaceViewBody> {
                   if (context.canPop()) {
                     context.pop();
                   } else {
-                    context.go('/my-places');
+                    context.go('/more');
                   }
                 },
                 child: const Text('تمام'),
@@ -163,8 +164,10 @@ class _AddPlaceViewBodyState extends State<_AddPlaceViewBody> {
       return;
     }
 
+    myPlacesRefresh.value++;
+
     final message = state.imageUploadFailed
-        ? 'تمت الإضافة! بيزنسك دلوقتي قيد المراجعة ⚠️ الصورة مقدرناش نرفعها — هتقدر تضيفها بعدين من صفحة أعمالي'
+        ? 'تمت الإضافة! بيزنسك دلوقتي قيد المراجعة ⚠️ الصورة مقدرناش نرفعها — هتقدر تضيفها بعدين من تاب حسابي'
         : 'تمت الإضافة! بيزنسك دلوقتي قيد المراجعة';
 
     final categoryId = state.categoryId;
@@ -211,7 +214,7 @@ class _AddPlaceViewBodyState extends State<_AddPlaceViewBody> {
               onPressed: () {
                 _showingSuccessDialog = false;
                 Navigator.of(dialogContext).pop();
-                context.go('/my-places');
+                context.go('/more');
               },
               child: const Text('تمام'),
             ),

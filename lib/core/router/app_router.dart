@@ -13,10 +13,9 @@ import '../../features/browse/presentation/views/search_results_view.dart';
 import '../../features/favorites/presentation/views/favorites_view.dart';
 import '../../features/merchant/presentation/views/add_place_view.dart';
 import '../../features/merchant/presentation/views/menu_pricing_view.dart';
-import '../../features/merchant/presentation/views/my_places_view.dart';
 import '../../features/merchant/presentation/views/pricing_args.dart';
 import '../../features/merchant/presentation/views/sports_pricing_view.dart';
-import '../../features/more/presentation/views/more_view.dart';
+import '../../features/more/presentation/views/more_tab_view.dart';
 
 final GoRouter appRouter = GoRouter(
   initialLocation: '/',
@@ -43,7 +42,7 @@ final GoRouter appRouter = GoRouter(
           routes: [
             GoRoute(
               path: '/more',
-              builder: (context, state) => const MoreView(),
+              builder: (context, state) => const MoreTabView(),
             ),
           ],
         ),
@@ -130,10 +129,6 @@ final GoRouter appRouter = GoRouter(
       path: '/place/:id/edit',
       builder: (context, state) =>
           AddPlaceView(placeId: int.parse(state.pathParameters['id']!)),
-    ),
-    GoRoute(
-      path: '/my-places',
-      builder: (context, state) => const MyPlacesView(),
     ),
   ],
 );

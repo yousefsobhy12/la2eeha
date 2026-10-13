@@ -147,11 +147,11 @@ class _MenuPricingViewBodyState extends State<_MenuPricingViewBody> {
       final leave = await _askLeave();
       if (!mounted) return;
       if (leave) {
-        context.canPop() ? context.pop() : context.go('/my-places');
+        context.canPop() ? context.pop() : context.go('/more');
       }
       return;
     }
-    context.canPop() ? context.pop() : context.go('/my-places');
+    context.canPop() ? context.pop() : context.go('/more');
   }
 
   void _onMessage(BuildContext context, MenuPricingState state) {
@@ -167,7 +167,7 @@ class _MenuPricingViewBodyState extends State<_MenuPricingViewBody> {
         ..hideCurrentSnackBar()
         ..showSnackBar(SnackBar(content: Text(state.successMessage!)));
       cubit.dismissMessages();
-      context.canPop() ? context.pop() : context.go('/my-places');
+      context.canPop() ? context.pop() : context.go('/more');
     }
   }
 
@@ -185,7 +185,7 @@ class _MenuPricingViewBodyState extends State<_MenuPricingViewBody> {
           if (leave) {
             this.context.canPop()
                 ? this.context.pop()
-                : this.context.go('/my-places');
+                : this.context.go('/more');
           }
         },
         child: Scaffold(
