@@ -1,4 +1,5 @@
 import '../../../../core/errors/failures.dart';
+import '../../domain/entities/branch.dart';
 import '../../domain/entities/menu_item.dart';
 import '../../domain/entities/place.dart';
 import '../../domain/entities/sports_pricing.dart';
@@ -19,6 +20,7 @@ class PlaceDetailLoaded extends PlaceDetailState {
   final List<MenuItem>? menuItems;
   final List<SportsPricing>? sportsPricing;
   final List<Place> similarPlaces;
+  final List<Branch> branches;
 
   const PlaceDetailLoaded({
     required this.place,
@@ -28,6 +30,7 @@ class PlaceDetailLoaded extends PlaceDetailState {
     this.menuItems,
     this.sportsPricing,
     this.similarPlaces = const [],
+    this.branches = const [],
   });
 }
 

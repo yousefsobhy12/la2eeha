@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/network/supabase_client_provider.dart';
 import '../../../../core/extensions/search_normalizer_extension.dart';
 import '../models/area_model.dart';
+import '../models/branch_model.dart';
 import '../models/category_model.dart';
 import '../models/menu_item_model.dart';
 import '../models/place_model.dart';
@@ -133,6 +134,17 @@ class PlacesRemoteDataSource {
         .order('sort_order', ascending: true);
     return (response as List)
         .map((json) => MenuItemModel.fromJson(json))
+        .toList();
+  }
+
+  Future<List<BranchModel>> getBranches(int placeId) async {
+    final response = await supabase
+        .from('branches')
+        .select()
+        .eq('place_id', placeId)
+        .order('created_at', ascending: true);
+    return (response as List)
+        .map((json) => BranchModel.fromJson(json))
         .toList();
   }
 

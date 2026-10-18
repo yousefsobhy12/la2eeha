@@ -2,6 +2,7 @@ import 'package:dartz/dartz.dart';
 
 import '../../../../core/errors/failures.dart';
 import '../entities/area.dart';
+import '../entities/branch.dart';
 import '../entities/category.dart';
 import '../entities/menu_item.dart';
 import '../entities/place.dart';
@@ -32,6 +33,7 @@ abstract class PlacesRepository {
   });
   Future<Either<Failure, Place>> getPlaceDetails(int placeId);
   Future<Either<Failure, List<MenuItem>>> getMenuItems(int placeId);
+  Future<Either<Failure, List<Branch>>> getBranches(int placeId);
   Future<Either<Failure, List<SportsPricing>>> getSportsPricing(int placeId);
   Future<Either<Failure, List<Place>>> getSimilarPlaces({
     required int categoryId,

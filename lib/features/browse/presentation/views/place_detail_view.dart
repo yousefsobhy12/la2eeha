@@ -22,6 +22,7 @@ import '../../domain/entities/place.dart';
 import '../../domain/entities/place_open_status.dart';
 import '../cubit/place_detail_cubit.dart';
 import '../cubit/place_detail_state.dart';
+import '../widgets/branches_section.dart';
 import '../widgets/place_delivery_pill.dart';
 import '../widgets/place_open_status_pill.dart';
 import '../widgets/pricing_card.dart';
@@ -197,6 +198,15 @@ class _PlaceDetailBody extends StatelessWidget {
                   context,
                   place,
                 ).fadeSlideIn(delay: AppAnimations.stagger(animIndex++)),
+
+                if (state.branches.isNotEmpty) ...[
+                  context.largeSpacing.vSpace,
+                  BranchesSection(
+                    branches: state.branches,
+                    placePhone: place.phone,
+                    placeName: place.name,
+                  ).fadeSlideIn(delay: AppAnimations.stagger(animIndex++)),
+                ],
 
                 if (place.description != null &&
                     place.description!.isNotEmpty) ...[

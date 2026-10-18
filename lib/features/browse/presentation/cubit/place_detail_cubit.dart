@@ -7,6 +7,7 @@ import '../../../../core/errors/failures.dart';
 import '../../../../core/network/app_logger.dart';
 import '../../../../core/storage/daily_event_gate.dart';
 import '../../domain/entities/area.dart';
+import '../../domain/entities/branch.dart';
 import '../../domain/entities/category.dart';
 import '../../domain/entities/menu_item.dart';
 import '../../domain/entities/place.dart';
@@ -56,12 +57,14 @@ class PlaceDetailCubit extends Cubit<PlaceDetailState> {
       usesSportsPricing
           ? repository.getSportsPricing(placeId)
           : repository.getMenuItems(placeId),
+      repository.getBranches(placeId),
     ]);
 
     final categoriesEither = results[0] as Either<Failure, List<Category>>;
     final areasEither = results[1] as Either<Failure, List<Area>>;
     final similarPlacesEither = results[2] as Either<Failure, List<Place>>;
     final pricingEither = results[3];
+    final branchesEither = results[4] as Either<Failure, List<Branch>>;
 
     if (categoriesEither.isLeft()) {
       final failure = categoriesEither.fold((f) => f, (_) => null)!;
@@ -109,6 +112,11 @@ class PlaceDetailCubit extends Cubit<PlaceDetailState> {
       }, (items) => items);
     }
 
+    final branches = branchesEither.fold((failure) {
+      appLogger.w('Failed to load branches: ${failure.message}');
+      return <Branch>[];
+    }, (branches) => branches);
+
     emit(
       PlaceDetailLoaded(
         place: place,
@@ -118,6 +126,7 @@ class PlaceDetailCubit extends Cubit<PlaceDetailState> {
         menuItems: menuItems,
         sportsPricing: sportsPricing,
         similarPlaces: similarPlaces,
+        branches: branches,
       ),
     );
 

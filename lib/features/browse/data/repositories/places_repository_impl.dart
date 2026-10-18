@@ -3,6 +3,7 @@ import 'package:dartz/dartz.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/network/safe_supabase_call.dart';
 import '../../domain/entities/area.dart';
+import '../../domain/entities/branch.dart';
 import '../../domain/entities/category.dart';
 import '../../domain/entities/menu_item.dart';
 import '../../domain/entities/place.dart';
@@ -115,6 +116,14 @@ class PlacesRepositoryImpl implements PlacesRepository {
     return safeSupabaseCall(
       () => remoteDataSource.getMenuItems(placeId),
       callName: 'getMenuItems',
+    );
+  }
+
+  @override
+  Future<Either<Failure, List<Branch>>> getBranches(int placeId) {
+    return safeSupabaseCall(
+      () => remoteDataSource.getBranches(placeId),
+      callName: 'getBranches',
     );
   }
 
