@@ -1,11 +1,14 @@
 import 'dart:io';
 
 import 'package:dartz/dartz.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../core/errors/failures.dart';
 import '../../../../core/network/safe_supabase_call.dart';
+import '../../domain/entities/branch_draft.dart';
 import '../../domain/entities/editable_place.dart';
 import '../../domain/entities/menu_item_draft.dart';
+import '../../domain/entities/merchant_branch.dart';
 import '../../domain/entities/my_place_item.dart';
 import '../../domain/entities/my_place_summary.dart';
 import '../../domain/entities/place_change_item.dart';
@@ -81,6 +84,52 @@ class MerchantRepositoryImpl implements MerchantRepository {
     return safeSupabaseCall<bool>(
       () => remoteDataSource.isPlaceApproved(placeId),
       callName: 'MerchantRepository.isPlaceApproved',
+      onAuthException: (e) => AuthFailure.fromAuthException(e.message),
+    );
+  }
+
+  @override
+  Future<Either<Failure, List<MerchantBranch>>> getMyBranches({
+    required int placeId,
+  }) {
+    return safeSupabaseCall<List<MerchantBranch>>(
+      () => remoteDataSource.getMyBranches(placeId),
+      callName: 'MerchantRepository.getMyBranches',
+      onAuthException: (e) => AuthFailure.fromAuthException(e.message),
+    );
+  }
+
+  @override
+  Future<Either<Failure, void>> addBranch({
+    required int placeId,
+    required BranchDraft draft,
+  }) {
+    return safeSupabaseCall<void>(
+      () => remoteDataSource.addBranch(placeId: placeId, draft: draft),
+      callName: 'MerchantRepository.addBranch',
+      onAuthException: (e) => AuthFailure.fromAuthException(e.message),
+      onPostgrestException: _branchPostgrestFailure,
+    );
+  }
+
+  @override
+  Future<Either<Failure, void>> updateBranch({
+    required int branchId,
+    required BranchDraft draft,
+  }) {
+    return safeSupabaseCall<void>(
+      () => remoteDataSource.updateBranch(branchId: branchId, draft: draft),
+      callName: 'MerchantRepository.updateBranch',
+      onAuthException: (e) => AuthFailure.fromAuthException(e.message),
+      onPostgrestException: _branchPostgrestFailure,
+    );
+  }
+
+  @override
+  Future<Either<Failure, void>> deleteBranch({required int branchId}) {
+    return safeSupabaseCall<void>(
+      () => remoteDataSource.deleteBranch(branchId: branchId),
+      callName: 'MerchantRepository.deleteBranch',
       onAuthException: (e) => AuthFailure.fromAuthException(e.message),
     );
   }
@@ -197,4 +246,16 @@ class MerchantRepositoryImpl implements MerchantRepository {
       onAuthException: (e) => AuthFailure.fromAuthException(e.message),
     );
   }
+}
+
+Failure _branchPostgrestFailure(PostgrestException e) {
+  if (e.code == '23514') {
+    if (e.message.contains('violates check constraint')) {
+      return const ServerFailure(
+        'بيانات الفرع غير صحيحة، راجع العنوان والتليفون والرابط',
+      );
+    }
+    return const ServerFailure('وصلت للحد الأقصى: ١٠ فروع للمكان');
+  }
+  return ServerFailure(e.message);
 }

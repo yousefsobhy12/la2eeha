@@ -3,10 +3,13 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../../../core/extensions/digits_extension.dart';
 import '../../../../core/network/app_logger.dart';
 import '../../../../core/network/supabase_client_provider.dart';
+import '../../domain/entities/branch_draft.dart';
 import '../../domain/entities/editable_place.dart';
 import '../../domain/entities/menu_item_draft.dart';
+import '../../domain/entities/merchant_branch.dart';
 import '../../domain/entities/my_place_item.dart';
 import '../../domain/entities/my_place_summary.dart';
 import '../../domain/entities/place_change_item.dart';
@@ -185,6 +188,62 @@ class MerchantRemoteDataSource {
         .eq('owner_id', supabase.auth.currentUser!.id)
         .single();
     return response['is_approved'] as bool;
+  }
+
+  Future<List<MerchantBranch>> getMyBranches(int placeId) async {
+    final rows = await supabase
+        .from('branches')
+        .select(
+          'id,address,google_maps_link,phone,title,description,is_approved',
+        )
+        .eq('place_id', placeId)
+        .order('created_at', ascending: true);
+    return [
+      for (final r in rows)
+        MerchantBranch(
+          id: r['id'] as int,
+          address: r['address'] as String,
+          googleMapsLink: _normalizeBranchText(r['google_maps_link'] as String?),
+          phone: _normalizeBranchText(r['phone'] as String?),
+          title: _normalizeBranchText(r['title'] as String?),
+          description: _normalizeBranchText(r['description'] as String?),
+          isApproved: r['is_approved'] == true,
+        ),
+    ];
+  }
+
+  Future<void> addBranch({
+    required int placeId,
+    required BranchDraft draft,
+  }) async {
+    await supabase.from('branches').insert({
+      'place_id': placeId,
+      'address': draft.address.trim(),
+      'google_maps_link': _normalizeBranchText(draft.googleMapsLink),
+      'phone': _normalizeBranchText(draft.phone?.toWesternDigits()),
+      'title': _normalizeBranchText(draft.title),
+      'description': _normalizeBranchText(draft.description),
+    });
+  }
+
+  Future<void> updateBranch({
+    required int branchId,
+    required BranchDraft draft,
+  }) async {
+    await supabase
+        .from('branches')
+        .update({
+          'address': draft.address.trim(),
+          'google_maps_link': _normalizeBranchText(draft.googleMapsLink),
+          'phone': _normalizeBranchText(draft.phone?.toWesternDigits()),
+          'title': _normalizeBranchText(draft.title),
+          'description': _normalizeBranchText(draft.description),
+        })
+        .eq('id', branchId);
+  }
+
+  Future<void> deleteBranch({required int branchId}) async {
+    await supabase.from('branches').delete().eq('id', branchId);
   }
 
   Future<void> replaceMenuItems(int placeId, List<MenuItemDraft> items) async {
@@ -462,6 +521,12 @@ class MerchantRemoteDataSource {
 
   String _timeToHhMmSs(TimeOfDay time) {
     return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}:00';
+  }
+
+  String? _normalizeBranchText(String? value) {
+    final trimmed = value?.trim();
+    if (trimmed == null || trimmed.isEmpty) return null;
+    return trimmed;
   }
 
   TimeOfDay _parseHhMmSs(String value) {

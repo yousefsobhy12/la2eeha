@@ -10,6 +10,7 @@ import '../../domain/entities/my_place_item.dart';
 import '../../domain/entities/place_change_result.dart';
 import '../cubit/my_place_status.dart';
 import '../cubit/my_places_cubit.dart';
+import '../views/branches_args.dart';
 import '../views/pricing_args.dart';
 
 class MyPlaceCard extends StatelessWidget {
@@ -130,6 +131,8 @@ class MyPlaceCard extends StatelessWidget {
           ],
           8.vSpace,
           _buildEditButton(context),
+          8.vSpace,
+          _buildManageBranchesButton(context),
           if (showPricing) ...[
             8.vSpace,
             _buildPricingButton(context, screenType),
@@ -151,6 +154,20 @@ class MyPlaceCard extends StatelessWidget {
         await context.push('/place/${item.id}/edit');
         if (!cubit.isClosed) cubit.load(silent: true);
       },
+    );
+  }
+
+  Widget _buildManageBranchesButton(BuildContext context) {
+    return CustomElevatedButton(
+      text: 'إدارة الفروع',
+      isOutlined: true,
+      backgroundColor: context.colorScheme.primary,
+      height: context.buttonHeight,
+      borderRadius: context.largeRadius,
+      onPressed: () => context.push(
+        '/place/${item.id}/branches',
+        extra: BranchesArgs(placeId: item.id, placeName: item.name),
+      ),
     );
   }
 

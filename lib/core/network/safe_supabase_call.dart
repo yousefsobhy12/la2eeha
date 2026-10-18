@@ -12,6 +12,7 @@ Future<Either<Failure, T>> safeSupabaseCall<T>(
   Future<T> Function() call, {
   required String callName,
   Failure Function(AuthException e)? onAuthException,
+  Failure Function(PostgrestException e)? onPostgrestException,
 }) async {
   final isConnected = await networkInfo.isConnected;
   if (!isConnected) {
@@ -25,7 +26,11 @@ Future<Either<Failure, T>> safeSupabaseCall<T>(
     return Right(result);
   } on PostgrestException catch (e) {
     appLogger.e('[$callName] PostgrestException: ${e.message}');
-    return Left(ServerFailure(e.message));
+    return Left(
+      onPostgrestException != null
+          ? onPostgrestException(e)
+          : ServerFailure(e.message),
+    );
   } on AuthException catch (e) {
     appLogger.e('[$callName] AuthException: ${e.message}');
     return Left(

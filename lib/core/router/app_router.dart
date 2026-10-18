@@ -12,6 +12,8 @@ import '../../features/browse/presentation/views/place_detail_view.dart';
 import '../../features/browse/presentation/views/search_results_view.dart';
 import '../../features/favorites/presentation/views/favorites_view.dart';
 import '../../features/merchant/presentation/views/add_place_view.dart';
+import '../../features/merchant/presentation/views/branches_args.dart';
+import '../../features/merchant/presentation/views/manage_branches_view.dart';
 import '../../features/merchant/presentation/views/menu_pricing_view.dart';
 import '../../features/merchant/presentation/views/pricing_args.dart';
 import '../../features/merchant/presentation/views/sports_pricing_view.dart';
@@ -129,6 +131,15 @@ final GoRouter appRouter = GoRouter(
       path: '/place/:id/edit',
       builder: (context, state) =>
           AddPlaceView(placeId: int.parse(state.pathParameters['id']!)),
+    ),
+    GoRoute(
+      path: '/place/:id/branches',
+      builder: (context, state) {
+        final id = int.parse(state.pathParameters['id']!);
+        final args = state.extra;
+        if (args is BranchesArgs) return ManageBranchesView(args: args);
+        return PlaceDetailView(placeId: id);
+      },
     ),
   ],
 );
