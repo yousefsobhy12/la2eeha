@@ -99,8 +99,7 @@ class _AccountBody extends StatelessWidget {
           BlocBuilder<MyPlacesCubit, MyPlacesState>(
             builder: (context, state) {
               final user = Supabase.instance.client.auth.currentUser;
-              final metadata =
-                  user?.userMetadata ?? const <String, dynamic>{};
+              final metadata = user?.userMetadata ?? const <String, dynamic>{};
               final email = user?.email ?? '';
               final name =
                   (metadata['name'] as String?) ??
@@ -180,9 +179,12 @@ class _AccountBody extends StatelessWidget {
                               itemCount: loaded.places.length,
                               separatorBuilder: (context, index) =>
                                   context.smallSpacing.vSpace,
-                              itemBuilder: (context, index) => MyPlaceCard(
-                                item: loaded.places[index],
-                              ).fadeSlideIn(delay: AppAnimations.stagger(index)),
+                              itemBuilder: (context, index) =>
+                                  MyPlaceCard(
+                                    item: loaded.places[index],
+                                  ).fadeSlideIn(
+                                    delay: AppAnimations.stagger(index),
+                                  ),
                             ),
                           ),
                         ] else
@@ -223,9 +225,7 @@ class _AccountBody extends StatelessWidget {
                         ),
                       ),
                       SliverToBoxAdapter(
-                        child: SizedBox(
-                          height: context.extraLargeSpacing * 2,
-                        ),
+                        child: SizedBox(height: context.extraLargeSpacing * 2),
                       ),
                     ],
                   ),
@@ -304,7 +304,7 @@ class _AccountBody extends StatelessWidget {
             title: 'تواصل مع المطور',
             subtitle: 'اقتراح أو مشكلة في حسابك',
             trailing: Icon(
-              Icons.chevron_left_rounded,
+              Icons.chevron_right_rounded,
               color: context.textSecondary,
               size: context.smallIconSize,
             ),
@@ -376,10 +376,7 @@ class _SettingsRow extends StatelessWidget {
                 ],
               ),
             ),
-            if (trailing != null) ...[
-              context.smallSpacing.hSpace,
-              trailing!,
-            ],
+            if (trailing != null) ...[context.smallSpacing.hSpace, trailing!],
           ],
         ),
       ),
